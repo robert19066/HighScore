@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>HighScore – Manager</title>
+<title>HighScore v2 – Manager</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -10,310 +10,203 @@
     --panel: #14141f;
     --panel2: #1a1a28;
     --border: #252535;
-    --accent: #f0c040;
-    --accent2: #e03060;
     --green: #40c880;
     --orange: #f07030;
-    --blue: #4090f0;
+    --blue: #3090f8;
     --text: #e8e8f0;
     --dim: #707088;
-    --red: #e03060;
+    --red-team: #e83050;
+    --blue-team: #3090f8;
     --yellow: #f0c040;
+    --accent: #f0c040;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 15px;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    background:var(--bg);color:var(--text);
+    font-family:'Barlow Condensed',sans-serif;font-size:15px;
+    min-height:100vh;display:flex;flex-direction:column;
   }
 
   /* ---- TOP BAR ---- */
   #topbar {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 10px 20px;
-    background: var(--panel);
-    border-bottom: 2px solid var(--border);
-    flex-shrink: 0;
+    display:flex;align-items:center;gap:12px;padding:10px 18px;
+    background:var(--panel);border-bottom:2px solid var(--border);flex-shrink:0;
   }
   #topbar-logo {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.6rem;
-    letter-spacing: 0.15em;
-    color: var(--accent);
-    margin-right: 8px;
+    font-family:'Bebas Neue',sans-serif;font-size:1.5rem;
+    letter-spacing:0.15em;color:var(--accent);margin-right:6px;
   }
-  #topbar-logo span { color: var(--dim); }
+  #topbar-logo .sub { color:var(--dim);font-size:0.65rem;letter-spacing:0.1em; }
+  #topbar-logo .ver { color:var(--red-team);font-size:0.65rem;letter-spacing:0.1em; }
   .sport-btn {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.1rem;
-    letter-spacing: 0.15em;
-    padding: 6px 18px;
-    border: 1.5px solid var(--border);
-    background: transparent;
-    color: var(--dim);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.18s;
+    font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.15em;
+    padding:5px 16px;border:1.5px solid var(--border);background:transparent;
+    color:var(--dim);border-radius:4px;cursor:pointer;transition:all 0.18s;
   }
-  .sport-btn:hover { border-color: var(--accent); color: var(--text); }
-  .sport-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
-
+  .sport-btn:hover { border-color:var(--accent);color:var(--text); }
+  .sport-btn.active { background:var(--accent);color:#000;border-color:var(--accent); }
   #open-billboard-btn {
-    margin-left: auto;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 0.9rem;
-    letter-spacing: 0.15em;
-    padding: 6px 14px;
-    border: 1.5px solid var(--blue);
-    background: rgba(64,144,240,0.1);
-    color: var(--blue);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.18s;
+    margin-left:auto;font-family:'Bebas Neue',sans-serif;font-size:0.85rem;
+    letter-spacing:0.15em;padding:5px 12px;border:1.5px solid var(--blue-team);
+    background:rgba(48,144,248,0.08);color:var(--blue-team);
+    border-radius:4px;cursor:pointer;transition:all 0.18s;
   }
-  #open-billboard-btn:hover { background: var(--blue); color: #fff; }
+  #open-billboard-btn:hover { background:var(--blue-team);color:#fff; }
 
   /* ---- STATUS BAR ---- */
   #statusbar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 20px;
-    background: var(--panel2);
-    border-bottom: 1px solid var(--border);
-    font-size: 0.85rem;
-    letter-spacing: 0.12em;
-    flex-shrink: 0;
+    display:flex;align-items:center;gap:12px;padding:7px 18px;
+    background:var(--panel2);border-bottom:1px solid var(--border);
+    font-size:0.85rem;letter-spacing:0.12em;flex-shrink:0;
   }
   .status-tag {
-    padding: 2px 10px;
-    border-radius: 3px;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 0.85rem;
-    letter-spacing: 0.15em;
+    padding:2px 10px;border-radius:3px;font-family:'Bebas Neue',sans-serif;
+    font-size:0.82rem;letter-spacing:0.15em;
   }
-  .status-tag.live { background: rgba(64,200,128,0.15); color: var(--green); border: 1px solid rgba(64,200,128,0.3); }
-  .status-tag.waiting { background: var(--border); color: var(--dim); }
-  .status-tag.intermission { background: rgba(240,112,48,0.15); color: var(--orange); border: 1px solid rgba(240,112,48,0.3); }
-  .status-tag.ended { background: rgba(224,48,96,0.15); color: var(--red); border: 1px solid rgba(224,48,96,0.3); }
+  .status-tag.live { background:rgba(64,200,128,0.15);color:var(--green);border:1px solid rgba(64,200,128,0.3); }
+  .status-tag.waiting { background:var(--border);color:var(--dim); }
+  .status-tag.intermission { background:rgba(240,112,48,0.15);color:var(--orange);border:1px solid rgba(240,112,48,0.3); }
+  .status-tag.ended { background:rgba(232,48,80,0.15);color:var(--red-team);border:1px solid rgba(232,48,80,0.3); }
+  #timer-display { font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--accent);letter-spacing:0.05em; }
+  #round-display { font-family:'Bebas Neue',sans-serif;font-size:0.95rem;color:var(--dim);letter-spacing:0.15em; }
 
-  #timer-display {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.4rem;
-    color: var(--accent);
-    letter-spacing: 0.05em;
-  }
-
-  #round-display {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1rem;
-    color: var(--dim);
-    letter-spacing: 0.15em;
-  }
-
-  /* ---- MAIN CONTENT ---- */
-  #main {
-    display: flex;
-    flex: 1;
-    gap: 0;
-    overflow: hidden;
-  }
-
+  /* ---- MAIN ---- */
+  #main { display:flex;flex:1;overflow:hidden; }
   .side-panel {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 14px;
-    overflow-y: auto;
-    background: var(--bg);
+    flex:1;display:flex;flex-direction:column;gap:10px;
+    padding:14px;overflow-y:auto;
   }
-  .side-panel.right { background: #0b0b13; }
-
+  /* Red (A) side tint */
+  .side-panel.left { background:linear-gradient(to right, #100810, var(--bg) 50%); border-right:1px solid rgba(232,48,80,0.1); }
+  /* Blue (B) side tint */
+  .side-panel.right { background:linear-gradient(to left, #080f18, var(--bg) 50%); border-left:1px solid rgba(48,144,248,0.1); }
   .center-controls {
-    width: 240px;
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 14px;
-    background: var(--panel);
-    border-left: 1px solid var(--border);
-    border-right: 1px solid var(--border);
-    overflow-y: auto;
+    width:240px;flex-shrink:0;display:flex;flex-direction:column;gap:10px;
+    padding:14px;background:var(--panel);
+    border-left:1px solid var(--border);border-right:1px solid var(--border);overflow-y:auto;
   }
 
-  /* ---- CARDS / SECTIONS ---- */
-  .section {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    overflow: hidden;
+  /* ---- SECTION CARDS ---- */
+  .section { background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;
+    animation:sectionIn 0.25s ease-out both;
   }
-
+  @keyframes sectionIn { from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none} }
   .section-header {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 0.9rem;
-    letter-spacing: 0.2em;
-    color: var(--dim);
-    padding: 7px 12px;
-    background: var(--panel2);
-    border-bottom: 1px solid var(--border);
+    font-family:'Bebas Neue',sans-serif;font-size:0.85rem;letter-spacing:0.22em;
+    color:var(--dim);padding:7px 12px;background:var(--panel2);border-bottom:1px solid var(--border);
   }
-
-  .section-body {
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
+  /* colored header accent for team panels */
+  .left .section-header { border-left:3px solid var(--red-team); }
+  .right .section-header { border-left:3px solid var(--blue-team); }
+  .section-body { padding:12px;display:flex;flex-direction:column;gap:8px; }
 
   /* ---- SCORE BIG ---- */
   .score-display {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 4rem;
-    text-align: center;
-    color: var(--accent);
-    line-height: 1;
-    padding: 4px 0;
+    font-family:'Bebas Neue',sans-serif;font-size:4.5rem;
+    text-align:center;line-height:1;padding:4px 0;
+    transition:all 0.15s;
   }
+  .left .score-display { color:var(--red-team);text-shadow:0 0 30px rgba(232,48,80,0.4); }
+  .right .score-display { color:var(--blue-team);text-shadow:0 0 30px rgba(48,144,248,0.4); }
+  .score-display.pop { animation:scorePop 0.3s ease-out; }
+  @keyframes scorePop { 0%{transform:scale(1)}40%{transform:scale(1.1)}100%{transform:scale(1)} }
 
   /* ---- BUTTONS ---- */
   .btn {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1rem;
-    letter-spacing: 0.12em;
-    padding: 8px 14px;
-    border: 1.5px solid;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.15s;
-    text-align: center;
+    font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.12em;
+    padding:8px 14px;border:1.5px solid;border-radius:4px;cursor:pointer;
+    transition:all 0.15s;text-align:center;
   }
-  .btn:active { transform: scale(0.97); }
-  .btn-green { border-color: var(--green); color: var(--green); background: rgba(64,200,128,0.05); }
-  .btn-green:hover { background: var(--green); color: #000; }
-  .btn-red { border-color: var(--red); color: var(--red); background: rgba(224,48,96,0.05); }
-  .btn-red:hover { background: var(--red); color: #fff; }
-  .btn-accent { border-color: var(--accent); color: var(--accent); background: rgba(240,192,64,0.05); }
-  .btn-accent:hover { background: var(--accent); color: #000; }
-  .btn-orange { border-color: var(--orange); color: var(--orange); background: rgba(240,112,48,0.05); }
-  .btn-orange:hover { background: var(--orange); color: #000; }
-  .btn-blue { border-color: var(--blue); color: var(--blue); background: rgba(64,144,240,0.05); }
-  .btn-blue:hover { background: var(--blue); color: #fff; }
-  .btn-dim { border-color: var(--border); color: var(--dim); background: transparent; }
-  .btn-dim:hover { border-color: var(--dim); color: var(--text); }
-  .btn.full { width: 100%; }
-  .btn.big { font-size: 1.2rem; padding: 12px 16px; }
-  .btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
-
-  .btn-row { display: flex; gap: 6px; }
-  .btn-row .btn { flex: 1; }
+  .btn:active { transform:scale(0.96); }
+  .btn-green { border-color:var(--green);color:var(--green);background:rgba(64,200,128,0.05); }
+  .btn-green:hover { background:var(--green);color:#000; }
+  .btn-red { border-color:var(--red-team);color:var(--red-team);background:rgba(232,48,80,0.05); }
+  .btn-red:hover { background:var(--red-team);color:#fff; }
+  .btn-accent { border-color:var(--accent);color:var(--accent);background:rgba(240,192,64,0.05); }
+  .btn-accent:hover { background:var(--accent);color:#000; }
+  .btn-orange { border-color:var(--orange);color:var(--orange);background:rgba(240,112,48,0.05); }
+  .btn-orange:hover { background:var(--orange);color:#000; }
+  .btn-blue { border-color:var(--blue-team);color:var(--blue-team);background:rgba(48,144,248,0.05); }
+  .btn-blue:hover { background:var(--blue-team);color:#fff; }
+  .btn-dim { border-color:var(--border);color:var(--dim);background:transparent; }
+  .btn-dim:hover { border-color:var(--dim);color:var(--text); }
+  .btn.full { width:100%; }
+  .btn.big { font-size:1.2rem;padding:12px 16px; }
+  .btn:disabled { opacity:0.3;cursor:not-allowed;pointer-events:none; }
+  .btn-row { display:flex;gap:6px; }
+  .btn-row .btn { flex:1; }
 
   /* ---- INPUTS ---- */
   input[type="text"], input[type="number"] {
-    background: var(--panel2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1rem;
-    padding: 7px 10px;
-    border-radius: 4px;
-    width: 100%;
-    outline: none;
-    transition: border-color 0.15s;
+    background:var(--panel2);border:1px solid var(--border);color:var(--text);
+    font-family:'Barlow Condensed',sans-serif;font-size:1rem;
+    padding:7px 10px;border-radius:4px;width:100%;outline:none;transition:border-color 0.15s;
   }
-  input:focus { border-color: var(--accent); }
+  input:focus { border-color:var(--accent); }
   label {
-    font-size: 0.8rem;
-    letter-spacing: 0.12em;
-    color: var(--dim);
-    display: block;
-    margin-bottom: 3px;
-    text-transform: uppercase;
+    font-size:0.78rem;letter-spacing:0.12em;color:var(--dim);
+    display:block;margin-bottom:3px;text-transform:uppercase;
   }
 
   /* ---- PLAYER ROWS ---- */
   .player-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--panel2);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 6px 10px;
+    display:flex;align-items:center;gap:7px;background:var(--panel2);
+    border:1px solid var(--border);border-radius:4px;padding:5px 8px;
+    animation:sectionIn 0.2s ease-out both;
   }
-  .player-row .p-name { flex: 1; font-size: 1rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .foul-count {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.1rem;
-    color: var(--orange);
-    min-width: 20px;
-    text-align: center;
+  .player-row .p-name { flex:1;font-size:1rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+  .foul-count { font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--orange);min-width:22px;text-align:center; }
+  .foul-count.out { color:var(--red-team); }
+  .player-row .btn { padding:3px 7px;font-size:0.82rem; }
+
+  /* Player name inline edit */
+  .player-name-input {
+    flex:1;background:transparent;border:none;border-bottom:1px solid var(--accent);
+    color:var(--text);font-family:'Barlow Condensed',sans-serif;font-size:1rem;
+    font-weight:600;outline:none;padding:1px 2px;min-width:0;
   }
-  .foul-count.out { color: var(--red); }
-  .player-row .btn { padding: 3px 8px; font-size: 0.85rem; }
 
   /* ---- DIVIDER ---- */
-  .divider { border: none; border-top: 1px solid var(--border); margin: 2px 0; }
+  .divider { border:none;border-top:1px solid var(--border);margin:2px 0; }
 
-  /* ---- CONFIRM MODAL ---- */
+  /* ---- MODAL ---- */
   #modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 200;
-    align-items: center;
-    justify-content: center;
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);
+    z-index:200;align-items:center;justify-content:center;
+    backdrop-filter:blur(4px);
   }
-  #modal-overlay.show { display: flex; }
+  #modal-overlay.show { display:flex;animation:fadeIn 0.2s ease; }
+  @keyframes fadeIn { from{opacity:0}to{opacity:1} }
   #modal-box {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 28px 32px;
-    max-width: 360px;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
+    background:var(--panel);border:1px solid var(--border);border-radius:8px;
+    padding:28px 32px;max-width:360px;text-align:center;
+    display:flex;flex-direction:column;gap:14px;
+    animation:modalIn 0.2s ease;
   }
-  #modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 0.1em; }
-  #modal-body { font-size: 0.95rem; color: var(--dim); }
-  #modal-actions { display: flex; gap: 10px; }
+  @keyframes modalIn { from{transform:scale(0.92)}to{transform:scale(1)} }
+  #modal-title { font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:0.1em; }
+  #modal-body { font-size:0.95rem;color:var(--dim); }
+  #modal-actions { display:flex;gap:10px; }
 
-  /* ---- YELLOW/RED CARD DISPLAY ---- */
-  .cards-preview {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    align-items: center;
-    min-height: 28px;
-  }
-  .card-chip {
-    width: 16px; height: 22px;
-    border-radius: 2px;
-    display: inline-block;
-  }
-  .card-chip.y { background: var(--yellow); }
-  .card-chip.r { background: var(--red); }
+  /* ---- FOOTBALL CARDS ---- */
+  .cards-preview { display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-height:28px; }
+  .card-chip { width:16px;height:22px;border-radius:2px;display:inline-block; }
+  .card-chip.y { background:var(--yellow); }
+  .card-chip.r { background:var(--red-team); }
 
   /* scrollbar */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-thumb { background:var(--border);border-radius:2px; }
 </style>
 </head>
 <body>
 
 <div id="topbar">
-  <div id="topbar-logo">HIGH<span>SCORE</span> <span style="font-size:0.7rem;color:var(--dim);letter-spacing:0.1em">MANAGER</span></div>
+  <div id="topbar-logo">
+    HIGH<span style="color:var(--accent)">SCORE</span>
+    <span class="ver"> v2</span>
+    <span class="sub"> MANAGER</span>
+  </div>
   <button class="sport-btn active" onclick="setSport('basketball')">🏀 Basketball</button>
   <button class="sport-btn" onclick="setSport('football')">⚽ Football</button>
   <button class="sport-btn" onclick="setSport('handball')">🤾 Handball</button>
@@ -324,21 +217,15 @@
   <span id="status-tag" class="status-tag waiting">WAITING</span>
   <span id="timer-display">—:—</span>
   <span id="round-display"></span>
-  <span style="margin-left:auto;color:var(--dim);font-size:0.8rem;">Auto-saves every 200ms to Billboard</span>
+  <span style="margin-left:auto;color:var(--dim);font-size:0.78rem;letter-spacing:0.08em">Auto-saves to Billboard</span>
 </div>
 
 <div id="main">
-  <!-- LEFT: TEAM A -->
-  <div class="side-panel" id="panel-left"></div>
-
-  <!-- CENTER: CONTROLS -->
+  <div class="side-panel left" id="panel-left"></div>
   <div class="center-controls" id="panel-center"></div>
-
-  <!-- RIGHT: TEAM B -->
   <div class="side-panel right" id="panel-right"></div>
 </div>
 
-<!-- Modal -->
 <div id="modal-overlay">
   <div id="modal-box">
     <div id="modal-title">CONFIRM</div>
@@ -355,18 +242,12 @@
 //  STATE
 // ============================================================
 const DEFAULT_STATE = {
-  sport: 'basketball',
-  teamA: { name: 'TEAM A', score: 0, yellowCards: 0, players: [] },
-  teamB: { name: 'TEAM B', score: 0, yellowCards: 0, players: [] },
-  round: 1,
-  totalRounds: 4,
-  roundMinutes: 15,
-  intermissionMinutes: 15,
-  timerSeconds: 900,
-  intermissionSeconds: 900,
-  matchRunning: false,
-  intermissionRunning: false,
-  matchEnded: false
+  sport:'basketball',
+  teamA:{name:'TEAM A',score:0,yellowCards:0,players:[]},
+  teamB:{name:'TEAM B',score:0,yellowCards:0,players:[]},
+  round:1,totalRounds:4,roundMinutes:15,intermissionMinutes:15,
+  timerSeconds:900,intermissionSeconds:900,
+  matchRunning:false,intermissionRunning:false,matchEnded:false
 };
 
 let S = JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -387,20 +268,13 @@ function startTimer() {
       S.intermissionSeconds = Math.max(0, S.intermissionSeconds - 1);
       if (S.intermissionSeconds <= 0) {
         S.intermissionRunning = false;
-        startMatch();
-        return;
+        startMatch(); return;
       }
     } else if (S.matchRunning) {
       S.timerSeconds = Math.max(0, S.timerSeconds - 1);
       if (S.timerSeconds <= 0) {
         S.matchRunning = false;
-        // auto end round
-        if (S.sport === 'basketball' && S.round < 4) {
-          // wait for manager to start next round
-        } else if (S.sport === 'football' && S.round < 2) {
-          // wait
-        }
-        if ((S.sport === 'basketball' && S.round >= 4) || (S.sport === 'football' && S.round >= 2)) {
+        if ((S.sport==='basketball' && S.round>=4) || (S.sport==='football' && S.round>=2) || S.sport==='handball') {
           S.matchEnded = true;
         }
         clearInterval(timerInterval);
@@ -435,15 +309,15 @@ function setSport(sport) {
   S.teamB.players = S.teamB.players || [];
   S.round = 1;
   S.matchRunning = false; S.intermissionRunning = false; S.matchEnded = false;
-  S.totalRounds = sport === 'football' ? 2 : 4;
-  S.roundMinutes = sport === 'basketball' ? 15 : sport === 'football' ? 45 : 30;
+  S.totalRounds = sport==='football' ? 2 : 4;
+  S.roundMinutes = sport==='basketball' ? 15 : sport==='football' ? 45 : 30;
   S.intermissionMinutes = 15;
   S.timerSeconds = S.roundMinutes * 60;
   S.intermissionSeconds = S.intermissionMinutes * 60;
   stopTimer();
   save();
   document.querySelectorAll('.sport-btn').forEach((b,i) => {
-    b.classList.toggle('active', ['basketball','football','handball'][i] === sport);
+    b.classList.toggle('active', ['basketball','football','handball'][i]===sport);
   });
   renderAll();
 }
@@ -451,18 +325,12 @@ function setSport(sport) {
 // ============================================================
 //  RENDER
 // ============================================================
-function renderAll() {
-  renderLeft();
-  renderRight();
-  renderCenter();
-  renderStatus();
-}
+function renderAll() { renderLeft(); renderRight(); renderCenter(); renderStatus(); }
 
 function renderStatus() {
-  const t = $('timer-display');
   const secs = S.intermissionRunning ? S.intermissionSeconds : S.timerSeconds;
   const m = Math.floor(secs/60), s = secs%60;
-  t.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  $('timer-display').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 
   const tag = $('status-tag');
   if (S.matchEnded) { tag.textContent='FINAL'; tag.className='status-tag ended'; }
@@ -471,27 +339,29 @@ function renderStatus() {
   else { tag.textContent='WAITING'; tag.className='status-tag waiting'; }
 
   const rd = $('round-display');
-  if (S.sport === 'basketball') rd.textContent = `QUARTER ${S.round}/4`;
-  else if (S.sport === 'football') rd.textContent = `HALF ${S.round}/2`;
+  if (S.sport==='basketball') rd.textContent = `Q${S.round}/4`;
+  else if (S.sport==='football') rd.textContent = `H${S.round}/2`;
   else rd.textContent = '';
 }
 
-function renderLeft() { renderTeamPanel('a', $('panel-left')); }
+function renderLeft()  { renderTeamPanel('a', $('panel-left')); }
 function renderRight() { renderTeamPanel('b', $('panel-right')); }
 
 function renderTeamPanel(side, container) {
-  const team = side === 'a' ? S.teamA : S.teamB;
-  const label = side === 'a' ? 'TEAM A' : 'TEAM B';
+  const team = side==='a' ? S.teamA : S.teamB;
+  const label = side==='a' ? 'TEAM A' : 'TEAM B';
   container.innerHTML = '';
 
   // Name
   container.appendChild(sectionHtml(`${label} — NAME`, `
     <label>Team Name</label>
-    <input type="text" id="name-${side}" value="${esc(team.name)}" placeholder="Team name" oninput="S.team${side.toUpperCase()}.name=this.value;save()">
+    <input type="text" id="name-${side}" value="${esc(team.name)}"
+      placeholder="Team name"
+      oninput="S.team${side.toUpperCase()}.name=this.value;save()">
   `));
 
   // Score
-  container.appendChild(sectionHtml(`${label} — SCORE`, `
+  const scoreSection = sectionHtml(`${label} — SCORE`, `
     <div class="score-display" id="score-disp-${side}">${team.score}</div>
     <div class="btn-row">
       <button class="btn btn-green" onclick="addScore('${side}',1)">+1</button>
@@ -500,14 +370,15 @@ function renderTeamPanel(side, container) {
       <button class="btn btn-red" onclick="addScore('${side}',-1)">-1</button>
     </div>
     <button class="btn btn-dim full" onclick="resetScore('${side}')">RESET SCORE</button>
-  `));
+  `);
+  container.appendChild(scoreSection);
 
-  if (S.sport === 'basketball') renderBasketballPanel(side, team, container);
-  if (S.sport === 'football') renderFootballPanel(side, team, container);
+  if (S.sport==='basketball') renderBasketballPanel(side, team, container);
+  if (S.sport==='football')   renderFootballPanel(side, team, container);
 }
 
 function renderBasketballPanel(side, team, container) {
-  // Player count
+  // Player count config
   container.appendChild(sectionHtml('PLAYERS — CONFIG', `
     <label>Number of Players</label>
     <div class="btn-row">
@@ -516,21 +387,63 @@ function renderBasketballPanel(side, team, container) {
     </div>
   `));
 
-  // Players list
-  if (team.players.length > 0) {
-    let rows = team.players.map((p,i) => {
-      const fouls = p.fouls||0;
-      const out = fouls >= 5;
-      return `<div class="player-row">
-        <span class="p-name">${esc(p.name||`P${i+1}`)}</span>
-        <span class="foul-count${out?' out':''}">${fouls}F</span>
-        <button class="btn btn-dim" onclick="setPlayerName('${side}',${i})">✎</button>
-        <button class="btn btn-orange" onclick="addFoul('${side}',${i},1)" ${out?'disabled':''}>+F</button>
-        <button class="btn btn-dim" onclick="addFoul('${side}',${i},-1)" ${fouls<=0?'disabled':''}>-F</button>
-      </div>`;
-    }).join('');
-    container.appendChild(sectionHtml('PLAYERS — FOULS', rows));
-  }
+  if (team.players.length === 0) return;
+
+  // Players list — use inline editing for names (no prompt)
+  const section = document.createElement('div');
+  section.className = 'section';
+  section.innerHTML = `<div class="section-header">PLAYERS — FOULS</div>`;
+  const body = document.createElement('div');
+  body.className = 'section-body';
+
+  team.players.forEach((p,i) => {
+    const fouls = p.fouls || 0;
+    const out = fouls >= 5;
+
+    const row = document.createElement('div');
+    row.className = 'player-row';
+    row.style.animationDelay = (i*0.04)+'s';
+
+    // Inline name input
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.className = 'player-name-input';
+    nameInput.value = p.name || `P${i+1}`;
+    nameInput.placeholder = `P${i+1}`;
+    nameInput.title = 'Click to edit player name';
+    nameInput.oninput = (e) => {
+      const t = side==='a' ? S.teamA : S.teamB;
+      t.players[i].name = e.target.value.trim() || `P${i+1}`;
+      save();
+      // Don't re-render — just save so billboard updates
+    };
+    nameInput.onblur = () => { save(); };
+
+    const foulSpan = document.createElement('span');
+    foulSpan.className = 'foul-count' + (out?' out':'');
+    foulSpan.textContent = fouls + 'F';
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'btn btn-orange';
+    addBtn.textContent = '+F';
+    if (out) addBtn.disabled = true;
+    addBtn.onclick = () => addFoul(side, i, 1);
+
+    const subBtn = document.createElement('button');
+    subBtn.className = 'btn btn-dim';
+    subBtn.textContent = '-F';
+    if (fouls <= 0) subBtn.disabled = true;
+    subBtn.onclick = () => addFoul(side, i, -1);
+
+    row.appendChild(nameInput);
+    row.appendChild(foulSpan);
+    row.appendChild(addBtn);
+    row.appendChild(subBtn);
+    body.appendChild(row);
+  });
+
+  section.appendChild(body);
+  container.appendChild(section);
 }
 
 function renderFootballPanel(side, team, container) {
@@ -538,13 +451,13 @@ function renderFootballPanel(side, team, container) {
   const reds = Math.floor(y/3);
   const remaining = y%3;
   let chips = '';
-  for(let r=0;r<reds;r++) chips += `<span class="card-chip r"></span>`;
-  for(let yy=0;yy<remaining;yy++) chips += `<span class="card-chip y"></span>`;
-  if (!chips) chips = '<span style="color:var(--dim);font-size:0.85rem">No cards</span>';
+  for(let r=0;r<reds;r++) chips+=`<span class="card-chip r"></span>`;
+  for(let yy=0;yy<remaining;yy++) chips+=`<span class="card-chip y"></span>`;
+  if (!chips) chips='<span style="color:var(--dim);font-size:0.85rem">No cards</span>';
 
   container.appendChild(sectionHtml('YELLOW CARDS', `
     <div class="cards-preview">${chips}</div>
-    <div style="font-size:0.8rem;color:var(--dim);margin-top:2px">${y} yellow (${reds} red, ${remaining} pending)</div>
+    <div style="font-size:0.78rem;color:var(--dim);margin-top:2px">${y} yellow (${reds} red, ${remaining} pending)</div>
     <div class="btn-row">
       <button class="btn btn-orange" onclick="addYellow('${side}',1)">+ YELLOW</button>
       <button class="btn btn-dim" onclick="addYellow('${side}',-1)" ${y<=0?'disabled':''}>- YELLOW</button>
@@ -562,10 +475,10 @@ function renderCenter() {
     if (!S.matchRunning && !S.intermissionRunning) {
       c.appendChild(makeBtn('▶ START MATCH', 'btn btn-green big full', () => startMatch()));
     } else if (S.matchRunning) {
-      c.appendChild(makeBtn('⏸ PAUSE MATCH', 'btn btn-orange big full', () => {
+      c.appendChild(makeBtn('⏸ PAUSE', 'btn btn-orange big full', () => {
         S.matchRunning = false; stopTimer(); save(); renderAll();
       }));
-      c.appendChild(makeBtn('⏹ STOP MATCH', 'btn btn-red full', () => {
+      c.appendChild(makeBtn('⏹ STOP', 'btn btn-red full', () => {
         S.matchRunning = false; stopTimer(); save(); renderAll();
       }));
     } else if (S.intermissionRunning) {
@@ -575,19 +488,21 @@ function renderCenter() {
     }
 
     if (!S.matchRunning && !S.intermissionRunning) {
+      c.appendChild(makeBtn('▶ RESUME', 'btn btn-green full', () => {
+        S.matchRunning = true; S.timerSeconds = S.timerSeconds || S.roundMinutes * 60;
+        startTimer(); save(); renderAll();
+      }));
       c.appendChild(makeBtn('☕ START INTERMISSION', 'btn btn-orange full', () => {
-        S.intermissionRunning = true;
-        S.matchRunning = false;
+        S.intermissionRunning = true; S.matchRunning = false;
         S.intermissionSeconds = S.intermissionMinutes * 60;
-        startTimer();
-        save(); renderAll();
+        startTimer(); save(); renderAll();
       }));
     }
   }
 
   // ROUND CONFIG
-  if (S.sport === 'basketball' || S.sport === 'football') {
-    const maxRounds = S.sport === 'basketball' ? 4 : 2;
+  if (S.sport==='basketball' || S.sport==='football') {
+    const maxRounds = S.sport==='basketball' ? 4 : 2;
     c.appendChild(sectionHtml('ROUND', `
       <div style="text-align:center;font-family:'Bebas Neue',sans-serif;font-size:2.5rem;color:var(--accent)">${S.round}</div>
       <div class="btn-row">
@@ -605,7 +520,6 @@ function renderCenter() {
     `));
   }
 
-  // INTERMISSION TIME (for all sports)
   c.appendChild(sectionHtml('INTERMISSION TIME', `
     <label>Minutes</label>
     <div class="btn-row">
@@ -614,7 +528,6 @@ function renderCenter() {
     </div>
   `));
 
-  // NEW MATCH
   c.appendChild(sectionHtml('MATCH', `
     <button class="btn btn-red full" onclick="confirmReset()">↺ NEW MATCH</button>
   `));
@@ -635,32 +548,33 @@ function sectionHtml(title, bodyHtml) {
 
 function makeBtn(text, cls, fn) {
   const b = document.createElement('button');
-  b.className = cls;
-  b.innerHTML = text;
-  b.onclick = fn;
+  b.className = cls; b.innerHTML = text; b.onclick = fn;
   return b;
 }
 
 function addScore(side, delta) {
-  const t = side === 'a' ? S.teamA : S.teamB;
+  const t = side==='a' ? S.teamA : S.teamB;
   t.score = Math.max(0, t.score + delta);
+  // animate score display
+  const d = $(`score-disp-${side}`);
+  if (d) { d.classList.remove('pop'); void d.offsetWidth; d.classList.add('pop'); }
   save(); renderLeft(); renderRight();
 }
 
 function resetScore(side) {
-  const t = side === 'a' ? S.teamA : S.teamB;
+  const t = side==='a' ? S.teamA : S.teamB;
   t.score = 0;
   save(); renderLeft(); renderRight();
 }
 
 function addYellow(side, delta) {
-  const t = side === 'a' ? S.teamA : S.teamB;
+  const t = side==='a' ? S.teamA : S.teamB;
   t.yellowCards = Math.max(0, (t.yellowCards||0) + delta);
   save(); renderLeft(); renderRight();
 }
 
 function resetCards(side) {
-  const t = side === 'a' ? S.teamA : S.teamB;
+  const t = side==='a' ? S.teamA : S.teamB;
   t.yellowCards = 0;
   save(); renderLeft(); renderRight();
 }
@@ -668,32 +582,26 @@ function resetCards(side) {
 function setPlayerCount(side) {
   const input = document.getElementById(`pcount-${side}`);
   const n = Math.max(1, Math.min(15, parseInt(input.value)||1));
-  const t = side === 'a' ? S.teamA : S.teamB;
+  const t = side==='a' ? S.teamA : S.teamB;
   const cur = t.players.length;
   if (n > cur) {
-    for (let i = cur; i < n; i++) t.players.push({ name: `P${i+1}`, fouls: 0 });
+    for (let i=cur; i<n; i++) t.players.push({name:`P${i+1}`,fouls:0});
   } else {
     t.players = t.players.slice(0, n);
   }
   save(); renderLeft(); renderRight();
 }
 
-function setPlayerName(side, idx) {
-  const t = side === 'a' ? S.teamA : S.teamB;
-  const name = prompt('Enter player name:', t.players[idx].name);
-  if (name !== null) { t.players[idx].name = name.trim() || `P${idx+1}`; }
-  save(); renderLeft(); renderRight();
-}
-
+// Player name is now handled inline via input oninput — no prompt needed
 function addFoul(side, idx, delta) {
-  const t = side === 'a' ? S.teamA : S.teamB;
+  const t = side==='a' ? S.teamA : S.teamB;
   t.players[idx].fouls = Math.max(0, Math.min(5, (t.players[idx].fouls||0) + delta));
   save(); renderLeft(); renderRight();
 }
 
 function changeRound(delta) {
-  const max = S.sport === 'basketball' ? 4 : 2;
-  S.round = Math.max(1, Math.min(max, S.round + delta));
+  const max = S.sport==='basketball' ? 4 : 2;
+  S.round = Math.max(1, Math.min(max, S.round+delta));
   S.timerSeconds = S.roundMinutes * 60;
   S.matchRunning = false; stopTimer();
   save(); renderAll();
@@ -719,17 +627,15 @@ function confirmReset() {
     const sport = S.sport;
     S = JSON.parse(JSON.stringify(DEFAULT_STATE));
     S.sport = sport;
-    S.totalRounds = sport === 'football' ? 2 : 4;
-    S.roundMinutes = sport === 'basketball' ? 15 : sport === 'football' ? 45 : 30;
+    S.totalRounds = sport==='football' ? 2 : 4;
+    S.roundMinutes = sport==='basketball' ? 15 : sport==='football' ? 45 : 30;
     S.timerSeconds = S.roundMinutes * 60;
-    save();
-    renderAll();
+    save(); renderAll();
   });
 }
 
 function openBillboard() {
-  window.open('billboard.html', 'HighScore_Billboard',
-    'width=1280,height=720,toolbar=no,menubar=no,scrollbars=no');
+  window.open('billboard.html', 'HighScore_Billboard', 'width=1280,height=720,toolbar=no,menubar=no,scrollbars=no');
 }
 
 // ============================================================
@@ -752,7 +658,7 @@ try {
 } catch(e) {}
 
 document.querySelectorAll('.sport-btn').forEach((b,i) => {
-  b.classList.toggle('active', ['basketball','football','handball'][i] === S.sport);
+  b.classList.toggle('active', ['basketball','football','handball'][i]===S.sport);
 });
 
 renderAll();

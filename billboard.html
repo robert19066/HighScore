@@ -2,24 +2,29 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>HighScore – Billboard</title>
+<title>HighScore v2 – Billboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0a0f;
-    --panel: #12121a;
-    --border: #1e1e2e;
-    --accent: #f0c040;
-    --accent2: #e03060;
-    --text: #f0f0f5;
-    --dim: #606070;
-    --green: #40c880;
-    --red: #e03060;
-    --yellow: #f0c040;
+    --bg: #080810;
+    --panel: #10101a;
+    --border: #1c1c2c;
+    --text: #f0f0f8;
+    --dim: #505068;
+    --green: #40d890;
     --orange: #f07030;
+    --yellow: #f0c040;
+
+    /* Team colors */
+    --red-team: #e83050;
+    --red-glow: rgba(232,48,80,0.5);
+    --red-dim: rgba(232,48,80,0.15);
+    --blue-team: #3090f8;
+    --blue-glow: rgba(48,144,248,0.5);
+    --blue-dim: rgba(48,144,248,0.15);
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin:0; padding:0; box-sizing:border-box; }
 
   body {
     background: var(--bg);
@@ -32,302 +37,342 @@
     position: relative;
   }
 
-  /* scanline overlay */
+  /* scanlines */
   body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.07) 3px, rgba(0,0,0,0.07) 4px);
-    pointer-events: none;
-    z-index: 100;
+    content:'';
+    position:fixed;inset:0;
+    background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.06) 3px,rgba(0,0,0,0.06) 4px);
+    pointer-events:none;z-index:100;
   }
-
   /* vignette */
   body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.7) 100%);
-    pointer-events: none;
-    z-index: 99;
+    content:'';
+    position:fixed;inset:0;
+    background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,0.75) 100%);
+    pointer-events:none;z-index:99;
   }
 
+  /* ========= SPORT BADGE ========= */
   #sport-badge {
-    position: absolute;
-    top: 18px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.1rem;
-    letter-spacing: 0.3em;
-    color: var(--dim);
-    z-index: 10;
+    position:absolute;top:14px;left:50%;transform:translateX(-50%);
+    font-family:'Bebas Neue',sans-serif;font-size:0.95rem;
+    letter-spacing:0.35em;color:var(--dim);z-index:10;
+    white-space:nowrap;
   }
 
-  /* ========== MAIN SCOREBOARD ========== */
+  /* ========= SCOREBOARD ========= */
   #scoreboard {
-    display: flex;
-    align-items: stretch;
-    justify-content: center;
-    flex: 1;
-    gap: 0;
-    padding: 48px 0 0;
+    display:flex;align-items:stretch;justify-content:center;flex:1;
+    padding:48px 0 0;
   }
 
   .team-block {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    flex: 1;
-    padding: 32px 24px;
-    position: relative;
+    display:flex;flex-direction:column;align-items:center;
+    justify-content:flex-start;flex:1;padding:32px 24px;position:relative;
+    overflow:hidden;
+    transition:background 0.5s;
   }
 
-  .team-block.left { background: linear-gradient(135deg, #0e1020 0%, #0a0a0f 100%); }
-  .team-block.right { background: linear-gradient(225deg, #0e1020 0%, #0a0a0f 100%); }
+  /* Red (A) side */
+  .team-block.left {
+    background:linear-gradient(135deg, #140810 0%, var(--bg) 60%);
+  }
+  .team-block.left::before {
+    content:'';position:absolute;top:-40%;left:-20%;
+    width:60%;height:60%;
+    background:radial-gradient(ellipse,rgba(232,48,80,0.08) 0%,transparent 70%);
+    pointer-events:none;animation:ambientPulse 4s ease-in-out infinite;
+  }
+
+  /* Blue (B) side */
+  .team-block.right {
+    background:linear-gradient(225deg,#08101a 0%,var(--bg) 60%);
+  }
+  .team-block.right::before {
+    content:'';position:absolute;top:-40%;right:-20%;
+    width:60%;height:60%;
+    background:radial-gradient(ellipse,rgba(48,144,248,0.08) 0%,transparent 70%);
+    pointer-events:none;animation:ambientPulse 4s ease-in-out infinite reverse;
+  }
+
+  @keyframes ambientPulse { 0%,100%{opacity:0.7} 50%{opacity:1.3} }
+
+  /* colored accent stripe on inner edge */
+  .team-block.left::after {
+    content:'';position:absolute;top:0;right:0;width:2px;height:100%;
+    background:linear-gradient(to bottom,transparent,var(--red-team),transparent);
+    opacity:0.4;
+  }
+  .team-block.right::after {
+    content:'';position:absolute;top:0;left:0;width:2px;height:100%;
+    background:linear-gradient(to bottom,transparent,var(--blue-team),transparent);
+    opacity:0.4;
+  }
 
   .team-name {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(2.5rem, 6vw, 5rem);
-    letter-spacing: 0.05em;
-    color: var(--text);
-    text-align: center;
-    text-shadow: 0 0 40px rgba(240,192,64,0.2);
-    line-height: 1;
-    margin-bottom: 12px;
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(2.5rem,6vw,4.5rem);
+    letter-spacing:0.06em;line-height:1;
+    text-align:center;margin-bottom:10px;
+    transition:all 0.3s;
+  }
+  .team-block.left .team-name {
+    color:var(--red-team);
+    text-shadow:0 0 40px var(--red-glow);
+  }
+  .team-block.right .team-name {
+    color:var(--blue-team);
+    text-shadow:0 0 40px var(--blue-glow);
   }
 
   .team-score {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(6rem, 18vw, 14rem);
-    line-height: 1;
-    color: var(--accent);
-    text-shadow: 0 0 80px rgba(240,192,64,0.4), 0 0 20px rgba(240,192,64,0.6);
-    transition: all 0.2s;
-    position: relative;
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(7rem,19vw,15rem);
+    line-height:0.9;
+    transition:all 0.2s;
+    position:relative;
+  }
+  .team-block.left .team-score {
+    color:var(--red-team);
+    text-shadow:0 0 80px var(--red-glow), 0 0 20px rgba(232,48,80,0.4);
+  }
+  .team-block.right .team-score {
+    color:var(--blue-team);
+    text-shadow:0 0 80px var(--blue-glow), 0 0 20px rgba(48,144,248,0.4);
   }
 
-  .team-score.bump {
-    animation: scoreBump 0.35s ease-out;
-  }
+  .team-score.bump { animation:scoreBump 0.4s ease-out; }
   @keyframes scoreBump {
-    0% { transform: scale(1); }
-    40% { transform: scale(1.12); color: #fff; text-shadow: 0 0 120px rgba(255,255,255,0.8); }
-    100% { transform: scale(1); }
+    0%{transform:scale(1)}
+    35%{transform:scale(1.15);filter:brightness(2)}
+    100%{transform:scale(1);filter:brightness(1)}
   }
 
-  /* center divider */
+  /* ========= CENTER PANEL ========= */
   #center-panel {
-    width: 220px;
-    min-width: 180px;
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: var(--panel);
-    border-left: 1px solid var(--border);
-    border-right: 1px solid var(--border);
-    padding: 20px 12px;
-    gap: 14px;
-    position: relative;
-    z-index: 5;
+    width:200px;min-width:170px;flex-shrink:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:var(--panel);
+    border-left:1px solid var(--border);border-right:1px solid var(--border);
+    padding:16px 10px;gap:10px;position:relative;z-index:5;
   }
 
   #round-label {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.1rem;
-    letter-spacing: 0.25em;
-    color: var(--dim);
+    font-family:'Bebas Neue',sans-serif;font-size:0.85rem;
+    letter-spacing:0.28em;color:var(--dim);
   }
-
   #round-num {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 3.5rem;
-    color: var(--text);
-    line-height: 1;
+    font-family:'Bebas Neue',sans-serif;font-size:3rem;
+    color:var(--text);line-height:1;
   }
 
-  #timer {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(2.5rem, 5vw, 4rem);
-    color: var(--accent);
-    letter-spacing: 0.05em;
-    line-height: 1;
-    text-shadow: 0 0 30px rgba(240,192,64,0.5);
-    transition: color 0.3s;
+  /* ---- LIQUID TIMER ---- */
+  #timer-wrap {
+    width:130px;height:130px;position:relative;
+    flex-shrink:0;
   }
-  #timer.warning { color: var(--red); text-shadow: 0 0 30px rgba(224,48,96,0.7); animation: timerPulse 1s infinite; }
-  @keyframes timerPulse { 50% { opacity: 0.5; } }
 
+  #timer-svg {
+    width:100%;height:100%;transform:rotate(-90deg);
+    position:absolute;top:0;left:0;
+  }
+  #timer-bg-circle {
+    fill:none;stroke:var(--border);stroke-width:6;
+  }
+  #timer-fill-circle {
+    fill:none;stroke-width:6;stroke-linecap:round;
+    transition:stroke-dashoffset 0.9s linear, stroke 0.5s;
+    transform-origin:center;
+  }
+
+  #timer-text {
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+  }
+  #timer-digits {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:2.2rem;letter-spacing:0.04em;
+    line-height:1;color:var(--text);
+    transition:color 0.3s;
+  }
+  #timer-label-inner {
+    font-size:0.6rem;letter-spacing:0.2em;color:var(--dim);margin-top:2px;
+  }
+
+  #timer-wrap.warning #timer-digits {
+    color:var(--orange);
+    animation:timerPulse 0.8s ease-in-out infinite;
+  }
+  @keyframes timerPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* ---- Liquid fill behind timer ---- */
+  #timer-liquid {
+    position:absolute;bottom:0;left:0;width:100%;
+    border-radius:0 0 50% 50%;
+    background:var(--liquid-color, rgba(240,192,64,0.1));
+    transition:height 1s linear, background 0.5s;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  #timer-liquid::after {
+    content:'';position:absolute;top:-8px;left:-50%;
+    width:200%;height:16px;
+    background:var(--liquid-color, rgba(240,192,64,0.15));
+    border-radius:40%;
+    animation:wave 2s ease-in-out infinite;
+  }
+  @keyframes wave {
+    0%,100%{transform:translateX(-10px) scaleY(1)}
+    50%{transform:translateX(10px) scaleY(1.5)}
+  }
+
+  /* ---- status pill ---- */
   #status-pill {
-    background: var(--border);
-    border-radius: 4px;
-    padding: 4px 14px;
-    font-size: 0.75rem;
-    letter-spacing: 0.2em;
-    color: var(--dim);
-    text-transform: uppercase;
+    background:var(--border);border-radius:4px;
+    padding:3px 12px;font-size:0.7rem;letter-spacing:0.22em;
+    color:var(--dim);text-transform:uppercase;font-family:'Bebas Neue',sans-serif;
   }
-  #status-pill.live { background: rgba(64,200,128,0.15); color: var(--green); border: 1px solid rgba(64,200,128,0.3); }
-  #status-pill.intermission { background: rgba(240,112,48,0.15); color: var(--orange); border: 1px solid rgba(240,112,48,0.3); }
-  #status-pill.ended { background: rgba(224,48,96,0.15); color: var(--red); border: 1px solid rgba(224,48,96,0.3); }
+  #status-pill.live { background:rgba(64,216,144,0.12);color:var(--green);border:1px solid rgba(64,216,144,0.3);animation:liveBlink 2s ease-in-out infinite; }
+  @keyframes liveBlink { 0%,100%{opacity:1}50%{opacity:0.7} }
+  #status-pill.intermission { background:rgba(240,112,48,0.12);color:var(--orange);border:1px solid rgba(240,112,48,0.3); }
+  #status-pill.ended { background:rgba(232,48,80,0.12);color:var(--red-team);border:1px solid rgba(232,48,80,0.3); }
 
-  /* ========== BASKETBALL PLAYERS ========== */
+  /* ---- center pause/stop buttons ---- */
+  #billboard-controls {
+    display:flex;flex-direction:column;gap:6px;width:100%;
+  }
+  .ctrl-btn {
+    font-family:'Bebas Neue',sans-serif;font-size:0.85rem;letter-spacing:0.15em;
+    padding:6px;border-radius:4px;border:1.5px solid;cursor:pointer;
+    transition:all 0.15s;text-align:center;width:100%;
+  }
+  .ctrl-btn:active{transform:scale(0.96)}
+  .ctrl-btn.pause { border-color:#f07030;color:#f07030;background:rgba(240,112,48,0.08); }
+  .ctrl-btn.pause:hover { background:#f07030;color:#000; }
+  .ctrl-btn.stop { border-color:#e83050;color:#e83050;background:rgba(232,48,80,0.08); }
+  .ctrl-btn.stop:hover { background:#e83050;color:#fff; }
+  .ctrl-btn.start { border-color:var(--green);color:var(--green);background:rgba(64,216,144,0.08); }
+  .ctrl-btn.start:hover { background:var(--green);color:#000; }
+
+  /* ========= BASKETBALL PLAYERS ========= */
   #players-section {
-    display: flex;
-    justify-content: space-between;
-    gap: 0;
-    padding: 0 0 24px;
-    flex-shrink: 0;
+    display:flex;justify-content:space-between;
+    padding:0 0 20px;flex-shrink:0;
   }
-
   .players-list {
-    flex: 1;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 12px 20px;
-    justify-content: center;
+    flex:1;display:flex;flex-wrap:wrap;align-items:flex-start;
+    gap:7px;padding:10px 16px;justify-content:center;
   }
-
   .player-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px 12px;
-    min-width: 80px;
-    transition: all 0.3s;
-    position: relative;
+    display:flex;flex-direction:column;align-items:center;
+    background:var(--panel);border:1px solid var(--border);
+    border-radius:6px;padding:7px 10px;min-width:78px;
+    transition:all 0.3s;position:relative;
+    animation:cardIn 0.3s ease-out both;
   }
-
+  @keyframes cardIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
   .player-card.fouled-out {
-    opacity: 0.25;
-    background: #1a0a0a;
-    border-color: var(--red);
-    filter: grayscale(1);
+    opacity:0.22;background:#150808;border-color:var(--red-team);filter:grayscale(1);
   }
-
   .player-card .p-name {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1rem;
-    letter-spacing: 0.05em;
-    color: var(--text);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 90px;
+    font-family:'Bebas Neue',sans-serif;font-size:0.95rem;letter-spacing:0.05em;
+    color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:88px;
   }
-
-  .player-card .p-fouls {
-    display: flex;
-    gap: 3px;
-    margin-top: 5px;
-  }
-
+  .player-card .p-fouls { display:flex;gap:3px;margin-top:4px; }
   .foul-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    border: 1.5px solid var(--dim);
-    transition: all 0.2s;
+    width:9px;height:9px;border-radius:50%;border:1.5px solid var(--dim);
+    transition:all 0.2s;
   }
-  .foul-dot.active { background: var(--orange); border-color: var(--orange); box-shadow: 0 0 6px var(--orange); }
-  .foul-dot.fifth { background: var(--red); border-color: var(--red); box-shadow: 0 0 8px var(--red); }
-
+  .foul-dot.active { background:var(--orange);border-color:var(--orange);box-shadow:0 0 5px var(--orange); }
+  .foul-dot.fifth { background:var(--red-team);border-color:var(--red-team);box-shadow:0 0 7px var(--red-team); }
   .fouled-out-label {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(-15deg);
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.1rem;
-    color: var(--red);
-    letter-spacing: 0.1em;
-    pointer-events: none;
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-15deg);
+    font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--red-team);
+    letter-spacing:0.1em;pointer-events:none;
   }
 
-  /* ========== FOOTBALL CARDS ========== */
-  .team-cards {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 8px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
+  /* left team player cards get subtle red border, right get blue */
+  #players-a .player-card:not(.fouled-out) { border-color:rgba(232,48,80,0.2); }
+  #players-b .player-card:not(.fouled-out) { border-color:rgba(48,144,248,0.2); }
 
-  .card-icon {
-    width: 18px;
-    height: 26px;
-    border-radius: 3px;
-    display: inline-block;
-  }
-  .card-icon.yellow { background: var(--yellow); box-shadow: 0 0 8px rgba(240,192,64,0.6); }
-  .card-icon.red { background: var(--red); box-shadow: 0 0 8px rgba(224,48,96,0.6); }
+  /* ========= FOOTBALL CARDS ========= */
+  .team-cards { display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;justify-content:center; }
+  .card-icon { width:16px;height:24px;border-radius:3px;display:inline-block;transition:transform 0.2s; }
+  .card-icon:hover { transform:scale(1.15); }
+  .card-icon.yellow { background:var(--yellow);box-shadow:0 0 7px rgba(240,192,64,0.6); }
+  .card-icon.red { background:var(--red-team);box-shadow:0 0 7px var(--red-glow); }
+  .cards-label { font-size:0.7rem;letter-spacing:0.15em;color:var(--dim); }
 
-  .cards-label {
-    font-size: 0.75rem;
-    letter-spacing: 0.15em;
-    color: var(--dim);
-  }
-
-  /* ========== INTERMISSION OVERLAY ========== */
+  /* ========= INTERMISSION OVERLAY ========= */
   #intermission-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(10,10,15,0.92);
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 50;
-    gap: 20px;
+    position:fixed;inset:0;
+    background:rgba(8,8,16,0.94);
+    display:none;flex-direction:column;
+    align-items:center;justify-content:center;
+    z-index:50;gap:16px;
+    backdrop-filter:blur(8px);
   }
-  #intermission-overlay.show { display: flex; }
-
+  #intermission-overlay.show { display:flex;animation:fadeIn 0.4s ease; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
   #intermission-label {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(3rem, 8vw, 7rem);
-    letter-spacing: 0.2em;
-    color: var(--orange);
-    text-shadow: 0 0 60px rgba(240,112,48,0.5);
-    animation: floatText 3s ease-in-out infinite;
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(3rem,8vw,7rem);letter-spacing:0.2em;
+    color:var(--orange);text-shadow:0 0 60px rgba(240,112,48,0.5);
+    animation:floatText 3s ease-in-out infinite;
   }
-  @keyframes floatText { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-
+  @keyframes floatText { 0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)} }
   #intermission-timer {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(4rem, 10vw, 9rem);
-    color: var(--text);
-    letter-spacing: 0.05em;
-    text-shadow: 0 0 40px rgba(240,240,245,0.3);
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(4rem,10vw,9rem);color:var(--text);
+    letter-spacing:0.05em;text-shadow:0 0 40px rgba(240,240,248,0.3);
+  }
+  #intermission-next { font-size:0.95rem;letter-spacing:0.3em;color:var(--dim); }
+
+  /* ========= SCORE FLASH ========= */
+  #score-flash {
+    position:fixed;inset:0;
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    z-index:60;pointer-events:none;
+    opacity:0;
+  }
+  #score-flash.fire { animation:flashPop 1.6s ease-out forwards; }
+  @keyframes flashPop {
+    0%{opacity:0;transform:scale(0.7)}
+    15%{opacity:1;transform:scale(1.05)}
+    40%{opacity:1;transform:scale(1)}
+    75%{opacity:1}
+    100%{opacity:0;transform:scale(1.1)}
+  }
+  #flash-text {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(4rem,14vw,11rem);
+    letter-spacing:0.1em;line-height:1;
+    text-shadow:0 0 80px currentColor;
+  }
+  #flash-sub {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(1rem,3vw,2rem);
+    letter-spacing:0.4em;color:rgba(255,255,255,0.5);
+    margin-top:8px;
   }
 
-  #intermission-next {
-    font-size: 1rem;
-    letter-spacing: 0.3em;
-    color: var(--dim);
-  }
-
-  /* ========== CORNER LOGO ========== */
+  /* ========= CORNER LOGO ========= */
   #logo {
-    position: fixed;
-    bottom: 16px;
-    right: 20px;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.4rem;
-    letter-spacing: 0.2em;
-    color: var(--border);
-    z-index: 10;
+    position:fixed;bottom:14px;right:18px;
+    font-family:'Bebas Neue',sans-serif;font-size:1.2rem;
+    letter-spacing:0.2em;color:var(--border);z-index:10;
   }
-  #logo span { color: var(--accent); }
+  #logo span { color:rgba(240,192,64,0.35); }
+  #logo .ver { font-size:0.6rem;color:var(--dim);letter-spacing:0.1em; }
 
+  /* ========= SEPARATOR LINE ========= */
+  .vs-line {
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    font-family:'Bebas Neue',sans-serif;font-size:1.2rem;
+    letter-spacing:0.3em;color:var(--dim);z-index:20;
+    opacity:0.5;
+  }
 </style>
 </head>
 <body>
@@ -335,19 +380,39 @@
 <div id="sport-badge">HIGHSCORE SYSTEM</div>
 
 <div id="scoreboard">
+  <!-- RED side: Team A -->
   <div class="team-block left" id="team-a-block">
     <div class="team-name" id="name-a">TEAM A</div>
     <div id="cards-a" class="team-cards" style="display:none"></div>
     <div class="team-score" id="score-a">0</div>
   </div>
 
+  <!-- CENTER -->
   <div id="center-panel">
     <div id="round-label">ROUND</div>
     <div id="round-num">1</div>
-    <div id="timer">15:00</div>
+
+    <!-- Liquid timer -->
+    <div id="timer-wrap">
+      <div id="timer-liquid" style="height:100%"></div>
+      <svg id="timer-svg" viewBox="0 0 100 100">
+        <circle id="timer-bg-circle" cx="50" cy="50" r="42"/>
+        <circle id="timer-fill-circle" cx="50" cy="50" r="42"
+          stroke-dasharray="263.9" stroke-dashoffset="0"/>
+      </svg>
+      <div id="timer-text">
+        <div id="timer-digits">00:00</div>
+        <div id="timer-label-inner">TIME</div>
+      </div>
+    </div>
+
     <div id="status-pill">WAITING</div>
+
+    <!-- Billboard controls -->
+    <div id="billboard-controls" style="display:none"></div>
   </div>
 
+  <!-- BLUE side: Team B -->
   <div class="team-block right" id="team-b-block">
     <div class="team-name" id="name-b">TEAM B</div>
     <div id="cards-b" class="team-cards" style="display:none"></div>
@@ -357,7 +422,7 @@
 
 <div id="players-section" style="display:none">
   <div class="players-list" id="players-a"></div>
-  <div style="width:220px;flex-shrink:0"></div>
+  <div style="width:200px;flex-shrink:0"></div>
   <div class="players-list" id="players-b"></div>
 </div>
 
@@ -367,72 +432,122 @@
   <div id="intermission-next">NEXT PERIOD STARTING SOON</div>
 </div>
 
-<div id="logo">HIGH<span>SCORE</span></div>
+<div id="score-flash">
+  <div id="flash-text">SCORE!</div>
+  <div id="flash-sub">HIGHSCORE v2</div>
+</div>
+
+<div id="logo">HIGH<span>SCORE</span><br><span class="ver">V2.0</span></div>
 
 <script>
 const $ = id => document.getElementById(id);
 
 let state = null;
-let prevScoreA = 0, prevScoreB = 0;
+let timerMax = 900;
 
-function loadState() {
-  try {
-    const raw = localStorage.getItem('hs_state');
-    return raw ? JSON.parse(raw) : null;
-  } catch(e) { return null; }
+// ---- Liquid Timer ----
+const CIRCUMFERENCE = 263.9;
+
+function updateLiquidTimer(secs, maxSecs, isRunning, isWarning) {
+  const ratio = maxSecs > 0 ? secs / maxSecs : 0;
+  const offset = CIRCUMFERENCE * (1 - ratio);
+
+  const fillCircle = $('timer-fill-circle');
+  const liquidEl = $('timer-liquid');
+  const wrapEl = $('timer-wrap');
+
+  // Color
+  let strokeColor, liquidColor;
+  if (isWarning) {
+    strokeColor = '#e83050';
+    liquidColor = 'rgba(232,48,80,0.18)';
+  } else if (ratio > 0.5) {
+    strokeColor = '#40d890';
+    liquidColor = 'rgba(64,216,144,0.12)';
+  } else if (ratio > 0.2) {
+    strokeColor = '#f0c040';
+    liquidColor = 'rgba(240,192,64,0.12)';
+  } else {
+    strokeColor = '#e83050';
+    liquidColor = 'rgba(232,48,80,0.18)';
+  }
+
+  fillCircle.style.stroke = strokeColor;
+  fillCircle.style.strokeDashoffset = offset;
+
+  liquidEl.style.height = (ratio * 100) + '%';
+  liquidEl.style.setProperty('--liquid-color', liquidColor);
+  liquidEl.style.background = liquidColor;
+
+  wrapEl.classList.toggle('warning', isWarning);
+}
+
+// ---- Score flash ----
+let prevScoreA = -1, prevScoreB = -1;
+
+function triggerFlash(team, side) {
+  const flash = $('score-flash');
+  const text = $('flash-text');
+  const sub = $('flash-sub');
+  text.textContent = team.name || (side === 'a' ? 'TEAM A' : 'TEAM B');
+  text.style.color = side === 'a' ? '#e83050' : '#3090f8';
+  sub.textContent = 'HIGHSCORE v2';
+  flash.classList.remove('fire');
+  void flash.offsetWidth;
+  flash.classList.add('fire');
 }
 
 function renderBillboard(s) {
   if (!s) return;
 
-  // Sport badge
-  $('sport-badge').textContent = s.sport.toUpperCase() + ' — HIGHSCORE SYSTEM';
+  $('sport-badge').textContent = s.sport.toUpperCase() + ' — HIGHSCORE v2';
 
-  // Team names & scores
-  $('name-a').textContent = s.teamA.name || 'TEAM A';
-  $('name-b').textContent = s.teamB.name || 'TEAM B';
+  const nameA = s.teamA.name || 'TEAM A';
+  const nameB = s.teamB.name || 'TEAM B';
+  $('name-a').textContent = nameA;
+  $('name-b').textContent = nameB;
 
+  // Scores with bump + flash
   const sa = $('score-a'), sb = $('score-b');
-  if (sa.textContent !== String(s.teamA.score)) {
-    sa.textContent = s.teamA.score;
+  if (prevScoreA !== -1 && s.teamA.score > prevScoreA) {
     sa.classList.remove('bump'); void sa.offsetWidth; sa.classList.add('bump');
+    triggerFlash(s.teamA, 'a');
   }
-  if (sb.textContent !== String(s.teamB.score)) {
-    sb.textContent = s.teamB.score;
+  if (prevScoreB !== -1 && s.teamB.score > prevScoreB) {
     sb.classList.remove('bump'); void sb.offsetWidth; sb.classList.add('bump');
+    triggerFlash(s.teamB, 'b');
   }
+  if (sa.textContent !== String(s.teamA.score)) sa.textContent = s.teamA.score;
+  if (sb.textContent !== String(s.teamB.score)) sb.textContent = s.teamB.score;
+  prevScoreA = s.teamA.score;
+  prevScoreB = s.teamB.score;
 
   // Timer
-  const timerEl = $('timer');
   const totalSecs = s.timerSeconds ?? 0;
   const m = Math.floor(totalSecs / 60);
   const sec = totalSecs % 60;
-  timerEl.textContent = `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-  timerEl.classList.toggle('warning', totalSecs <= 60 && s.matchRunning);
+  $('timer-digits').textContent = `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+
+  const isWarning = totalSecs <= 60 && s.matchRunning;
+  const maxSecs = s.roundMinutes ? s.roundMinutes * 60 : timerMax;
+  if (maxSecs > 0) timerMax = maxSecs;
+  updateLiquidTimer(totalSecs, timerMax, s.matchRunning, isWarning);
 
   // Status
   const pill = $('status-pill');
   if (s.intermissionRunning) {
-    pill.textContent = 'INTERMISSION';
-    pill.className = 'intermission';
-    pill.id = 'status-pill';
+    pill.textContent = 'INTERMISSION'; pill.className = 'intermission';
   } else if (s.matchRunning) {
-    pill.textContent = 'LIVE';
-    pill.className = 'live';
-    pill.id = 'status-pill';
+    pill.textContent = 'LIVE'; pill.className = 'live';
   } else if (s.matchEnded) {
-    pill.textContent = 'FINAL';
-    pill.className = 'ended';
-    pill.id = 'status-pill';
+    pill.textContent = 'FINAL'; pill.className = 'ended';
   } else {
-    pill.textContent = 'WAITING';
-    pill.className = '';
-    pill.id = 'status-pill';
+    pill.textContent = 'WAITING'; pill.className = '';
   }
+  pill.id = 'status-pill';
 
   // Round
   const sport = s.sport;
-
   if (sport === 'basketball' || sport === 'football') {
     $('round-label').textContent = sport === 'football' ? 'HALF' : 'QUARTER';
     $('round-num').textContent = s.round || 1;
@@ -443,38 +558,77 @@ function renderBillboard(s) {
     $('round-num').style.display = 'none';
   }
 
+  // Billboard controls (pause/stop/start)
+  const ctrlDiv = $('billboard-controls');
+  if (!s.matchEnded) {
+    ctrlDiv.style.display = 'flex';
+    ctrlDiv.innerHTML = '';
+    if (s.matchRunning) {
+      const pauseBtn = document.createElement('button');
+      pauseBtn.className = 'ctrl-btn pause';
+      pauseBtn.textContent = '⏸ PAUSE';
+      pauseBtn.onclick = () => {
+        const st = loadState();
+        if (!st) return;
+        st.matchRunning = false;
+        localStorage.setItem('hs_state', JSON.stringify(st));
+      };
+      const stopBtn = document.createElement('button');
+      stopBtn.className = 'ctrl-btn stop';
+      stopBtn.textContent = '⏹ STOP';
+      stopBtn.onclick = () => {
+        const st = loadState();
+        if (!st) return;
+        st.matchRunning = false;
+        localStorage.setItem('hs_state', JSON.stringify(st));
+      };
+      ctrlDiv.appendChild(pauseBtn);
+      ctrlDiv.appendChild(stopBtn);
+    } else if (!s.intermissionRunning) {
+      const startBtn = document.createElement('button');
+      startBtn.className = 'ctrl-btn start';
+      startBtn.textContent = '▶ RESUME';
+      startBtn.onclick = () => {
+        const st = loadState();
+        if (!st) return;
+        st.matchRunning = true;
+        localStorage.setItem('hs_state', JSON.stringify(st));
+      };
+      ctrlDiv.appendChild(startBtn);
+    }
+  } else {
+    ctrlDiv.style.display = 'none';
+  }
+
   // Intermission overlay
   const overlay = $('intermission-overlay');
   if (s.intermissionRunning) {
     overlay.classList.add('show');
     const it = s.intermissionSeconds ?? 0;
-    const im = Math.floor(it / 60), is = it % 60;
-    $('intermission-timer').textContent = `${String(im).padStart(2,'0')}:${String(is).padStart(2,'0')}`;
+    const im = Math.floor(it/60), is2 = it%60;
+    $('intermission-timer').textContent = `${String(im).padStart(2,'0')}:${String(is2).padStart(2,'0')}`;
     $('intermission-next').textContent = sport === 'football'
-      ? `SECOND HALF STARTING SOON`
+      ? 'SECOND HALF STARTING SOON'
       : `QUARTER ${(s.round||1)+1} STARTING SOON`;
   } else {
     overlay.classList.remove('show');
   }
 
   // Sport-specific
-  const cardsA = $('cards-a'), cardsB = $('cards-b');
-  const playersSection = $('players-section');
-
   if (sport === 'basketball') {
-    cardsA.style.display = 'none';
-    cardsB.style.display = 'none';
-    playersSection.style.display = 'flex';
+    $('cards-a').style.display = 'none';
+    $('cards-b').style.display = 'none';
+    $('players-section').style.display = 'flex';
     renderBasketballPlayers(s);
   } else if (sport === 'football') {
-    playersSection.style.display = 'none';
-    cardsA.style.display = 'flex';
-    cardsB.style.display = 'flex';
+    $('players-section').style.display = 'none';
+    $('cards-a').style.display = 'flex';
+    $('cards-b').style.display = 'flex';
     renderFootballCards(s);
   } else {
-    playersSection.style.display = 'none';
-    cardsA.style.display = 'none';
-    cardsB.style.display = 'none';
+    $('players-section').style.display = 'none';
+    $('cards-a').style.display = 'none';
+    $('cards-b').style.display = 'none';
   }
 }
 
@@ -484,11 +638,12 @@ function renderBasketballPlayers(s) {
     const team = side === 'a' ? s.teamA : s.teamB;
     const players = team.players || [];
     container.innerHTML = '';
-    players.forEach((p, i) => {
+    players.forEach((p,i) => {
       const fouls = p.fouls || 0;
       const fouledOut = fouls >= 5;
       const card = document.createElement('div');
       card.className = 'player-card' + (fouledOut ? ' fouled-out' : '');
+      card.style.animationDelay = (i * 0.05) + 's';
 
       const nameEl = document.createElement('div');
       nameEl.className = 'p-name';
@@ -496,22 +651,19 @@ function renderBasketballPlayers(s) {
 
       const foulsEl = document.createElement('div');
       foulsEl.className = 'p-fouls';
-      for (let d = 1; d <= 5; d++) {
+      for (let d=1; d<=5; d++) {
         const dot = document.createElement('div');
-        dot.className = 'foul-dot' + (d <= fouls ? (d===5?' fifth':' active') : '');
+        dot.className = 'foul-dot' + (d<=fouls ? (d===5?' fifth':' active') : '');
         foulsEl.appendChild(dot);
       }
-
       card.appendChild(nameEl);
       card.appendChild(foulsEl);
-
       if (fouledOut) {
-        const label = document.createElement('div');
-        label.className = 'fouled-out-label';
-        label.textContent = 'OUT';
-        card.appendChild(label);
+        const lbl = document.createElement('div');
+        lbl.className = 'fouled-out-label';
+        lbl.textContent = 'OUT';
+        card.appendChild(lbl);
       }
-
       container.appendChild(card);
     });
   });
@@ -522,34 +674,25 @@ function renderFootballCards(s) {
     const container = $(`cards-${side}`);
     const team = side === 'a' ? s.teamA : s.teamB;
     const yellows = team.yellowCards || 0;
-    const reds = Math.floor(yellows / 3);
-    const remaining = yellows % 3;
-
+    const reds = Math.floor(yellows/3);
+    const remaining = yellows%3;
     container.innerHTML = '';
-
-    // red cards
-    for (let r = 0; r < reds; r++) {
-      const c = document.createElement('div');
-      c.className = 'card-icon red';
-      container.appendChild(c);
+    for (let r=0; r<reds; r++) {
+      const c = document.createElement('div'); c.className = 'card-icon red'; container.appendChild(c);
     }
-    // yellow cards
-    for (let y = 0; y < remaining; y++) {
-      const c = document.createElement('div');
-      c.className = 'card-icon yellow';
-      container.appendChild(c);
+    for (let y=0; y<remaining; y++) {
+      const c = document.createElement('div'); c.className = 'card-icon yellow'; container.appendChild(c);
     }
-
     if (yellows === 0) {
-      const lbl = document.createElement('span');
-      lbl.className = 'cards-label';
-      lbl.textContent = 'NO CARDS';
-      container.appendChild(lbl);
+      const lbl = document.createElement('span'); lbl.className = 'cards-label'; lbl.textContent = 'NO CARDS'; container.appendChild(lbl);
     }
   });
 }
 
-// Poll for state changes
+function loadState() {
+  try { const r = localStorage.getItem('hs_state'); return r ? JSON.parse(r) : null; } catch(e) { return null; }
+}
+
 function poll() {
   const newState = loadState();
   if (JSON.stringify(newState) !== JSON.stringify(state)) {
