@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HighScore – Billboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --panel: #12121a;
+    --border: #1e1e2e;
+    --accent: #f0c040;
+    --accent2: #e03060;
+    --text: #f0f0f5;
+    --dim: #606070;
+    --green: #40c880;
+    --red: #e03060;
+    --yellow: #f0c040;
+    --orange: #f07030;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow Condensed', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* scanline overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.07) 3px, rgba(0,0,0,0.07) 4px);
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* vignette */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.7) 100%);
+    pointer-events: none;
+    z-index: 99;
+  }
+
+  #sport-badge {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.3em;
+    color: var(--dim);
+    z-index: 10;
+  }
+
+  /* ========== MAIN SCOREBOARD ========== */
+  #scoreboard {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    flex: 1;
+    gap: 0;
+    padding: 48px 0 0;
+  }
+
+  .team-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    flex: 1;
+    padding: 32px 24px;
+    position: relative;
+  }
+
+  .team-block.left { background: linear-gradient(135deg, #0e1020 0%, #0a0a0f 100%); }
+  .team-block.right { background: linear-gradient(225deg, #0e1020 0%, #0a0a0f 100%); }
+
+  .team-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    letter-spacing: 0.05em;
+    color: var(--text);
+    text-align: center;
+    text-shadow: 0 0 40px rgba(240,192,64,0.2);
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+
+  .team-score {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(6rem, 18vw, 14rem);
+    line-height: 1;
+    color: var(--accent);
+    text-shadow: 0 0 80px rgba(240,192,64,0.4), 0 0 20px rgba(240,192,64,0.6);
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .team-score.bump {
+    animation: scoreBump 0.35s ease-out;
+  }
+  @keyframes scoreBump {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.12); color: #fff; text-shadow: 0 0 120px rgba(255,255,255,0.8); }
+    100% { transform: scale(1); }
+  }
+
+  /* center divider */
+  #center-panel {
+    width: 220px;
+    min-width: 180px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--panel);
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    padding: 20px 12px;
+    gap: 14px;
+    position: relative;
+    z-index: 5;
+  }
+
+  #round-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.25em;
+    color: var(--dim);
+  }
+
+  #round-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3.5rem;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  #timer {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    line-height: 1;
+    text-shadow: 0 0 30px rgba(240,192,64,0.5);
+    transition: color 0.3s;
+  }
+  #timer.warning { color: var(--red); text-shadow: 0 0 30px rgba(224,48,96,0.7); animation: timerPulse 1s infinite; }
+  @keyframes timerPulse { 50% { opacity: 0.5; } }
+
+  #status-pill {
+    background: var(--border);
+    border-radius: 4px;
+    padding: 4px 14px;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
+  #status-pill.live { background: rgba(64,200,128,0.15); color: var(--green); border: 1px solid rgba(64,200,128,0.3); }
+  #status-pill.intermission { background: rgba(240,112,48,0.15); color: var(--orange); border: 1px solid rgba(240,112,48,0.3); }
+  #status-pill.ended { background: rgba(224,48,96,0.15); color: var(--red); border: 1px solid rgba(224,48,96,0.3); }
+
+  /* ========== BASKETBALL PLAYERS ========== */
+  #players-section {
+    display: flex;
+    justify-content: space-between;
+    gap: 0;
+    padding: 0 0 24px;
+    flex-shrink: 0;
+  }
+
+  .players-list {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px 20px;
+    justify-content: center;
+  }
+
+  .player-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    min-width: 80px;
+    transition: all 0.3s;
+    position: relative;
+  }
+
+  .player-card.fouled-out {
+    opacity: 0.25;
+    background: #1a0a0a;
+    border-color: var(--red);
+    filter: grayscale(1);
+  }
+
+  .player-card .p-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90px;
+  }
+
+  .player-card .p-fouls {
+    display: flex;
+    gap: 3px;
+    margin-top: 5px;
+  }
+
+  .foul-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid var(--dim);
+    transition: all 0.2s;
+  }
+  .foul-dot.active { background: var(--orange); border-color: var(--orange); box-shadow: 0 0 6px var(--orange); }
+  .foul-dot.fifth { background: var(--red); border-color: var(--red); box-shadow: 0 0 8px var(--red); }
+
+  .fouled-out-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-15deg);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    color: var(--red);
+    letter-spacing: 0.1em;
+    pointer-events: none;
+  }
+
+  /* ========== FOOTBALL CARDS ========== */
+  .team-cards {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .card-icon {
+    width: 18px;
+    height: 26px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+  .card-icon.yellow { background: var(--yellow); box-shadow: 0 0 8px rgba(240,192,64,0.6); }
+  .card-icon.red { background: var(--red); box-shadow: 0 0 8px rgba(224,48,96,0.6); }
+
+  .cards-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--dim);
+  }
+
+  /* ========== INTERMISSION OVERLAY ========== */
+  #intermission-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,10,15,0.92);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    gap: 20px;
+  }
+  #intermission-overlay.show { display: flex; }
+
+  #intermission-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 8vw, 7rem);
+    letter-spacing: 0.2em;
+    color: var(--orange);
+    text-shadow: 0 0 60px rgba(240,112,48,0.5);
+    animation: floatText 3s ease-in-out infinite;
+  }
+  @keyframes floatText { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+
+  #intermission-timer {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4rem, 10vw, 9rem);
+    color: var(--text);
+    letter-spacing: 0.05em;
+    text-shadow: 0 0 40px rgba(240,240,245,0.3);
+  }
+
+  #intermission-next {
+    font-size: 1rem;
+    letter-spacing: 0.3em;
+    color: var(--dim);
+  }
+
+  /* ========== CORNER LOGO ========== */
+  #logo {
+    position: fixed;
+    bottom: 16px;
+    right: 20px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.2em;
+    color: var(--border);
+    z-index: 10;
+  }
+  #logo span { color: var(--accent); }
+
+</style>
+</head>
+<body>
+
+<div id="sport-badge">HIGHSCORE SYSTEM</div>
+
+<div id="scoreboard">
+  <div class="team-block left" id="team-a-block">
+    <div class="team-name" id="name-a">TEAM A</div>
+    <div id="cards-a" class="team-cards" style="display:none"></div>
+    <div class="team-score" id="score-a">0</div>
+  </div>
+
+  <div id="center-panel">
+    <div id="round-label">ROUND</div>
+    <div id="round-num">1</div>
+    <div id="timer">15:00</div>
+    <div id="status-pill">WAITING</div>
+  </div>
+
+  <div class="team-block right" id="team-b-block">
+    <div class="team-name" id="name-b">TEAM B</div>
+    <div id="cards-b" class="team-cards" style="display:none"></div>
+    <div class="team-score" id="score-b">0</div>
+  </div>
+</div>
+
+<div id="players-section" style="display:none">
+  <div class="players-list" id="players-a"></div>
+  <div style="width:220px;flex-shrink:0"></div>
+  <div class="players-list" id="players-b"></div>
+</div>
+
+<div id="intermission-overlay">
+  <div id="intermission-label">INTERMISSION</div>
+  <div id="intermission-timer">15:00</div>
+  <div id="intermission-next">NEXT PERIOD STARTING SOON</div>
+</div>
+
+<div id="logo">HIGH<span>SCORE</span></div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+let state = null;
+let prevScoreA = 0, prevScoreB = 0;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('hs_state');
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+function renderBillboard(s) {
+  if (!s) return;
+
+  // Sport badge
+  $('sport-badge').textContent = s.sport.toUpperCase() + ' — HIGHSCORE SYSTEM';
+
+  // Team names & scores
+  $('name-a').textContent = s.teamA.name || 'TEAM A';
+  $('name-b').textContent = s.teamB.name || 'TEAM B';
+
+  const sa = $('score-a'), sb = $('score-b');
+  if (sa.textContent !== String(s.teamA.score)) {
+    sa.textContent = s.teamA.score;
+    sa.classList.remove('bump'); void sa.offsetWidth; sa.classList.add('bump');
+  }
+  if (sb.textContent !== String(s.teamB.score)) {
+    sb.textContent = s.teamB.score;
+    sb.classList.remove('bump'); void sb.offsetWidth; sb.classList.add('bump');
+  }
+
+  // Timer
+  const timerEl = $('timer');
+  const totalSecs = s.timerSeconds ?? 0;
+  const m = Math.floor(totalSecs / 60);
+  const sec = totalSecs % 60;
+  timerEl.textContent = `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  timerEl.classList.toggle('warning', totalSecs <= 60 && s.matchRunning);
+
+  // Status
+  const pill = $('status-pill');
+  if (s.intermissionRunning) {
+    pill.textContent = 'INTERMISSION';
+    pill.className = 'intermission';
+    pill.id = 'status-pill';
+  } else if (s.matchRunning) {
+    pill.textContent = 'LIVE';
+    pill.className = 'live';
+    pill.id = 'status-pill';
+  } else if (s.matchEnded) {
+    pill.textContent = 'FINAL';
+    pill.className = 'ended';
+    pill.id = 'status-pill';
+  } else {
+    pill.textContent = 'WAITING';
+    pill.className = '';
+    pill.id = 'status-pill';
+  }
+
+  // Round
+  const sport = s.sport;
+
+  if (sport === 'basketball' || sport === 'football') {
+    $('round-label').textContent = sport === 'football' ? 'HALF' : 'QUARTER';
+    $('round-num').textContent = s.round || 1;
+    $('round-num').style.display = '';
+    $('round-label').style.display = '';
+  } else {
+    $('round-label').style.display = 'none';
+    $('round-num').style.display = 'none';
+  }
+
+  // Intermission overlay
+  const overlay = $('intermission-overlay');
+  if (s.intermissionRunning) {
+    overlay.classList.add('show');
+    const it = s.intermissionSeconds ?? 0;
+    const im = Math.floor(it / 60), is = it % 60;
+    $('intermission-timer').textContent = `${String(im).padStart(2,'0')}:${String(is).padStart(2,'0')}`;
+    $('intermission-next').textContent = sport === 'football'
+      ? `SECOND HALF STARTING SOON`
+      : `QUARTER ${(s.round||1)+1} STARTING SOON`;
+  } else {
+    overlay.classList.remove('show');
+  }
+
+  // Sport-specific
+  const cardsA = $('cards-a'), cardsB = $('cards-b');
+  const playersSection = $('players-section');
+
+  if (sport === 'basketball') {
+    cardsA.style.display = 'none';
+    cardsB.style.display = 'none';
+    playersSection.style.display = 'flex';
+    renderBasketballPlayers(s);
+  } else if (sport === 'football') {
+    playersSection.style.display = 'none';
+    cardsA.style.display = 'flex';
+    cardsB.style.display = 'flex';
+    renderFootballCards(s);
+  } else {
+    playersSection.style.display = 'none';
+    cardsA.style.display = 'none';
+    cardsB.style.display = 'none';
+  }
+}
+
+function renderBasketballPlayers(s) {
+  ['a','b'].forEach(side => {
+    const container = $(`players-${side}`);
+    const team = side === 'a' ? s.teamA : s.teamB;
+    const players = team.players || [];
+    container.innerHTML = '';
+    players.forEach((p, i) => {
+      const fouls = p.fouls || 0;
+      const fouledOut = fouls >= 5;
+      const card = document.createElement('div');
+      card.className = 'player-card' + (fouledOut ? ' fouled-out' : '');
+
+      const nameEl = document.createElement('div');
+      nameEl.className = 'p-name';
+      nameEl.textContent = p.name || `P${i+1}`;
+
+      const foulsEl = document.createElement('div');
+      foulsEl.className = 'p-fouls';
+      for (let d = 1; d <= 5; d++) {
+        const dot = document.createElement('div');
+        dot.className = 'foul-dot' + (d <= fouls ? (d===5?' fifth':' active') : '');
+        foulsEl.appendChild(dot);
+      }
+
+      card.appendChild(nameEl);
+      card.appendChild(foulsEl);
+
+      if (fouledOut) {
+        const label = document.createElement('div');
+        label.className = 'fouled-out-label';
+        label.textContent = 'OUT';
+        card.appendChild(label);
+      }
+
+      container.appendChild(card);
+    });
+  });
+}
+
+function renderFootballCards(s) {
+  ['a','b'].forEach(side => {
+    const container = $(`cards-${side}`);
+    const team = side === 'a' ? s.teamA : s.teamB;
+    const yellows = team.yellowCards || 0;
+    const reds = Math.floor(yellows / 3);
+    const remaining = yellows % 3;
+
+    container.innerHTML = '';
+
+    // red cards
+    for (let r = 0; r < reds; r++) {
+      const c = document.createElement('div');
+      c.className = 'card-icon red';
+      container.appendChild(c);
+    }
+    // yellow cards
+    for (let y = 0; y < remaining; y++) {
+      const c = document.createElement('div');
+      c.className = 'card-icon yellow';
+      container.appendChild(c);
+    }
+
+    if (yellows === 0) {
+      const lbl = document.createElement('span');
+      lbl.className = 'cards-label';
+      lbl.textContent = 'NO CARDS';
+      container.appendChild(lbl);
+    }
+  });
+}
+
+// Poll for state changes
+function poll() {
+  const newState = loadState();
+  if (JSON.stringify(newState) !== JSON.stringify(state)) {
+    state = newState;
+    if (state) renderBillboard(state);
+  }
+}
+
+setInterval(poll, 200);
+poll();
+</script>
+</body>
+</html>

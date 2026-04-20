@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HighScore – Loading</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    background: #0d0d14;
+    color: #f0c040;
+    font-family: 'Bebas Neue', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    overflow: hidden;
+    opacity: 0;
+    animation: bodyFade 0.5s ease-in-out 0.5s forwards;
+  }
+
+  #logo {
+    font-size: 4rem;
+    letter-spacing: 0.3em;
+    opacity: 0;
+    text-shadow: 0 0 40px rgba(240,192,64,0.5);
+    animation: highFlash 0.5s ease-in-out 1.5s forwards;
+  }
+
+  #logo span { 
+    color: #707088; 
+    opacity: 0;
+    animation: scoreAppear 0.5s ease-in-out 1s forwards;
+  }
+
+  #subtitle {
+    font-size: 1.5rem;
+    letter-spacing: 0.2em;
+    color: #707088;
+    margin-top: 20px;
+    opacity: 0;
+    animation: subtitleFade 2s ease-in-out 2s both;
+  }
+
+  #loading {
+    margin-top: 40px;
+    width: 200px;
+    height: 4px;
+    background: #252535;
+    border-radius: 2px;
+    overflow: hidden;
+    opacity: 0;
+    animation: loadingAppear 0.5s ease-in-out 2s forwards;
+  }
+
+  #subquote {
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    color: #a0a0b0;
+    margin-top: 20px;
+    opacity: 0;
+    animation: subquoteFade 2s ease-in-out 4.5s both;
+    text-align: center;
+  }
+
+  #progress {
+    height: 100%;
+    background: linear-gradient(90deg, #f0c040, #40c880);
+    width: 0%;
+    animation: progress 3s ease-out 2.5s forwards, flicker 0.1s infinite alternate 2.5s;
+    border-radius: 2px;
+  }
+
+  @keyframes logoFade {
+    0% { opacity: 0; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.1); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes subtitleFade {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes progress {
+    0% { width: 0%; }
+    100% { width: 100%; }
+  }
+
+  @keyframes flash {
+    0% { color: #f0c040; }
+    100% { color: #ff6b35; }
+  }
+
+  @keyframes scoreFlash {
+    0% { color: #707088; }
+    100% { color: #ffff88; }
+  }
+
+  @keyframes subquoteFade {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes glow {
+    0% { text-shadow: 0 0 20px rgba(240,192,64,0.3); }
+    50% { text-shadow: 0 0 60px rgba(240,192,64,0.8), 0 0 80px rgba(240,192,64,0.5); }
+    100% { text-shadow: 0 0 20px rgba(240,192,64,0.3); }
+  }
+
+  @keyframes bodyFade {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  @keyframes scoreAppear {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  @keyframes highFlash {
+    0% { opacity: 0; color: #f0c040; }
+    50% { opacity: 1; color: #ffff88; }
+    100% { opacity: 1; color: #f0c040; }
+  }
+
+  @keyframes loadingAppear {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  @keyframes flicker {
+    0% { opacity: 1; }
+    100% { opacity: 0.7; }
+  }
+</style>
+</head>
+<body>
+  <div id="logo">HIGH<span>SCORE</span></div>
+  <div id="subtitle">CNAIC'S SPORTS BILLBOARD SYSTEM</div>
+  <div id="loading">
+    <div id="progress"></div>
+  </div>
+  <div id="subquote">"Take Control of the GAME!"</div>
+</body>
+</html>

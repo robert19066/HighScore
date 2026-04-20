@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HighScore – Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d14;
+    --panel: #14141f;
+    --panel2: #1a1a28;
+    --border: #252535;
+    --accent: #f0c040;
+    --accent2: #e03060;
+    --green: #40c880;
+    --orange: #f07030;
+    --blue: #4090f0;
+    --text: #e8e8f0;
+    --dim: #707088;
+    --red: #e03060;
+    --yellow: #f0c040;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---- TOP BAR ---- */
+  #topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 20px;
+    background: var(--panel);
+    border-bottom: 2px solid var(--border);
+    flex-shrink: 0;
+  }
+  #topbar-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    margin-right: 8px;
+  }
+  #topbar-logo span { color: var(--dim); }
+  .sport-btn {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.15em;
+    padding: 6px 18px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--dim);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .sport-btn:hover { border-color: var(--accent); color: var(--text); }
+  .sport-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+  #open-billboard-btn {
+    margin-left: auto;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.15em;
+    padding: 6px 14px;
+    border: 1.5px solid var(--blue);
+    background: rgba(64,144,240,0.1);
+    color: var(--blue);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  #open-billboard-btn:hover { background: var(--blue); color: #fff; }
+
+  /* ---- STATUS BAR ---- */
+  #statusbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 20px;
+    background: var(--panel2);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    flex-shrink: 0;
+  }
+  .status-tag {
+    padding: 2px 10px;
+    border-radius: 3px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+  }
+  .status-tag.live { background: rgba(64,200,128,0.15); color: var(--green); border: 1px solid rgba(64,200,128,0.3); }
+  .status-tag.waiting { background: var(--border); color: var(--dim); }
+  .status-tag.intermission { background: rgba(240,112,48,0.15); color: var(--orange); border: 1px solid rgba(240,112,48,0.3); }
+  .status-tag.ended { background: rgba(224,48,96,0.15); color: var(--red); border: 1px solid rgba(224,48,96,0.3); }
+
+  #timer-display {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+
+  #round-display {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    color: var(--dim);
+    letter-spacing: 0.15em;
+  }
+
+  /* ---- MAIN CONTENT ---- */
+  #main {
+    display: flex;
+    flex: 1;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  .side-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    overflow-y: auto;
+    background: var(--bg);
+  }
+  .side-panel.right { background: #0b0b13; }
+
+  .center-controls {
+    width: 240px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    background: var(--panel);
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+  }
+
+  /* ---- CARDS / SECTIONS ---- */
+  .section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .section-header {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.2em;
+    color: var(--dim);
+    padding: 7px 12px;
+    background: var(--panel2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-body {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* ---- SCORE BIG ---- */
+  .score-display {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4rem;
+    text-align: center;
+    color: var(--accent);
+    line-height: 1;
+    padding: 4px 0;
+  }
+
+  /* ---- BUTTONS ---- */
+  .btn {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.12em;
+    padding: 8px 14px;
+    border: 1.5px solid;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-green { border-color: var(--green); color: var(--green); background: rgba(64,200,128,0.05); }
+  .btn-green:hover { background: var(--green); color: #000; }
+  .btn-red { border-color: var(--red); color: var(--red); background: rgba(224,48,96,0.05); }
+  .btn-red:hover { background: var(--red); color: #fff; }
+  .btn-accent { border-color: var(--accent); color: var(--accent); background: rgba(240,192,64,0.05); }
+  .btn-accent:hover { background: var(--accent); color: #000; }
+  .btn-orange { border-color: var(--orange); color: var(--orange); background: rgba(240,112,48,0.05); }
+  .btn-orange:hover { background: var(--orange); color: #000; }
+  .btn-blue { border-color: var(--blue); color: var(--blue); background: rgba(64,144,240,0.05); }
+  .btn-blue:hover { background: var(--blue); color: #fff; }
+  .btn-dim { border-color: var(--border); color: var(--dim); background: transparent; }
+  .btn-dim:hover { border-color: var(--dim); color: var(--text); }
+  .btn.full { width: 100%; }
+  .btn.big { font-size: 1.2rem; padding: 12px 16px; }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+
+  .btn-row { display: flex; gap: 6px; }
+  .btn-row .btn { flex: 1; }
+
+  /* ---- INPUTS ---- */
+  input[type="text"], input[type="number"] {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem;
+    padding: 7px 10px;
+    border-radius: 4px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input:focus { border-color: var(--accent); }
+  label {
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    color: var(--dim);
+    display: block;
+    margin-bottom: 3px;
+    text-transform: uppercase;
+  }
+
+  /* ---- PLAYER ROWS ---- */
+  .player-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 10px;
+  }
+  .player-row .p-name { flex: 1; font-size: 1rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .foul-count {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    color: var(--orange);
+    min-width: 20px;
+    text-align: center;
+  }
+  .foul-count.out { color: var(--red); }
+  .player-row .btn { padding: 3px 8px; font-size: 0.85rem; }
+
+  /* ---- DIVIDER ---- */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2px 0; }
+
+  /* ---- CONFIRM MODAL ---- */
+  #modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  #modal-overlay.show { display: flex; }
+  #modal-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px 32px;
+    max-width: 360px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  #modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 0.1em; }
+  #modal-body { font-size: 0.95rem; color: var(--dim); }
+  #modal-actions { display: flex; gap: 10px; }
+
+  /* ---- YELLOW/RED CARD DISPLAY ---- */
+  .cards-preview {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+    min-height: 28px;
+  }
+  .card-chip {
+    width: 16px; height: 22px;
+    border-radius: 2px;
+    display: inline-block;
+  }
+  .card-chip.y { background: var(--yellow); }
+  .card-chip.r { background: var(--red); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div id="topbar-logo">HIGH<span>SCORE</span> <span style="font-size:0.7rem;color:var(--dim);letter-spacing:0.1em">MANAGER</span></div>
+  <button class="sport-btn active" onclick="setSport('basketball')">🏀 Basketball</button>
+  <button class="sport-btn" onclick="setSport('football')">⚽ Football</button>
+  <button class="sport-btn" onclick="setSport('handball')">🤾 Handball</button>
+  <button id="open-billboard-btn" onclick="openBillboard()">⬡ OPEN BILLBOARD</button>
+</div>
+
+<div id="statusbar">
+  <span id="status-tag" class="status-tag waiting">WAITING</span>
+  <span id="timer-display">—:—</span>
+  <span id="round-display"></span>
+  <span style="margin-left:auto;color:var(--dim);font-size:0.8rem;">Auto-saves every 200ms to Billboard</span>
+</div>
+
+<div id="main">
+  <!-- LEFT: TEAM A -->
+  <div class="side-panel" id="panel-left"></div>
+
+  <!-- CENTER: CONTROLS -->
+  <div class="center-controls" id="panel-center"></div>
+
+  <!-- RIGHT: TEAM B -->
+  <div class="side-panel right" id="panel-right"></div>
+</div>
+
+<!-- Modal -->
+<div id="modal-overlay">
+  <div id="modal-box">
+    <div id="modal-title">CONFIRM</div>
+    <div id="modal-body"></div>
+    <div id="modal-actions">
+      <button class="btn btn-red full" id="modal-confirm">CONFIRM</button>
+      <button class="btn btn-dim full" onclick="closeModal()">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  STATE
+// ============================================================
+const DEFAULT_STATE = {
+  sport: 'basketball',
+  teamA: { name: 'TEAM A', score: 0, yellowCards: 0, players: [] },
+  teamB: { name: 'TEAM B', score: 0, yellowCards: 0, players: [] },
+  round: 1,
+  totalRounds: 4,
+  roundMinutes: 15,
+  intermissionMinutes: 15,
+  timerSeconds: 900,
+  intermissionSeconds: 900,
+  matchRunning: false,
+  intermissionRunning: false,
+  matchEnded: false
+};
+
+let S = JSON.parse(JSON.stringify(DEFAULT_STATE));
+let timerInterval = null;
+
+function save() {
+  localStorage.setItem('hs_state', JSON.stringify(S));
+  renderStatus();
+}
+
+// ============================================================
+//  TIMER ENGINE
+// ============================================================
+function startTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (S.intermissionRunning) {
+      S.intermissionSeconds = Math.max(0, S.intermissionSeconds - 1);
+      if (S.intermissionSeconds <= 0) {
+        S.intermissionRunning = false;
+        startMatch();
+        return;
+      }
+    } else if (S.matchRunning) {
+      S.timerSeconds = Math.max(0, S.timerSeconds - 1);
+      if (S.timerSeconds <= 0) {
+        S.matchRunning = false;
+        // auto end round
+        if (S.sport === 'basketball' && S.round < 4) {
+          // wait for manager to start next round
+        } else if (S.sport === 'football' && S.round < 2) {
+          // wait
+        }
+        if ((S.sport === 'basketball' && S.round >= 4) || (S.sport === 'football' && S.round >= 2)) {
+          S.matchEnded = true;
+        }
+        clearInterval(timerInterval);
+      }
+    }
+    save();
+    renderStatus();
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
+function startMatch() {
+  S.matchRunning = true;
+  S.intermissionRunning = false;
+  S.timerSeconds = S.roundMinutes * 60;
+  startTimer();
+  save();
+  renderStatus();
+}
+
+// ============================================================
+//  SPORT SWITCH
+// ============================================================
+function setSport(sport) {
+  S.sport = sport;
+  S.teamA.score = 0; S.teamB.score = 0;
+  S.teamA.yellowCards = 0; S.teamB.yellowCards = 0;
+  S.teamA.players = S.teamA.players || [];
+  S.teamB.players = S.teamB.players || [];
+  S.round = 1;
+  S.matchRunning = false; S.intermissionRunning = false; S.matchEnded = false;
+  S.totalRounds = sport === 'football' ? 2 : 4;
+  S.roundMinutes = sport === 'basketball' ? 15 : sport === 'football' ? 45 : 30;
+  S.intermissionMinutes = 15;
+  S.timerSeconds = S.roundMinutes * 60;
+  S.intermissionSeconds = S.intermissionMinutes * 60;
+  stopTimer();
+  save();
+  document.querySelectorAll('.sport-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['basketball','football','handball'][i] === sport);
+  });
+  renderAll();
+}
+
+// ============================================================
+//  RENDER
+// ============================================================
+function renderAll() {
+  renderLeft();
+  renderRight();
+  renderCenter();
+  renderStatus();
+}
+
+function renderStatus() {
+  const t = $('timer-display');
+  const secs = S.intermissionRunning ? S.intermissionSeconds : S.timerSeconds;
+  const m = Math.floor(secs/60), s = secs%60;
+  t.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+
+  const tag = $('status-tag');
+  if (S.matchEnded) { tag.textContent='FINAL'; tag.className='status-tag ended'; }
+  else if (S.intermissionRunning) { tag.textContent='INTERMISSION'; tag.className='status-tag intermission'; }
+  else if (S.matchRunning) { tag.textContent='LIVE'; tag.className='status-tag live'; }
+  else { tag.textContent='WAITING'; tag.className='status-tag waiting'; }
+
+  const rd = $('round-display');
+  if (S.sport === 'basketball') rd.textContent = `QUARTER ${S.round}/4`;
+  else if (S.sport === 'football') rd.textContent = `HALF ${S.round}/2`;
+  else rd.textContent = '';
+}
+
+function renderLeft() { renderTeamPanel('a', $('panel-left')); }
+function renderRight() { renderTeamPanel('b', $('panel-right')); }
+
+function renderTeamPanel(side, container) {
+  const team = side === 'a' ? S.teamA : S.teamB;
+  const label = side === 'a' ? 'TEAM A' : 'TEAM B';
+  container.innerHTML = '';
+
+  // Name
+  container.appendChild(sectionHtml(`${label} — NAME`, `
+    <label>Team Name</label>
+    <input type="text" id="name-${side}" value="${esc(team.name)}" placeholder="Team name" oninput="S.team${side.toUpperCase()}.name=this.value;save()">
+  `));
+
+  // Score
+  container.appendChild(sectionHtml(`${label} — SCORE`, `
+    <div class="score-display" id="score-disp-${side}">${team.score}</div>
+    <div class="btn-row">
+      <button class="btn btn-green" onclick="addScore('${side}',1)">+1</button>
+      <button class="btn btn-green" onclick="addScore('${side}',2)">+2</button>
+      <button class="btn btn-green" onclick="addScore('${side}',3)">+3</button>
+      <button class="btn btn-red" onclick="addScore('${side}',-1)">-1</button>
+    </div>
+    <button class="btn btn-dim full" onclick="resetScore('${side}')">RESET SCORE</button>
+  `));
+
+  if (S.sport === 'basketball') renderBasketballPanel(side, team, container);
+  if (S.sport === 'football') renderFootballPanel(side, team, container);
+}
+
+function renderBasketballPanel(side, team, container) {
+  // Player count
+  container.appendChild(sectionHtml('PLAYERS — CONFIG', `
+    <label>Number of Players</label>
+    <div class="btn-row">
+      <input type="number" id="pcount-${side}" value="${team.players.length}" min="1" max="15" style="width:70px">
+      <button class="btn btn-accent" onclick="setPlayerCount('${side}')">SET</button>
+    </div>
+  `));
+
+  // Players list
+  if (team.players.length > 0) {
+    let rows = team.players.map((p,i) => {
+      const fouls = p.fouls||0;
+      const out = fouls >= 5;
+      return `<div class="player-row">
+        <span class="p-name">${esc(p.name||`P${i+1}`)}</span>
+        <span class="foul-count${out?' out':''}">${fouls}F</span>
+        <button class="btn btn-dim" onclick="setPlayerName('${side}',${i})">✎</button>
+        <button class="btn btn-orange" onclick="addFoul('${side}',${i},1)" ${out?'disabled':''}>+F</button>
+        <button class="btn btn-dim" onclick="addFoul('${side}',${i},-1)" ${fouls<=0?'disabled':''}>-F</button>
+      </div>`;
+    }).join('');
+    container.appendChild(sectionHtml('PLAYERS — FOULS', rows));
+  }
+}
+
+function renderFootballPanel(side, team, container) {
+  const y = team.yellowCards || 0;
+  const reds = Math.floor(y/3);
+  const remaining = y%3;
+  let chips = '';
+  for(let r=0;r<reds;r++) chips += `<span class="card-chip r"></span>`;
+  for(let yy=0;yy<remaining;yy++) chips += `<span class="card-chip y"></span>`;
+  if (!chips) chips = '<span style="color:var(--dim);font-size:0.85rem">No cards</span>';
+
+  container.appendChild(sectionHtml('YELLOW CARDS', `
+    <div class="cards-preview">${chips}</div>
+    <div style="font-size:0.8rem;color:var(--dim);margin-top:2px">${y} yellow (${reds} red, ${remaining} pending)</div>
+    <div class="btn-row">
+      <button class="btn btn-orange" onclick="addYellow('${side}',1)">+ YELLOW</button>
+      <button class="btn btn-dim" onclick="addYellow('${side}',-1)" ${y<=0?'disabled':''}>- YELLOW</button>
+    </div>
+    <button class="btn btn-dim full" onclick="resetCards('${side}')">RESET CARDS</button>
+  `));
+}
+
+function renderCenter() {
+  const c = $('panel-center');
+  c.innerHTML = '';
+
+  // MATCH CONTROL
+  if (!S.matchEnded) {
+    if (!S.matchRunning && !S.intermissionRunning) {
+      c.appendChild(makeBtn('▶ START MATCH', 'btn btn-green big full', () => startMatch()));
+    } else if (S.matchRunning) {
+      c.appendChild(makeBtn('⏸ PAUSE MATCH', 'btn btn-orange big full', () => {
+        S.matchRunning = false; stopTimer(); save(); renderAll();
+      }));
+      c.appendChild(makeBtn('⏹ STOP MATCH', 'btn btn-red full', () => {
+        S.matchRunning = false; stopTimer(); save(); renderAll();
+      }));
+    } else if (S.intermissionRunning) {
+      c.appendChild(makeBtn('⏹ END INTERMISSION', 'btn btn-orange big full', () => {
+        S.intermissionRunning = false; stopTimer(); startMatch();
+      }));
+    }
+
+    if (!S.matchRunning && !S.intermissionRunning) {
+      c.appendChild(makeBtn('☕ START INTERMISSION', 'btn btn-orange full', () => {
+        S.intermissionRunning = true;
+        S.matchRunning = false;
+        S.intermissionSeconds = S.intermissionMinutes * 60;
+        startTimer();
+        save(); renderAll();
+      }));
+    }
+  }
+
+  // ROUND CONFIG
+  if (S.sport === 'basketball' || S.sport === 'football') {
+    const maxRounds = S.sport === 'basketball' ? 4 : 2;
+    c.appendChild(sectionHtml('ROUND', `
+      <div style="text-align:center;font-family:'Bebas Neue',sans-serif;font-size:2.5rem;color:var(--accent)">${S.round}</div>
+      <div class="btn-row">
+        <button class="btn btn-dim" onclick="changeRound(-1)" ${S.round<=1?'disabled':''}>◀ PREV</button>
+        <button class="btn btn-dim" onclick="changeRound(1)" ${S.round>=maxRounds?'disabled':''}>NEXT ▶</button>
+      </div>
+    `));
+
+    c.appendChild(sectionHtml('ROUND TIME', `
+      <label>Minutes per ${S.sport==='football'?'Half':'Quarter'}</label>
+      <div class="btn-row">
+        <input type="number" id="round-mins" value="${S.roundMinutes}" min="1" max="60">
+        <button class="btn btn-accent" onclick="setRoundMins()">SET</button>
+      </div>
+    `));
+  }
+
+  // INTERMISSION TIME (for all sports)
+  c.appendChild(sectionHtml('INTERMISSION TIME', `
+    <label>Minutes</label>
+    <div class="btn-row">
+      <input type="number" id="intermission-mins" value="${S.intermissionMinutes}" min="1" max="60">
+      <button class="btn btn-accent" onclick="setIntermissionMins()">SET</button>
+    </div>
+  `));
+
+  // NEW MATCH
+  c.appendChild(sectionHtml('MATCH', `
+    <button class="btn btn-red full" onclick="confirmReset()">↺ NEW MATCH</button>
+  `));
+}
+
+// ============================================================
+//  HELPERS
+// ============================================================
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s).replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+function sectionHtml(title, bodyHtml) {
+  const d = document.createElement('div');
+  d.className = 'section';
+  d.innerHTML = `<div class="section-header">${title}</div><div class="section-body">${bodyHtml}</div>`;
+  return d;
+}
+
+function makeBtn(text, cls, fn) {
+  const b = document.createElement('button');
+  b.className = cls;
+  b.innerHTML = text;
+  b.onclick = fn;
+  return b;
+}
+
+function addScore(side, delta) {
+  const t = side === 'a' ? S.teamA : S.teamB;
+  t.score = Math.max(0, t.score + delta);
+  save(); renderLeft(); renderRight();
+}
+
+function resetScore(side) {
+  const t = side === 'a' ? S.teamA : S.teamB;
+  t.score = 0;
+  save(); renderLeft(); renderRight();
+}
+
+function addYellow(side, delta) {
+  const t = side === 'a' ? S.teamA : S.teamB;
+  t.yellowCards = Math.max(0, (t.yellowCards||0) + delta);
+  save(); renderLeft(); renderRight();
+}
+
+function resetCards(side) {
+  const t = side === 'a' ? S.teamA : S.teamB;
+  t.yellowCards = 0;
+  save(); renderLeft(); renderRight();
+}
+
+function setPlayerCount(side) {
+  const input = document.getElementById(`pcount-${side}`);
+  const n = Math.max(1, Math.min(15, parseInt(input.value)||1));
+  const t = side === 'a' ? S.teamA : S.teamB;
+  const cur = t.players.length;
+  if (n > cur) {
+    for (let i = cur; i < n; i++) t.players.push({ name: `P${i+1}`, fouls: 0 });
+  } else {
+    t.players = t.players.slice(0, n);
+  }
+  save(); renderLeft(); renderRight();
+}
+
+function setPlayerName(side, idx) {
+  const t = side === 'a' ? S.teamA : S.teamB;
+  const name = prompt('Enter player name:', t.players[idx].name);
+  if (name !== null) { t.players[idx].name = name.trim() || `P${idx+1}`; }
+  save(); renderLeft(); renderRight();
+}
+
+function addFoul(side, idx, delta) {
+  const t = side === 'a' ? S.teamA : S.teamB;
+  t.players[idx].fouls = Math.max(0, Math.min(5, (t.players[idx].fouls||0) + delta));
+  save(); renderLeft(); renderRight();
+}
+
+function changeRound(delta) {
+  const max = S.sport === 'basketball' ? 4 : 2;
+  S.round = Math.max(1, Math.min(max, S.round + delta));
+  S.timerSeconds = S.roundMinutes * 60;
+  S.matchRunning = false; stopTimer();
+  save(); renderAll();
+}
+
+function setRoundMins() {
+  const mins = parseInt(document.getElementById('round-mins').value) || S.roundMinutes;
+  S.roundMinutes = Math.max(1, Math.min(60, mins));
+  S.timerSeconds = S.roundMinutes * 60;
+  save(); renderAll();
+}
+
+function setIntermissionMins() {
+  const mins = parseInt(document.getElementById('intermission-mins').value) || S.intermissionMinutes;
+  S.intermissionMinutes = Math.max(1, Math.min(60, mins));
+  S.intermissionSeconds = S.intermissionMinutes * 60;
+  save(); renderAll();
+}
+
+function confirmReset() {
+  showModal('START NEW MATCH?', 'This will reset all scores, cards, and timers.', () => {
+    stopTimer();
+    const sport = S.sport;
+    S = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    S.sport = sport;
+    S.totalRounds = sport === 'football' ? 2 : 4;
+    S.roundMinutes = sport === 'basketball' ? 15 : sport === 'football' ? 45 : 30;
+    S.timerSeconds = S.roundMinutes * 60;
+    save();
+    renderAll();
+  });
+}
+
+function openBillboard() {
+  window.open('billboard.html', 'HighScore_Billboard',
+    'width=1280,height=720,toolbar=no,menubar=no,scrollbars=no');
+}
+
+// ============================================================
+//  MODAL
+// ============================================================
+function showModal(title, body, onConfirm) {
+  $('modal-title').textContent = title;
+  $('modal-body').textContent = body;
+  $('modal-confirm').onclick = () => { closeModal(); onConfirm(); };
+  $('modal-overlay').classList.add('show');
+}
+function closeModal() { $('modal-overlay').classList.remove('show'); }
+
+// ============================================================
+//  INIT
+// ============================================================
+try {
+  const saved = localStorage.getItem('hs_state');
+  if (saved) { S = JSON.parse(saved); }
+} catch(e) {}
+
+document.querySelectorAll('.sport-btn').forEach((b,i) => {
+  b.classList.toggle('active', ['basketball','football','handball'][i] === S.sport);
+});
+
+renderAll();
+</script>
+</body>
+</html>
