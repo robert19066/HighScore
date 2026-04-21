@@ -2,250 +2,567 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>HighScore v2 – Manager</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
+<title>HighScore — Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,300;0,400;0,600;0,700;1,300&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0d0d14;
-    --panel: #14141f;
-    --panel2: #1a1a28;
-    --border: #252535;
-    --green: #40c880;
-    --orange: #f07030;
-    --blue: #3090f8;
-    --text: #e8e8f0;
-    --dim: #707088;
-    --red-team: #e83050;
-    --blue-team: #3090f8;
-    --yellow: #f0c040;
-    --accent: #f0c040;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body {
-    background:var(--bg);color:var(--text);
-    font-family:'Barlow Condensed',sans-serif;font-size:15px;
-    min-height:100vh;display:flex;flex-direction:column;
-  }
+/* ================================================================
+   DESIGN CONCEPT: Dark "stadium operations console"
+   Horizontal team lanes, monochrome + color pops, zero clutter.
+   ================================================================ */
+:root{
+  --ink:#060610;
+  --surface:#0c0c1e;
+  --raised:#111128;
+  --lift:#161632;
+  --wire:#1e1e3a;
+  --wire2:#252548;
+  --text:#d8d8f0;
+  --muted:#6060a0;
+  --faint:#282850;
 
-  /* ---- TOP BAR ---- */
-  #topbar {
-    display:flex;align-items:center;gap:12px;padding:10px 18px;
-    background:var(--panel);border-bottom:2px solid var(--border);flex-shrink:0;
-  }
-  /* subtle elevation */
-  #topbar { box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
-  #topbar-logo {
-    font-family:'Bebas Neue',sans-serif;font-size:1.5rem;
-    letter-spacing:0.15em;color:var(--accent);margin-right:6px;
-  }
-  #topbar-logo .sub { color:var(--dim);font-size:0.65rem;letter-spacing:0.1em; }
-  #topbar-logo .ver { color:var(--red-team);font-size:0.65rem;letter-spacing:0.1em; }
-  .sport-btn {
-    font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.15em;
-    padding:5px 16px;border:1.5px solid var(--border);background:transparent;
-    color:var(--dim);border-radius:4px;cursor:pointer;transition:all 0.18s;
-  }
-  .sport-btn:hover { border-color:var(--accent);color:var(--text); }
-  .sport-btn.active { background:var(--accent);color:#000;border-color:var(--accent); }
-  #open-billboard-btn {
-    margin-left:auto;font-family:'Bebas Neue',sans-serif;font-size:0.85rem;
-    letter-spacing:0.15em;padding:5px 12px;border:1.5px solid var(--blue-team);
-    background:rgba(48,144,248,0.08);color:var(--blue-team);
-    border-radius:4px;cursor:pointer;transition:all 0.18s;
-  }
-  #open-billboard-btn:hover { background:var(--blue-team);color:#fff; }
+  --ra:#e83050; /* red team */
+  --rb:#3090f8; /* blue team */
+  --ga:rgba(232,48,80,0.55);
+  --gb:rgba(48,144,248,0.55);
 
-  /* ---- STATUS BAR ---- */
-  #statusbar {
-    display:flex;align-items:center;gap:12px;padding:7px 18px;
-    background:var(--panel2);border-bottom:1px solid var(--border);
-    font-size:0.85rem;letter-spacing:0.12em;flex-shrink:0;
-  }
-  .status-tag {
-    padding:2px 10px;border-radius:3px;font-family:'Bebas Neue',sans-serif;
-    font-size:0.82rem;letter-spacing:0.15em;
-  }
-  .status-tag.live { background:rgba(64,200,128,0.15);color:var(--green);border:1px solid rgba(64,200,128,0.3); }
-  .status-tag.waiting { background:var(--border);color:var(--dim); }
-  .status-tag.intermission { background:rgba(240,112,48,0.15);color:var(--orange);border:1px solid rgba(240,112,48,0.3); }
-  .status-tag.ended { background:rgba(232,48,80,0.15);color:var(--red-team);border:1px solid rgba(232,48,80,0.3); }
-  #timer-display { font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--accent);letter-spacing:0.05em; }
-  #round-display { font-family:'Bebas Neue',sans-serif;font-size:0.95rem;color:var(--dim);letter-spacing:0.15em; }
+  --gold:#f0c040;
+  --green:#38e888;
+  --orange:#f07030;
 
-  /* ---- MAIN ---- */
-  #main { display:flex;flex:1;overflow:hidden; }
-  .side-panel {
-    flex:1;display:flex;flex-direction:column;gap:10px;
-    padding:14px;overflow-y:auto;
-  }
-  /* Red (A) side tint */
-  .side-panel.left { background:linear-gradient(to right, #100810, var(--bg) 50%); border-right:1px solid rgba(232,48,80,0.1); }
-  /* Blue (B) side tint */
-  .side-panel.right { background:linear-gradient(to left, #080f18, var(--bg) 50%); border-left:1px solid rgba(48,144,248,0.1); }
-  .center-controls {
-    width:240px;flex-shrink:0;display:flex;flex-direction:column;gap:10px;
-    padding:14px;background:var(--panel);
-    border-left:1px solid var(--border);border-right:1px solid var(--border);overflow-y:auto;
-  }
+  --sport-accent:var(--gold);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100vh;overflow:hidden;}
 
-  /* ---- SECTION CARDS ---- */
-  .section { background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;
-    animation:sectionIn 0.25s ease-out both;
-  }
-  .section { transition:transform 0.12s ease, box-shadow 0.12s ease; }
-  .section:hover { transform:translateY(-4px); box-shadow:0 8px 20px rgba(0,0,0,0.14); }
-  @keyframes sectionIn { from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none} }
-  .section-header {
-    font-family:'Bebas Neue',sans-serif;font-size:0.85rem;letter-spacing:0.22em;
-    color:var(--dim);padding:7px 12px;background:var(--panel2);border-bottom:1px solid var(--border);
-  }
-  /* colored header accent for team panels */
-  .left .section-header { border-left:3px solid var(--red-team); }
-  .right .section-header { border-left:3px solid var(--blue-team); }
-  .section-body { padding:12px;display:flex;flex-direction:column;gap:8px; }
+body{
+  background:var(--ink);
+  color:var(--text);
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:14px;
+  display:flex;flex-direction:column;
+}
 
-  /* ---- SCORE BIG ---- */
-  .score-display {
-    font-family:'Bebas Neue',sans-serif;font-size:4.5rem;
-    text-align:center;line-height:1;padding:4px 0;
-    transition:all 0.15s;
-  }
-  .left .score-display { color:var(--red-team);text-shadow:0 0 30px rgba(232,48,80,0.4); }
-  .right .score-display { color:var(--blue-team);text-shadow:0 0 30px rgba(48,144,248,0.4); }
-  .score-display.pop { animation:scorePop 0.3s ease-out; }
-  @keyframes scorePop { 0%{transform:scale(1)}40%{transform:scale(1.1)}100%{transform:scale(1)} }
+/* scrollbars */
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-thumb{background:var(--wire2);}
 
-  /* ---- BUTTONS ---- */
-  .btn {
-    font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.12em;
-    padding:8px 14px;border:1.5px solid;border-radius:4px;cursor:pointer;
-    transition:all 0.15s;text-align:center;
-  }
-  .btn:active { transform:scale(0.96); }
-  .btn-green { border-color:var(--green);color:var(--green);background:rgba(64,200,128,0.05); }
-  .btn-green:hover { background:var(--green);color:#000; }
-  .btn-red { border-color:var(--red-team);color:var(--red-team);background:rgba(232,48,80,0.05); }
-  .btn-red:hover { background:var(--red-team);color:#fff; }
-  .btn-accent { border-color:var(--accent);color:var(--accent);background:rgba(240,192,64,0.05); }
-  .btn-accent:hover { background:var(--accent);color:#000; }
-  .btn-orange { border-color:var(--orange);color:var(--orange);background:rgba(240,112,48,0.05); }
-  .btn-orange:hover { background:var(--orange);color:#000; }
-  .btn-blue { border-color:var(--blue-team);color:var(--blue-team);background:rgba(48,144,248,0.05); }
-  .btn-blue:hover { background:var(--blue-team);color:#fff; }
-  .btn-dim { border-color:var(--border);color:var(--dim);background:transparent; }
-  .btn-dim:hover { border-color:var(--dim);color:var(--text); }
-  .btn.full { width:100%; }
-  .btn.big { font-size:1.2rem;padding:12px 16px; }
-  .btn:disabled { opacity:0.3;cursor:not-allowed;pointer-events:none; }
-  .btn-row { display:flex;gap:6px; }
-  .btn-row .btn { flex:1; }
+/* ===========================================================
+   TOP COMMAND BAR
+   =========================================================== */
+#cmd-bar{
+  height:54px;flex-shrink:0;
+  display:flex;align-items:center;
+  background:var(--surface);
+  border-bottom:1px solid var(--wire);
+  position:relative;z-index:20;
+  padding:0 20px;gap:0;
+  /* subtle gradient top accent */
+}
+#cmd-bar::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--sport-accent) 40%,var(--sport-accent) 60%,transparent);
+  opacity:0.5;transition:background 0.4s;
+}
 
-  /* ---- INPUTS ---- */
-  input[type="text"], input[type="number"] {
-    background:var(--panel2);border:1px solid var(--border);color:var(--text);
-    font-family:'Barlow Condensed',sans-serif;font-size:1rem;
-    padding:7px 10px;border-radius:4px;width:100%;outline:none;transition:border-color 0.15s;
-  }
-  input:focus { border-color:var(--accent); }
-  label {
-    font-size:0.78rem;letter-spacing:0.12em;color:var(--dim);
-    display:block;margin-bottom:3px;text-transform:uppercase;
-  }
+/* Logo block */
+#logo-block{
+  display:flex;flex-direction:column;justify-content:center;
+  padding-right:20px;border-right:1px solid var(--wire);
+  margin-right:20px;height:100%;
+}
+#logo-word{
+  font-family:'Bebas Neue',sans-serif;font-size:1.35rem;
+  letter-spacing:0.18em;line-height:1;
+  color:var(--gold);
+}
+#logo-sub{
+  font-size:0.58rem;letter-spacing:0.28em;color:var(--muted);
+  font-family:'JetBrains Mono',monospace;margin-top:1px;
+}
 
-  /* ---- PLAYER ROWS ---- */
-  .player-row {
-    display:flex;align-items:center;gap:7px;background:var(--panel2);
-    border:1px solid var(--border);border-radius:4px;padding:5px 8px;
-    animation:sectionIn 0.2s ease-out both;
-  }
-  .player-row .p-name { flex:1;font-size:1rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
-  .foul-count { font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--orange);min-width:22px;text-align:center; }
-  .foul-count.out { color:var(--red-team); }
-  .player-row .btn { padding:3px 7px;font-size:0.82rem; }
+/* Sport switcher */
+#sport-switcher{display:flex;gap:4px;align-items:center;}
+.sp-btn{
+  font-family:'Bebas Neue',sans-serif;font-size:0.85rem;
+  letter-spacing:0.14em;padding:5px 12px;
+  border:1px solid var(--wire2);background:transparent;
+  color:var(--muted);border-radius:3px;cursor:pointer;
+  transition:all 0.15s;display:flex;align-items:center;gap:6px;
+}
+.sp-btn:hover{border-color:var(--wire2+80);color:var(--text);}
+.sp-btn.active{
+  background:rgba(240,192,64,0.1);
+  color:var(--gold);border-color:rgba(240,192,64,0.35);
+}
 
-  /* Player name inline edit */
-  .player-name-input {
-    flex:1;background:transparent;border:none;border-bottom:1px solid var(--accent);
-    color:var(--text);font-family:'Barlow Condensed',sans-serif;font-size:1rem;
-    font-weight:600;outline:none;padding:1px 2px;min-width:0;
-  }
+/* Right side tools */
+#bar-right{
+  margin-left:auto;display:flex;align-items:center;gap:10px;
+}
 
-  /* ---- DIVIDER ---- */
-  .divider { border:none;border-top:1px solid var(--border);margin:2px 0; }
+/* Status capsule (live/waiting/etc) */
+#live-capsule{
+  display:flex;align-items:center;gap:7px;
+  padding:4px 12px;border-radius:3px;
+  background:var(--wire);
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.68rem;letter-spacing:0.1em;
+  transition:all 0.3s;
+}
+#live-capsule.live{background:rgba(56,232,136,0.1);border:1px solid rgba(56,232,136,0.25);}
+#live-capsule.live .cap-dot{background:var(--green);box-shadow:0 0 5px var(--green);animation:dotPulse 1.4s ease-in-out infinite;}
+#live-capsule.intermission{background:rgba(240,112,48,0.1);border:1px solid rgba(240,112,48,0.25);}
+#live-capsule.intermission .cap-dot{background:var(--orange);}
+#live-capsule.ended{background:rgba(232,48,80,0.1);border:1px solid rgba(232,48,80,0.25);}
+#live-capsule.ended .cap-dot{background:var(--ra);}
+.cap-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);}
+@keyframes dotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+#cap-label{color:var(--text);font-size:0.7rem;}
 
-  /* ---- MODAL ---- */
-  #modal-overlay {
-    display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);
-    z-index:200;align-items:center;justify-content:center;
-    backdrop-filter:blur(4px);
-  }
-  #modal-overlay.show { display:flex;animation:fadeIn 0.2s ease; }
-  @keyframes fadeIn { from{opacity:0}to{opacity:1} }
-  #modal-box {
-    background:var(--panel);border:1px solid var(--border);border-radius:8px;
-    padding:28px 32px;max-width:360px;text-align:center;
-    display:flex;flex-direction:column;gap:14px;
-    animation:modalIn 0.2s ease;
-  }
-  @keyframes modalIn { from{transform:scale(0.92)}to{transform:scale(1)} }
-  #modal-title { font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:0.1em; }
-  #modal-body { font-size:0.95rem;color:var(--dim); }
-  #modal-actions { display:flex;gap:10px; }
+/* Big timer in bar */
+#bar-timer{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.6rem;letter-spacing:0.06em;
+  color:var(--gold);line-height:1;
+  transition:color 0.3s;
+  min-width:78px;text-align:right;
+}
+#bar-timer.warning{color:var(--orange);animation:tBlink 0.7s ease-in-out infinite;}
+@keyframes tBlink{0%,100%{opacity:1}50%{opacity:0.4}}
 
-  /* ---- FOOTBALL CARDS ---- */
-  .cards-preview { display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-height:28px; }
-  .card-chip { width:16px;height:22px;border-radius:2px;display:inline-block; }
-  .card-chip.y { background:var(--yellow); }
-  .card-chip.r { background:var(--red-team); }
+/* Round indicator */
+#bar-round{
+  font-family:'JetBrains Mono',monospace;font-size:0.7rem;
+  color:var(--muted);letter-spacing:0.08em;
+  background:var(--raised);border:1px solid var(--wire);
+  padding:3px 8px;border-radius:2px;
+}
 
-  /* scrollbar */
-  ::-webkit-scrollbar { width:4px; }
-  ::-webkit-scrollbar-thumb { background:var(--border);border-radius:2px; }
+/* Billboard button */
+#billboard-btn{
+  font-family:'Bebas Neue',sans-serif;font-size:0.82rem;
+  letter-spacing:0.16em;padding:5px 14px;
+  border:1px solid rgba(48,144,248,0.3);
+  background:rgba(48,144,248,0.06);
+  color:var(--rb);border-radius:3px;cursor:pointer;
+  transition:all 0.15s;
+}
+#billboard-btn:hover{background:rgba(48,144,248,0.18);border-color:var(--rb);}
+
+/* Update badge */
+#update-badge{
+  font-family:'JetBrains Mono',monospace;font-size:0.65rem;
+  letter-spacing:0.08em;padding:4px 10px;
+  border:1px solid rgba(240,192,64,0.4);
+  background:rgba(240,192,64,0.06);
+  color:var(--gold);border-radius:3px;cursor:pointer;
+  display:none;animation:fadeIn 0.3s ease;
+  transition:background 0.15s;
+}
+#update-badge:hover{background:rgba(240,192,64,0.18);}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ===========================================================
+   MAIN WORKSPACE — 3-column
+   =========================================================== */
+#workspace{
+  flex:1;display:flex;overflow:hidden;
+}
+
+/* ===========================================================
+   TEAM COLUMNS  (left = A, right = B)
+   =========================================================== */
+.team-col{
+  flex:1;display:flex;flex-direction:column;
+  overflow-y:auto;overflow-x:hidden;
+  position:relative;
+}
+.team-col.col-a{
+  background:linear-gradient(160deg,#0e0610 0%,var(--ink) 60%);
+  border-right:1px solid rgba(232,48,80,0.08);
+}
+.team-col.col-b{
+  background:linear-gradient(200deg,#060c18 0%,var(--ink) 60%);
+  border-left:1px solid rgba(48,144,248,0.08);
+}
+
+/* ---- TEAM HEADER inside column ---- */
+.team-header{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 16px 10px;
+  border-bottom:1px solid var(--wire);
+  flex-shrink:0;
+  position:relative;
+}
+.team-header::after{
+  content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;
+}
+.col-a .team-header::after{background:linear-gradient(90deg,var(--ra),transparent);}
+.col-b .team-header::after{background:linear-gradient(90deg,transparent,var(--rb));}
+
+.th-color-bar{width:4px;border-radius:2px;height:30px;flex-shrink:0;}
+.col-a .th-color-bar{background:var(--ra);box-shadow:0 0 8px var(--ra);}
+.col-b .th-color-bar{background:var(--rb);box-shadow:0 0 8px var(--rb);}
+
+.th-name-input{
+  flex:1;
+  background:transparent;border:none;outline:none;
+  font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:0.1em;
+  line-height:1;color:var(--text);min-width:0;
+  border-bottom:1px solid transparent;transition:border-color 0.15s;
+  cursor:text;
+}
+.col-a .th-name-input{color:var(--ra);}
+.col-b .th-name-input{color:var(--rb);}
+.th-name-input:focus{border-bottom-color:rgba(255,255,255,0.15);}
+
+.th-score{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:3.5rem;line-height:1;
+  flex-shrink:0;
+}
+.col-a .th-score{color:var(--ra);text-shadow:0 0 30px var(--ga);}
+.col-b .th-score{color:var(--rb);text-shadow:0 0 30px var(--gb);}
+.th-score.pop{animation:scPop 0.3s ease-out;}
+@keyframes scPop{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+/* ---- TEAM BODY: padded content area ---- */
+.team-body{
+  padding:12px 14px;
+  display:flex;flex-direction:column;gap:10px;
+  flex:1;
+}
+
+/* ---- SCORE ACTIONS ---- */
+.score-actions{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:5px;
+}
+
+/* ---- MODULE CARDS ---- */
+.module{
+  background:var(--surface);
+  border:1px solid var(--wire);
+  border-radius:4px;overflow:hidden;
+}
+.module-hd{
+  display:flex;align-items:center;gap:7px;
+  padding:6px 11px;
+  border-bottom:1px solid var(--wire);
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.63rem;letter-spacing:0.14em;color:var(--muted);
+  user-select:none;background:var(--raised);
+}
+.module-hd .dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.col-a .module-hd .dot{background:var(--ra);box-shadow:0 0 4px var(--ra);}
+.col-b .module-hd .dot{background:var(--rb);box-shadow:0 0 4px var(--rb);}
+.module-body{padding:10px 11px;display:flex;flex-direction:column;gap:8px;}
+
+/* ---- BUTTONS ---- */
+.btn{
+  font-family:'Bebas Neue',sans-serif;font-size:0.9rem;letter-spacing:0.1em;
+  padding:7px 10px;border-radius:3px;border:1px solid;cursor:pointer;
+  transition:all 0.13s;text-align:center;line-height:1;
+  display:flex;align-items:center;justify-content:center;gap:4px;
+}
+.btn:active{transform:scale(0.96);}
+.btn:disabled{opacity:0.2;cursor:not-allowed;pointer-events:none;}
+.bg{border-color:rgba(56,232,136,0.4); color:var(--green);background:rgba(56,232,136,0.04);}
+.bg:hover{background:rgba(56,232,136,0.18);}
+.br{border-color:rgba(232,48,80,0.4);  color:var(--ra);background:rgba(232,48,80,0.04);}
+.br:hover{background:rgba(232,48,80,0.18);}
+.bo{border-color:rgba(240,112,48,0.4); color:var(--orange);background:rgba(240,112,48,0.04);}
+.bo:hover{background:rgba(240,112,48,0.18);}
+.ba{border-color:rgba(240,192,64,0.4); color:var(--gold);background:rgba(240,192,64,0.04);}
+.ba:hover{background:rgba(240,192,64,0.18);}
+.bd{border-color:var(--wire2);color:var(--muted);background:transparent;}
+.bd:hover{border-color:var(--muted);color:var(--text);}
+.bb{border-color:rgba(48,144,248,0.4);color:var(--rb);background:rgba(48,144,248,0.04);}
+.bb:hover{background:rgba(48,144,248,0.18);}
+.full{width:100%;}
+.big{font-size:1.05rem;padding:11px 12px;}
+.row{display:flex;gap:5px;}
+.row .btn{flex:1;}
+
+/* ---- INPUTS ---- */
+input[type=text],input[type=number]{
+  background:var(--raised);border:1px solid var(--wire2);color:var(--text);
+  font-family:'JetBrains Mono',monospace;font-size:0.85rem;
+  padding:7px 9px;border-radius:3px;width:100%;outline:none;
+  transition:border-color 0.15s;
+}
+input:focus{border-color:rgba(240,192,64,0.45);}
+.lbl{
+  font-family:'JetBrains Mono',monospace;font-size:0.62rem;
+  letter-spacing:0.12em;color:var(--muted);
+  display:block;margin-bottom:3px;text-transform:uppercase;
+}
+
+/* ---- PLAYER ROWS ---- */
+.player-row{
+  display:flex;align-items:center;gap:6px;
+  background:var(--raised);border:1px solid var(--wire);
+  border-radius:3px;padding:5px 8px;
+  animation:rowIn 0.18s ease-out both;
+}
+@keyframes rowIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.pl-name-inp{
+  flex:1;background:transparent;border:none;border-bottom:1px solid transparent;
+  color:var(--text);font-family:'Barlow Condensed',sans-serif;
+  font-size:0.95rem;font-weight:600;outline:none;
+  padding:1px 2px;min-width:0;transition:border-color 0.15s;
+}
+.pl-name-inp:focus{border-bottom-color:rgba(240,192,64,0.4);}
+.pl-fouls{
+  font-family:'Bebas Neue',sans-serif;font-size:1rem;
+  color:var(--orange);min-width:20px;text-align:center;
+}
+.pl-fouls.out{color:var(--ra);}
+.player-row .btn{padding:3px 7px;font-size:0.75rem;}
+
+/* ---- FOOTBALL CARD CHIPS ---- */
+.card-chips{display:flex;gap:4px;flex-wrap:wrap;align-items:center;min-height:24px;}
+.chip{width:13px;height:19px;border-radius:2px;display:inline-block;}
+.chip.y{background:var(--gold);box-shadow:0 0 5px rgba(240,192,64,0.5);}
+.chip.r{background:var(--ra);box-shadow:0 0 5px rgba(232,48,80,0.5);}
+
+/* ===========================================================
+   CENTER COLUMN — match control console
+   =========================================================== */
+#ctrl-col{
+  width:220px;flex-shrink:0;
+  display:flex;flex-direction:column;
+  overflow-y:auto;
+  background:var(--surface);
+  border-left:1px solid var(--wire);
+  border-right:1px solid var(--wire);
+  position:relative;
+}
+
+/* decorative gold top line */
+#ctrl-col::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  opacity:0.4;z-index:1;
+}
+
+#ctrl-inner{
+  padding:14px 12px;
+  display:flex;flex-direction:column;gap:10px;
+  flex:1;
+}
+
+/* ---- Control module ---- */
+.ctrl-mod{
+  background:var(--raised);
+  border:1px solid var(--wire);border-radius:4px;overflow:hidden;
+}
+.ctrl-hd{
+  padding:6px 11px;
+  border-bottom:1px solid var(--wire);
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.6rem;letter-spacing:0.18em;color:var(--faint);
+  background:var(--lift);text-transform:uppercase;
+}
+.ctrl-body{padding:10px;display:flex;flex-direction:column;gap:7px;}
+
+/* Big round display */
+.round-display{
+  text-align:center;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:3.5rem;line-height:1;
+  color:var(--gold);padding:6px 0 2px;
+}
+.round-sublbl{
+  text-align:center;font-family:'JetBrains Mono',monospace;
+  font-size:0.6rem;letter-spacing:0.2em;color:var(--muted);
+  margin-top:-2px;margin-bottom:6px;
+}
+
+/* Timer ring in ctrl col */
+#ctrl-timer-wrap{
+  width:100%;display:flex;flex-direction:column;align-items:center;
+  gap:6px;
+}
+#ctrl-ring-wrap{
+  width:100px;height:100px;position:relative;
+}
+#ctrl-ring-svg{width:100%;height:100%;transform:rotate(-90deg);position:absolute;top:0;left:0;}
+#crb{fill:none;stroke:var(--wire);stroke-width:5;}
+#crf{fill:none;stroke-width:5;stroke-linecap:round;stroke:var(--gold);
+  transition:stroke-dashoffset 0.9s linear,stroke 0.5s;filter:drop-shadow(0 0 3px var(--gold));}
+#ctrl-time-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+#ctrl-time-digits{
+  font-family:'Bebas Neue',sans-serif;font-size:1.7rem;
+  letter-spacing:0.06em;line-height:1;color:var(--text);transition:color 0.3s;
+}
+#ctrl-time-lbl{font-size:0.5rem;letter-spacing:0.22em;color:var(--muted);margin-top:2px;}
+#ctrl-ring-wrap.warning #ctrl-time-digits{color:var(--orange);animation:ctWarn 0.8s ease-in-out infinite;}
+@keyframes ctWarn{0%,100%{opacity:1}50%{opacity:0.3}}
+#ctrl-liquid{
+  position:absolute;bottom:0;left:0;width:100%;
+  border-radius:0 0 50px 50px;
+  background:rgba(240,192,64,0.07);
+  transition:height 1s linear,background 0.5s;
+  overflow:hidden;pointer-events:none;
+}
+#ctrl-liquid::after{
+  content:'';position:absolute;top:-8px;left:-50%;width:200%;height:16px;
+  background:rgba(240,192,64,0.1);border-radius:40%;
+  animation:liqWave 2.2s ease-in-out infinite;
+}
+@keyframes liqWave{0%,100%{transform:translateX(-10px)}50%{transform:translateX(10px)}}
+
+/* ---- ACTION ROW ---- */
+.action-zone{
+  display:flex;flex-direction:column;gap:6px;
+  padding:12px;border-top:1px solid var(--wire);
+  flex-shrink:0;
+}
+
+/* ===========================================================
+   MODAL
+   =========================================================== */
+#modal{
+  display:none;position:fixed;inset:0;z-index:300;
+  background:rgba(0,0,0,0.8);align-items:center;justify-content:center;
+  backdrop-filter:blur(8px);
+}
+#modal.show{display:flex;animation:fadeIn 0.2s ease;}
+#modal-box{
+  background:var(--surface);border:1px solid var(--wire2);
+  border-radius:5px;padding:28px 28px;max-width:320px;width:90%;
+  text-align:center;display:flex;flex-direction:column;gap:14px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.7);
+  animation:mIn 0.2s ease;position:relative;
+}
+#modal-box::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  border-radius:5px 5px 0 0;
+}
+@keyframes mIn{from{transform:scale(0.94)}to{transform:scale(1)}}
+#modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.12em;}
+#modal-body{font-size:0.85rem;color:var(--muted);line-height:1.5;}
+#modal-acts{display:flex;gap:8px;}
 </style>
 </head>
 <body>
 
-<div id="topbar">
-  <div id="topbar-logo">
-    HIGH<span style="color:var(--accent)">SCORE</span>
-    <span class="ver"> v2</span>
-    <span class="sub"> MANAGER</span>
+<!-- ===================== CMD BAR ===================== -->
+<div id="cmd-bar">
+  <div id="logo-block">
+    <div id="logo-word">HIGH<span style="color:rgba(255,255,255,0.3)">SCORE</span></div>
+    <div id="logo-sub">COMMAND CENTER &nbsp;·&nbsp; <span id="logo-ver"></span></div>
   </div>
-  <button class="sport-btn active" onclick="setSport('basketball')">🏀 Basketball</button>
-  <button class="sport-btn" onclick="setSport('football')">⚽ Football</button>
-  <button class="sport-btn" onclick="setSport('handball')">🤾 Handball</button>
-  <button id="open-billboard-btn" onclick="openBillboard()">⬡ OPEN BILLBOARD</button>
+
+  <div id="sport-switcher">
+    <button class="sp-btn active" onclick="setSport('basketball')">🏀 BASKETBALL</button>
+    <button class="sp-btn"       onclick="setSport('football')">⚽ FOOTBALL</button>
+    <button class="sp-btn"       onclick="setSport('handball')">🤾 HANDBALL</button>
+  </div>
+
+  <div id="bar-right">
+    <div id="live-capsule">
+      <div class="cap-dot"></div>
+      <span id="cap-label">WAITING</span>
+    </div>
+    <div id="bar-round" style="display:none"></div>
+    <div id="bar-timer">—:——</div>
+    <div id="update-badge" onclick="dismissUpdate()" title="New version available — click to dismiss">
+      ▲ UPDATE <span id="upd-ver"></span>
+    </div>
+    <button id="billboard-btn" onclick="openBillboard()">⬡ BILLBOARD</button>
+  </div>
 </div>
 
-<div id="statusbar">
-  <span id="status-tag" class="status-tag waiting">WAITING</span>
-  <span id="timer-display">—:—</span>
-  <span id="round-display"></span>
-  <span style="margin-left:auto;color:var(--dim);font-size:0.78rem;letter-spacing:0.08em">Auto-saves to Billboard</span>
+<!-- ===================== WORKSPACE ===================== -->
+<div id="workspace">
+
+  <!-- TEAM A -->
+  <div class="team-col col-a" id="col-a">
+    <div class="team-header">
+      <div class="th-color-bar"></div>
+      <input class="th-name-input" id="name-a" value="TEAM A" placeholder="TEAM A"
+        oninput="S.teamA.name=this.value;save()" autocomplete="off">
+      <div class="th-score" id="score-disp-a">0</div>
+    </div>
+    <div class="team-body" id="body-a"></div>
+  </div>
+
+  <!-- CENTER CTRL -->
+  <div id="ctrl-col">
+    <div id="ctrl-inner">
+
+      <!-- Timer ring -->
+      <div class="ctrl-mod">
+        <div class="ctrl-hd">MATCH CLOCK</div>
+        <div class="ctrl-body" style="align-items:center;">
+          <div id="ctrl-timer-wrap">
+            <div id="ctrl-ring-wrap">
+              <div id="ctrl-liquid"></div>
+              <svg id="ctrl-ring-svg" viewBox="0 0 100 100">
+                <circle id="crb" cx="50" cy="50" r="42"/>
+                <circle id="crf" cx="50" cy="50" r="42" stroke-dasharray="263.9" stroke-dashoffset="0"/>
+              </svg>
+              <div id="ctrl-time-text">
+                <div id="ctrl-time-digits">00:00</div>
+                <div id="ctrl-time-lbl">TIME</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action buttons (dynamic) -->
+      <div id="action-zone" class="action-zone" style="padding:0;border:none;"></div>
+
+      <!-- Round config (dynamic) -->
+      <div id="round-config-block"></div>
+
+      <!-- Time config -->
+      <div id="time-config-block"></div>
+
+      <!-- Match control -->
+      <div class="ctrl-mod" id="match-ctrl-block">
+        <div class="ctrl-hd">MATCH</div>
+        <div class="ctrl-body">
+          <button class="btn br full" onclick="confirmReset()">↺ NEW MATCH</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TEAM B -->
+  <div class="team-col col-b" id="col-b">
+    <div class="team-header">
+      <input class="th-name-input" id="name-b" value="TEAM B" placeholder="TEAM B"
+        oninput="S.teamB.name=this.value;save()" autocomplete="off" style="text-align:right;">
+      <div class="th-score" id="score-disp-b" style="order:-1">0</div>
+      <div class="th-color-bar"></div>
+    </div>
+    <div class="team-body" id="body-b"></div>
+  </div>
+
 </div>
 
-<div id="main">
-  <div class="side-panel left" id="panel-left"></div>
-  <div class="center-controls" id="panel-center"></div>
-  <div class="side-panel right" id="panel-right"></div>
-</div>
-
-<div id="modal-overlay">
+<!-- MODAL -->
+<div id="modal">
   <div id="modal-box">
     <div id="modal-title">CONFIRM</div>
     <div id="modal-body"></div>
-    <div id="modal-actions">
-      <button class="btn btn-red full" id="modal-confirm">CONFIRM</button>
-      <button class="btn btn-dim full" onclick="closeModal()">CANCEL</button>
+    <div id="modal-acts">
+      <button class="btn br full" id="modal-ok">CONFIRM</button>
+      <button class="btn bd full" onclick="closeModal()">CANCEL</button>
     </div>
   </div>
 </div>
 
 <script>
-// ============================================================
-//  STATE
-// ============================================================
-const DEFAULT_STATE = {
+/* ============================================================
+   STATE
+   ============================================================ */
+const DEF = {
   sport:'basketball',
   teamA:{name:'TEAM A',score:0,yellowCards:0,players:[]},
   teamB:{name:'TEAM B',score:0,yellowCards:0,players:[]},
@@ -253,432 +570,348 @@ const DEFAULT_STATE = {
   timerSeconds:900,intermissionSeconds:900,
   matchRunning:false,intermissionRunning:false,matchEnded:false
 };
-
-let S = JSON.parse(JSON.stringify(DEFAULT_STATE));
+let S = JSON.parse(JSON.stringify(DEF));
 let timerInterval = null;
 
-function save() {
+function save(){
   localStorage.setItem('hs_state', JSON.stringify(S));
   renderStatus();
 }
 
-// ============================================================
-//  TIMER ENGINE
-// ============================================================
-function startTimer() {
-  // ensure only one timer is active
+/* ============================================================
+   TIMER ENGINE
+   ============================================================ */
+function startTimer(){
   stopTimer();
-  timerInterval = setInterval(() => {
-    if (S.intermissionRunning) {
-      S.intermissionSeconds = Math.max(0, S.intermissionSeconds - 1);
-      if (S.intermissionSeconds <= 0) {
-        S.intermissionRunning = false;
-        startMatch();
-        return;
-      }
-    } else if (S.matchRunning) {
-      S.timerSeconds = Math.max(0, S.timerSeconds - 1);
-      if (S.timerSeconds <= 0) {
-        S.matchRunning = false;
-        if ((S.sport==='basketball' && S.round>=4) || (S.sport==='football' && S.round>=2) || S.sport==='handball') {
-          S.matchEnded = true;
-        }
+  timerInterval = setInterval(()=>{
+    if(S.intermissionRunning){
+      S.intermissionSeconds = Math.max(0,S.intermissionSeconds-1);
+      if(S.intermissionSeconds<=0){ S.intermissionRunning=false; startMatch(); return; }
+    } else if(S.matchRunning){
+      S.timerSeconds = Math.max(0,S.timerSeconds-1);
+      if(S.timerSeconds<=0){
+        S.matchRunning=false;
+        if((S.sport==='basketball'&&S.round>=4)||(S.sport==='football'&&S.round>=2)||S.sport==='handball')
+          S.matchEnded=true;
         stopTimer();
       }
     }
-    save();
-    renderStatus();
-  }, 1000);
+    save(); renderStatus();
+  },1000);
 }
+function stopTimer(){ if(timerInterval){clearInterval(timerInterval);timerInterval=null;} }
+function startMatch(){ S.matchRunning=true; S.intermissionRunning=false; S.timerSeconds=S.roundMinutes*60; startTimer(); save(); renderStatus(); }
 
-function stopTimer() {
-  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-}
-
-function startMatch() {
-  S.matchRunning = true;
-  S.intermissionRunning = false;
-  S.timerSeconds = S.roundMinutes * 60;
-  startTimer();
-  save();
-  renderStatus();
-}
-
-// ============================================================
-//  SPORT SWITCH
-// ============================================================
-function setSport(sport) {
-  S.sport = sport;
-  S.teamA.score = 0; S.teamB.score = 0;
-  S.teamA.yellowCards = 0; S.teamB.yellowCards = 0;
-  S.teamA.players = S.teamA.players || [];
-  S.teamB.players = S.teamB.players || [];
-  S.round = 1;
-  S.matchRunning = false; S.intermissionRunning = false; S.matchEnded = false;
-  S.totalRounds = sport==='football' ? 2 : 4;
-  S.roundMinutes = sport==='basketball' ? 15 : sport==='football' ? 45 : 30;
-  S.intermissionMinutes = 15;
-  S.timerSeconds = S.roundMinutes * 60;
-  S.intermissionSeconds = S.intermissionMinutes * 60;
-  stopTimer();
-  save();
-  document.querySelectorAll('.sport-btn').forEach((b,i) => {
-    b.classList.toggle('active', ['basketball','football','handball'][i]===sport);
-  });
+/* ============================================================
+   SPORT SWITCH
+   ============================================================ */
+function setSport(sport){
+  S.sport=sport;S.teamA.score=0;S.teamB.score=0;
+  S.teamA.yellowCards=0;S.teamB.yellowCards=0;
+  S.teamA.players=S.teamA.players||[];S.teamB.players=S.teamB.players||[];
+  S.round=1;S.matchRunning=false;S.intermissionRunning=false;S.matchEnded=false;
+  S.totalRounds=sport==='football'?2:4;
+  S.roundMinutes=sport==='basketball'?15:sport==='football'?45:30;
+  S.intermissionMinutes=15;
+  S.timerSeconds=S.roundMinutes*60;S.intermissionSeconds=S.intermissionMinutes*60;
+  stopTimer();save();
+  document.querySelectorAll('.sp-btn').forEach((b,i)=>b.classList.toggle('active',['basketball','football','handball'][i]===sport));
   renderAll();
 }
 
-// ============================================================
-//  RENDER
-// ============================================================
-function renderAll() { renderLeft(); renderRight(); renderCenter(); renderStatus(); }
+/* ============================================================
+   RENDER
+   ============================================================ */
+function renderAll(){ renderTeam('a'); renderTeam('b'); renderCenter(); renderStatus(); }
 
-function renderStatus() {
-  const secs = S.intermissionRunning ? S.intermissionSeconds : S.timerSeconds;
-  const m = Math.floor(secs/60), s = secs%60;
-  $('timer-display').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+const CIRC=263.9;
+function renderStatus(){
+  const secs=S.intermissionRunning?S.intermissionSeconds:S.timerSeconds;
+  const m=Math.floor(secs/60),s=secs%60;
+  const tstr=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  document.getElementById('bar-timer').textContent=tstr;
+  document.getElementById('ctrl-time-digits').textContent=tstr;
 
-  const tag = $('status-tag');
-  if (S.matchEnded) { tag.textContent='FINAL'; tag.className='status-tag ended'; }
-  else if (S.intermissionRunning) { tag.textContent='INTERMISSION'; tag.className='status-tag intermission'; }
-  else if (S.matchRunning) { tag.textContent='LIVE'; tag.className='status-tag live'; }
-  else { tag.textContent='WAITING'; tag.className='status-tag waiting'; }
+  const warn=S.matchRunning&&secs<=60;
+  document.getElementById('bar-timer').className=warn?'warning':'';
+  document.getElementById('ctrl-ring-wrap').classList.toggle('warning',warn);
 
-  const rd = $('round-display');
-  if (S.sport==='basketball') rd.textContent = `Q${S.round}/4`;
-  else if (S.sport==='football') rd.textContent = `H${S.round}/2`;
-  else rd.textContent = '';
+  // Timer ring
+  const maxSecs=S.roundMinutes*60||900;
+  const ratio=maxSecs>0?secs/maxSecs:0;
+  const offset=CIRC*(1-ratio);
+  const crf=document.getElementById('crf');
+  crf.setAttribute('stroke-dashoffset',String(offset));
+  let sc='#f0c040',lc='rgba(240,192,64,0.07)';
+  if(warn){sc='#e83050';lc='rgba(232,48,80,0.18)';}
+  else if(ratio>0.5){sc='#38e888';lc='rgba(56,232,136,0.1)';}
+  else if(ratio>0.2){sc='#f0c040';lc='rgba(240,192,64,0.1)';}
+  else{sc='#e83050';lc='rgba(232,48,80,0.18)';}
+  crf.style.stroke=sc;
+  crf.style.filter=`drop-shadow(0 0 4px ${sc})`;
+  const liq=document.getElementById('ctrl-liquid');
+  liq.style.height=(ratio*100)+'%';liq.style.background=lc;
+
+  // Capsule
+  const cap=document.getElementById('live-capsule');
+  const capLbl=document.getElementById('cap-label');
+  if(S.matchEnded){cap.className='ended';capLbl.textContent='FINAL';}
+  else if(S.intermissionRunning){cap.className='intermission';capLbl.textContent='INTERMISSION';}
+  else if(S.matchRunning){cap.className='live';capLbl.textContent='LIVE';}
+  else{cap.className='';capLbl.textContent='WAITING';}
+
+  // Round
+  const br=document.getElementById('bar-round');
+  if(S.sport==='basketball'){br.textContent=`Q${S.round}/4`;br.style.display='';}
+  else if(S.sport==='football'){br.textContent=`H${S.round}/2`;br.style.display='';}
+  else br.style.display='none';
 }
 
-function renderLeft()  { renderTeamPanel('a', $('panel-left')); }
-function renderRight() { renderTeamPanel('b', $('panel-right')); }
+function renderTeam(side){
+  const team=side==='a'?S.teamA:S.teamB;
+  const body=document.getElementById('body-'+side);
+  body.innerHTML='';
 
-function renderTeamPanel(side, container) {
-  const team = side==='a' ? S.teamA : S.teamB;
-  const label = side==='a' ? 'TEAM A' : 'TEAM B';
-  container.innerHTML = '';
+  // Sync header name + score
+  const ni=document.getElementById('name-'+side);
+  if(ni&&document.activeElement!==ni)ni.value=team.name||'';
+  const sd=document.getElementById('score-disp-'+side);
+  if(sd)sd.textContent=team.score;
 
-  // Name
-  container.appendChild(sectionHtml(`${label} — NAME`, `
-    <label>Team Name</label>
-    <input type="text" id="name-${side}" value="${esc(team.name)}"
-      placeholder="Team name"
-      oninput="S.team${side.toUpperCase()}.name=this.value;save()">
-  `));
-
-  // Score
-  const scoreSection = sectionHtml(`${label} — SCORE`, `
-    <div class="score-display" id="score-disp-${side}">${team.score}</div>
-    <div class="btn-row">
-      <button class="btn btn-green" onclick="addScore('${side}',1)">+1</button>
-      <button class="btn btn-green" onclick="addScore('${side}',2)">+2</button>
-      <button class="btn btn-green" onclick="addScore('${side}',3)">+3</button>
-      <button class="btn btn-red" onclick="addScore('${side}',-1)">-1</button>
+  // Score controls
+  body.appendChild(mkMod(null,`
+    <div class="row score-actions">
+      <button class="btn bg" onclick="addScore('${side}',1)">+1</button>
+      <button class="btn bg" onclick="addScore('${side}',2)">+2</button>
+      <button class="btn bg" onclick="addScore('${side}',3)">+3</button>
+      <button class="btn br" onclick="addScore('${side}',-1)">−1</button>
     </div>
-    <button class="btn btn-dim full" onclick="resetScore('${side}')">RESET SCORE</button>
-  `);
-  container.appendChild(scoreSection);
+    <button class="btn bd full" onclick="resetScore('${side}')">RESET SCORE</button>
+  `,'SCORE'));
 
-  if (S.sport==='basketball') renderBasketballPanel(side, team, container);
-  if (S.sport==='football')   renderFootballPanel(side, team, container);
+  if(S.sport==='basketball') renderBball(side,team,body);
+  if(S.sport==='football')   renderFtbl(side,team,body);
 }
 
-function renderBasketballPanel(side, team, container) {
-  // Player count config
-  container.appendChild(sectionHtml('PLAYERS — CONFIG', `
-    <label>Number of Players</label>
-    <div class="btn-row">
-      <input type="number" id="pcount-${side}" value="${team.players.length}" min="1" max="15" style="width:70px">
-      <button class="btn btn-accent" onclick="setPlayerCount('${side}')">SET</button>
+function renderBball(side,team,body){
+  body.appendChild(mkMod('PLAYERS — CONFIG',`
+    <div class="lbl">Number of players</div>
+    <div class="row">
+      <input type="number" id="pcount-${side}" value="${team.players.length}" min="1" max="15">
+      <button class="btn ba" onclick="setPlayerCount('${side}')">SET</button>
     </div>
   `));
+  if(!team.players.length)return;
 
-  if (team.players.length === 0) return;
-
-  // Players list — use inline editing for names (no prompt)
-  const section = document.createElement('div');
-  section.className = 'section';
-  section.innerHTML = `<div class="section-header">PLAYERS — FOULS</div>`;
-  const body = document.createElement('div');
-  body.className = 'section-body';
-
-  team.players.forEach((p,i) => {
-    const fouls = p.fouls || 0;
-    const out = fouls >= 5;
-
-    const row = document.createElement('div');
-    row.className = 'player-row';
-    row.style.animationDelay = (i*0.04)+'s';
-
-    // Inline name input
-    const nameInput = document.createElement('input');
-    nameInput.type = 'text';
-    nameInput.className = 'player-name-input';
-    nameInput.value = p.name || `P${i+1}`;
-    nameInput.placeholder = `P${i+1}`;
-    nameInput.title = 'Click to edit player name';
-    nameInput.oninput = (e) => {
-      const t = side==='a' ? S.teamA : S.teamB;
-      t.players[i].name = e.target.value.trim() || `P${i+1}`;
-      save();
-      // Don't re-render — just save so billboard updates
-    };
-    nameInput.onblur = () => { save(); };
-
-    const foulSpan = document.createElement('span');
-    foulSpan.className = 'foul-count' + (out?' out':'');
-    foulSpan.textContent = fouls + 'F';
-
-    const addBtn = document.createElement('button');
-    addBtn.className = 'btn btn-orange';
-    addBtn.textContent = '+F';
-    if (out) addBtn.disabled = true;
-    addBtn.onclick = () => addFoul(side, i, 1);
-
-    const subBtn = document.createElement('button');
-    subBtn.className = 'btn btn-dim';
-    subBtn.textContent = '-F';
-    if (fouls <= 0) subBtn.disabled = true;
-    subBtn.onclick = () => addFoul(side, i, -1);
-
-    row.appendChild(nameInput);
-    row.appendChild(foulSpan);
-    row.appendChild(addBtn);
-    row.appendChild(subBtn);
-    body.appendChild(row);
+  const sec=mkMod('PLAYERS — FOULS','');
+  const bod=sec.querySelector('.module-body');
+  team.players.forEach((p,i)=>{
+    const fouls=p.fouls||0,out=fouls>=5;
+    const row=document.createElement('div');row.className='player-row';row.style.animationDelay=(i*0.04)+'s';
+    const inp=document.createElement('input');inp.type='text';inp.className='pl-name-inp';
+    inp.value=p.name||`P${i+1}`;inp.placeholder=`P${i+1}`;
+    inp.oninput=e=>{(side==='a'?S.teamA:S.teamB).players[i].name=e.target.value.trim()||`P${i+1}`;save();};
+    inp.onblur=()=>save();
+    const fs=document.createElement('span');fs.className='pl-fouls'+(out?' out':'');fs.textContent=fouls+'F';
+    const ab=document.createElement('button');ab.className='btn bo';ab.textContent='+F';if(out)ab.disabled=true;ab.onclick=()=>addFoul(side,i,1);
+    const sb=document.createElement('button');sb.className='btn bd';sb.textContent='−F';if(fouls<=0)sb.disabled=true;sb.onclick=()=>addFoul(side,i,-1);
+    row.appendChild(inp);row.appendChild(fs);row.appendChild(ab);row.appendChild(sb);
+    bod.appendChild(row);
   });
-
-  section.appendChild(body);
-  container.appendChild(section);
+  body.appendChild(sec);
 }
 
-function renderFootballPanel(side, team, container) {
-  const y = team.yellowCards || 0;
-  const reds = Math.floor(y/3);
-  const remaining = y%3;
-  let chips = '';
-  for(let r=0;r<reds;r++) chips+=`<span class="card-chip r"></span>`;
-  for(let yy=0;yy<remaining;yy++) chips+=`<span class="card-chip y"></span>`;
-  if (!chips) chips='<span style="color:var(--dim);font-size:0.85rem">No cards</span>';
-
-  container.appendChild(sectionHtml('YELLOW CARDS', `
-    <div class="cards-preview">${chips}</div>
-    <div style="font-size:0.78rem;color:var(--dim);margin-top:2px">${y} yellow (${reds} red, ${remaining} pending)</div>
-    <div class="btn-row">
-      <button class="btn btn-orange" onclick="addYellow('${side}',1)">+ YELLOW</button>
-      <button class="btn btn-dim" onclick="addYellow('${side}',-1)" ${y<=0?'disabled':''}>- YELLOW</button>
+function renderFtbl(side,team,body){
+  const y=team.yellowCards||0,reds=Math.floor(y/3),rem=y%3;
+  let chips='<div class="card-chips">';
+  for(let r=0;r<reds;r++)chips+='<div class="chip r"></div>';
+  for(let yy=0;yy<rem;yy++)chips+='<div class="chip y"></div>';
+  if(!y)chips+='<span style="color:var(--muted);font-size:0.8rem">No cards</span>';
+  chips+='</div>';
+  chips+=`<div style="font-size:0.7rem;color:var(--muted);font-family:'JetBrains Mono',monospace">${y} yellow · ${reds} red · ${rem} pending</div>`;
+  body.appendChild(mkMod('YELLOW CARDS',chips+`
+    <div class="row">
+      <button class="btn bo" onclick="addYellow('${side}',1)">+ YELLOW</button>
+      <button class="btn bd" onclick="addYellow('${side}',-1)" ${y<=0?'disabled':''}>− YELLOW</button>
     </div>
-    <button class="btn btn-dim full" onclick="resetCards('${side}')">RESET CARDS</button>
+    <button class="btn bd full" onclick="resetCards('${side}')">RESET CARDS</button>
   `));
 }
 
-function renderCenter() {
-  const c = $('panel-center');
-  c.innerHTML = '';
+function renderCenter(){
+  const az=document.getElementById('action-zone');
+  az.innerHTML='';az.style.display='flex';az.style.flexDirection='column';az.style.gap='5px';
 
-  // MATCH CONTROL
-  if (!S.matchEnded) {
-    if (!S.matchRunning && !S.intermissionRunning) {
-      c.appendChild(makeBtn('▶ START MATCH', 'btn btn-green big full', () => startMatch()));
-    } else if (S.matchRunning) {
-      c.appendChild(makeBtn('⏸ PAUSE', 'btn btn-orange big full', () => {
-        S.matchRunning = false; stopTimer(); save(); renderAll();
+  if(!S.matchEnded){
+    if(!S.matchRunning&&!S.intermissionRunning){
+      az.appendChild(mkBtn('▶ START MATCH','btn bg big full',()=>startMatch()));
+      az.appendChild(mkBtn('☕ INTERMISSION','btn bo full',()=>{
+        S.intermissionRunning=true;S.matchRunning=false;
+        S.intermissionSeconds=S.intermissionMinutes*60;startTimer();save();renderAll();
       }));
-      c.appendChild(makeBtn('⏹ STOP', 'btn btn-red full', () => {
-        S.matchRunning = false; stopTimer(); save(); renderAll();
-      }));
-    } else if (S.intermissionRunning) {
-      c.appendChild(makeBtn('⏹ END INTERMISSION', 'btn btn-orange big full', () => {
-        S.intermissionRunning = false; stopTimer(); startMatch();
-      }));
+    } else if(S.matchRunning){
+      az.appendChild(mkBtn('⏸ PAUSE','btn bo big full',()=>{S.matchRunning=false;stopTimer();save();renderAll();}));
+      az.appendChild(mkBtn('⏹ STOP','btn br full',()=>{S.matchRunning=false;stopTimer();save();renderAll();}));
+    } else if(S.intermissionRunning){
+      az.appendChild(mkBtn('⏹ END INTERMISSION','btn bo big full',()=>{S.intermissionRunning=false;stopTimer();startMatch();}));
     }
-
-    if (!S.matchRunning && !S.intermissionRunning) {
-      c.appendChild(makeBtn('▶ RESUME', 'btn btn-green full', () => {
-        S.matchRunning = true; S.timerSeconds = S.timerSeconds || S.roundMinutes * 60;
-        startTimer(); save(); renderAll();
-      }));
-      c.appendChild(makeBtn('☕ START INTERMISSION', 'btn btn-orange full', () => {
-        S.intermissionRunning = true; S.matchRunning = false;
-        S.intermissionSeconds = S.intermissionMinutes * 60;
-        startTimer(); save(); renderAll();
+    if(!S.matchRunning&&!S.intermissionRunning){
+      az.appendChild(mkBtn('▶ RESUME','btn bg full',()=>{
+        S.matchRunning=true;S.timerSeconds=S.timerSeconds||S.roundMinutes*60;startTimer();save();renderAll();
       }));
     }
   }
 
-  // ROUND CONFIG
-  if (S.sport==='basketball' || S.sport==='football') {
-    const maxRounds = S.sport==='basketball' ? 4 : 2;
-    c.appendChild(sectionHtml('ROUND', `
-      <div style="text-align:center;font-family:'Bebas Neue',sans-serif;font-size:2.5rem;color:var(--accent)">${S.round}</div>
-      <div class="btn-row">
-        <button class="btn btn-dim" onclick="changeRound(-1)" ${S.round<=1?'disabled':''}>◀ PREV</button>
-        <button class="btn btn-dim" onclick="changeRound(1)" ${S.round>=maxRounds?'disabled':''}>NEXT ▶</button>
+  // Round config
+  const rcb=document.getElementById('round-config-block');rcb.innerHTML='';
+  if(S.sport==='basketball'||S.sport==='football'){
+    const max=S.sport==='basketball'?4:2;
+    const rc=mkCtrlMod('ROUND',`
+      <div class="round-display">${S.round}</div>
+      <div class="round-sublbl">${S.sport==='football'?'HALF':'QUARTER'} OF ${max}</div>
+      <div class="row">
+        <button class="btn bd" onclick="changeRound(-1)" ${S.round<=1?'disabled':''}>◀</button>
+        <button class="btn bd" onclick="changeRound(1)"  ${S.round>=max?'disabled':''}>▶</button>
       </div>
-    `));
+    `);
+    rcb.appendChild(rc);
+  }
 
-    c.appendChild(sectionHtml('ROUND TIME', `
-      <label>Minutes per ${S.sport==='football'?'Half':'Quarter'}</label>
-      <div class="btn-row">
+  // Time config
+  const tcb=document.getElementById('time-config-block');tcb.innerHTML='';
+  if(S.sport==='basketball'||S.sport==='football'){
+    tcb.appendChild(mkCtrlMod(`${S.sport==='football'?'HALF':'QUARTER'} DURATION`,`
+      <div class="lbl">Minutes</div>
+      <div class="row">
         <input type="number" id="round-mins" value="${S.roundMinutes}" min="1" max="60">
-        <button class="btn btn-accent" onclick="setRoundMins()">SET</button>
+        <button class="btn ba" onclick="setRoundMins()">SET</button>
       </div>
     `));
   }
-
-  c.appendChild(sectionHtml('INTERMISSION TIME', `
-    <label>Minutes</label>
-    <div class="btn-row">
-      <input type="number" id="intermission-mins" value="${S.intermissionMinutes}" min="1" max="60">
-      <button class="btn btn-accent" onclick="setIntermissionMins()">SET</button>
+  tcb.appendChild(mkCtrlMod('INTERMISSION',`
+    <div class="lbl">Minutes</div>
+    <div class="row">
+      <input type="number" id="int-mins" value="${S.intermissionMinutes}" min="1" max="60">
+      <button class="btn ba" onclick="setIntMins()">SET</button>
     </div>
-  `));
-
-  c.appendChild(sectionHtml('MATCH', `
-    <button class="btn btn-red full" onclick="confirmReset()">↺ NEW MATCH</button>
   `));
 }
 
-// ============================================================
-//  HELPERS
-// ============================================================
-function $(id) { return document.getElementById(id); }
-function esc(s) { return String(s).replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
-
-function sectionHtml(title, bodyHtml) {
-  const d = document.createElement('div');
-  d.className = 'section';
-  d.innerHTML = `<div class="section-header">${title}</div><div class="section-body">${bodyHtml}</div>`;
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function mkMod(title,bodyHtml,altTitle){
+  const d=document.createElement('div');d.className='module';
+  const hd=document.createElement('div');hd.className='module-hd';
+  const dot=document.createElement('div');dot.className='dot';
+  hd.appendChild(dot);
+  const span=document.createElement('span');span.textContent=title||altTitle||'';
+  hd.appendChild(span);
+  const bd=document.createElement('div');bd.className='module-body';
+  bd.innerHTML=bodyHtml;
+  d.appendChild(hd);d.appendChild(bd);
   return d;
 }
-
-function makeBtn(text, cls, fn) {
-  const b = document.createElement('button');
-  b.className = cls; b.innerHTML = text; b.onclick = fn;
-  return b;
+function mkCtrlMod(title,bodyHtml){
+  const d=document.createElement('div');d.className='ctrl-mod';
+  d.innerHTML=`<div class="ctrl-hd">${title}</div><div class="ctrl-body">${bodyHtml}</div>`;
+  return d;
 }
-
-function addScore(side, delta) {
-  const t = side==='a' ? S.teamA : S.teamB;
-  t.score = Math.max(0, t.score + delta);
-  // animate score display
-  const d = $(`score-disp-${side}`);
-  if (d) { d.classList.remove('pop'); void d.offsetWidth; d.classList.add('pop'); }
-  save(); renderLeft(); renderRight();
+function mkBtn(text,cls,fn){
+  const b=document.createElement('button');b.className=cls;b.innerHTML=text;b.onclick=fn;return b;
 }
+function esc(s){return String(s).replace(/"/g,'&quot;').replace(/</g,'&lt;');}
 
-function resetScore(side) {
-  const t = side==='a' ? S.teamA : S.teamB;
-  t.score = 0;
-  save(); renderLeft(); renderRight();
+function addScore(side,delta){
+  const t=side==='a'?S.teamA:S.teamB;t.score=Math.max(0,t.score+delta);
+  const d=document.getElementById('score-disp-'+side);
+  if(d){d.classList.remove('pop');void d.offsetWidth;d.classList.add('pop');}
+  save();renderTeam('a');renderTeam('b');
 }
-
-function addYellow(side, delta) {
-  const t = side==='a' ? S.teamA : S.teamB;
-  t.yellowCards = Math.max(0, (t.yellowCards||0) + delta);
-  save(); renderLeft(); renderRight();
+function resetScore(side){(side==='a'?S.teamA:S.teamB).score=0;save();renderTeam('a');renderTeam('b');}
+function addYellow(side,delta){const t=side==='a'?S.teamA:S.teamB;t.yellowCards=Math.max(0,(t.yellowCards||0)+delta);save();renderTeam('a');renderTeam('b');}
+function resetCards(side){(side==='a'?S.teamA:S.teamB).yellowCards=0;save();renderTeam('a');renderTeam('b');}
+function addFoul(side,idx,delta){const t=side==='a'?S.teamA:S.teamB;t.players[idx].fouls=Math.max(0,Math.min(5,(t.players[idx].fouls||0)+delta));save();renderTeam(side);}
+function setPlayerCount(side){
+  const n=Math.max(1,Math.min(15,parseInt(document.getElementById('pcount-'+side).value)||1));
+  const t=side==='a'?S.teamA:S.teamB;const cur=t.players.length;
+  if(n>cur)for(let i=cur;i<n;i++)t.players.push({name:`P${i+1}`,fouls:0});
+  else t.players=t.players.slice(0,n);
+  save();renderTeam(side);
 }
-
-function resetCards(side) {
-  const t = side==='a' ? S.teamA : S.teamB;
-  t.yellowCards = 0;
-  save(); renderLeft(); renderRight();
+function changeRound(delta){
+  const max=S.sport==='basketball'?4:2;
+  S.round=Math.max(1,Math.min(max,S.round+delta));
+  S.timerSeconds=S.roundMinutes*60;S.matchRunning=false;stopTimer();
+  save();renderAll();
 }
-
-function setPlayerCount(side) {
-  const input = document.getElementById(`pcount-${side}`);
-  const n = Math.max(1, Math.min(15, parseInt(input.value)||1));
-  const t = side==='a' ? S.teamA : S.teamB;
-  const cur = t.players.length;
-  if (n > cur) {
-    for (let i=cur; i<n; i++) t.players.push({name:`P${i+1}`,fouls:0});
-  } else {
-    t.players = t.players.slice(0, n);
-  }
-  save(); renderLeft(); renderRight();
+function setRoundMins(){
+  const mins=parseInt(document.getElementById('round-mins').value)||S.roundMinutes;
+  S.roundMinutes=Math.max(1,Math.min(60,mins));S.timerSeconds=S.roundMinutes*60;save();renderAll();
 }
-
-// Player name is now handled inline via input oninput — no prompt needed
-function addFoul(side, idx, delta) {
-  const t = side==='a' ? S.teamA : S.teamB;
-  t.players[idx].fouls = Math.max(0, Math.min(5, (t.players[idx].fouls||0) + delta));
-  save(); renderLeft(); renderRight();
+function setIntMins(){
+  const mins=parseInt(document.getElementById('int-mins').value)||S.intermissionMinutes;
+  S.intermissionMinutes=Math.max(1,Math.min(60,mins));S.intermissionSeconds=S.intermissionMinutes*60;save();renderAll();
 }
-
-function changeRound(delta) {
-  const max = S.sport==='basketball' ? 4 : 2;
-  S.round = Math.max(1, Math.min(max, S.round+delta));
-  S.timerSeconds = S.roundMinutes * 60;
-  S.matchRunning = false; stopTimer();
-  save(); renderAll();
-}
-
-function setRoundMins() {
-  const mins = parseInt(document.getElementById('round-mins').value) || S.roundMinutes;
-  S.roundMinutes = Math.max(1, Math.min(60, mins));
-  S.timerSeconds = S.roundMinutes * 60;
-  save(); renderAll();
-}
-
-function setIntermissionMins() {
-  const mins = parseInt(document.getElementById('intermission-mins').value) || S.intermissionMinutes;
-  S.intermissionMinutes = Math.max(1, Math.min(60, mins));
-  S.intermissionSeconds = S.intermissionMinutes * 60;
-  save(); renderAll();
-}
-
-function confirmReset() {
-  showModal('START NEW MATCH?', 'This will reset all scores, cards, and timers.', () => {
-    stopTimer();
-    const sport = S.sport;
-    S = JSON.parse(JSON.stringify(DEFAULT_STATE));
-    S.sport = sport;
-    S.totalRounds = sport==='football' ? 2 : 4;
-    S.roundMinutes = sport==='basketball' ? 15 : sport==='football' ? 45 : 30;
-    S.timerSeconds = S.roundMinutes * 60;
-    save(); renderAll();
+function confirmReset(){
+  showModal('START NEW MATCH?','This will reset all scores, cards, fouls, and timers.',()=>{
+    stopTimer();const sp=S.sport;S=JSON.parse(JSON.stringify(DEF));S.sport=sp;
+    S.totalRounds=sp==='football'?2:4;S.roundMinutes=sp==='basketball'?15:sp==='football'?45:30;
+    S.timerSeconds=S.roundMinutes*60;save();renderAll();
   });
 }
+function openBillboard(){window.open('billboard.html','HighScore_Billboard','width=1280,height=720,toolbar=no,menubar=no,scrollbars=no');}
 
-function openBillboard() {
-  window.open('billboard.html', 'HighScore_Billboard', 'width=1280,height=720,toolbar=no,menubar=no,scrollbars=no');
+/* ============================================================
+   MODAL
+   ============================================================ */
+function showModal(title,body,ok){
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-body').textContent=body;
+  document.getElementById('modal-ok').onclick=()=>{closeModal();ok();};
+  document.getElementById('modal').classList.add('show');
 }
+function closeModal(){document.getElementById('modal').classList.remove('show');}
 
-// ============================================================
-//  MODAL
-// ============================================================
-function showModal(title, body, onConfirm) {
-  $('modal-title').textContent = title;
-  $('modal-body').textContent = body;
-  $('modal-confirm').onclick = () => { closeModal(); onConfirm(); };
-  $('modal-overlay').classList.add('show');
-}
-function closeModal() { $('modal-overlay').classList.remove('show'); }
-
-// ============================================================
-//  INIT
-// ============================================================
-try {
-  const saved = localStorage.getItem('hs_state');
-  if (saved) { S = JSON.parse(saved); }
-} catch(e) {}
-
-document.querySelectorAll('.sport-btn').forEach((b,i) => {
-  b.classList.toggle('active', ['basketball','football','handball'][i]===S.sport);
-});
-
-renderAll();
-// attempt to read version from query string (set by main process)
-(function(){
-  try {
-    const params = new URLSearchParams(window.location.search);
-    const v = params.get('v');
-    if (v) {
-      const els = document.querySelectorAll('#topbar-logo .ver');
-      els.forEach(e => e.textContent = ' ' + v);
+/* ============================================================
+   GITHUB UPDATE CHECK
+   ============================================================ */
+async function checkUpdate(){
+  try{
+    const r=await fetch('https://api.github.com/repos/CNAIC/HighScore/releases/latest',
+      {headers:{'Accept':'application/vnd.github.v3+json'},cache:'no-store'});
+    if(!r.ok)return;
+    const d=await r.json();
+    const latest=d.tag_name;if(!latest)return;
+    const cv=(VERSION||'').replace(/^v/i,'');
+    const lv=latest.replace(/^v/i,'');
+    if(cv&&lv&&cv!==lv){
+      document.getElementById('upd-ver').textContent=latest;
+      document.getElementById('update-badge').style.display='';
     }
-  } catch(e){}
-})();
+  }catch(e){}
+}
+function dismissUpdate(){document.getElementById('update-badge').style.display='none';}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+let VERSION='';
+try{
+  const saved=localStorage.getItem('hs_state');if(saved)S=JSON.parse(saved);
+}catch(e){}
+try{
+  const p=new URLSearchParams(location.search);
+  VERSION=p.get('v')||'';
+  const lv=document.getElementById('logo-ver');
+  if(lv)lv.textContent=VERSION?'v'+VERSION:'v2';
+}catch(e){}
+
+document.querySelectorAll('.sp-btn').forEach((b,i)=>b.classList.toggle('active',['basketball','football','handball'][i]===S.sport));
+renderAll();
+
+// Check for updates after a short delay
+setTimeout(checkUpdate, 1500);
 </script>
 </body>
 </html>
