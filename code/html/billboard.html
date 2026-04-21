@@ -365,6 +365,8 @@
   }
   #logo span { color:rgba(240,192,64,0.35); }
   #logo .ver { font-size:0.6rem;color:var(--dim);letter-spacing:0.1em; }
+  /* small badge around corner logo */
+  #logo { padding:6px 10px; background:rgba(255,255,255,0.02); border-radius:6px; }
 
   /* ========= SEPARATOR LINE ========= */
   .vs-line {
@@ -473,7 +475,12 @@ function updateLiquidTimer(secs, maxSecs, isRunning, isWarning) {
   }
 
   fillCircle.style.stroke = strokeColor;
-  fillCircle.style.strokeDashoffset = offset;
+  // ensure SVG stroke-dashoffset is updated in a robust way
+  if (typeof fillCircle.setAttribute === 'function') {
+    fillCircle.setAttribute('stroke-dashoffset', String(offset));
+  } else {
+    fillCircle.style.strokeDashoffset = offset;
+  }
 
   liquidEl.style.height = (ratio * 100) + '%';
   liquidEl.style.setProperty('--liquid-color', liquidColor);
@@ -703,6 +710,19 @@ function poll() {
 
 setInterval(poll, 200);
 poll();
+// populate version from query string (set by main process)
+(function(){
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const v = params.get('v');
+    if (v) {
+      const el = document.querySelector('#logo .ver');
+      if (el) el.textContent = v;
+      const badge = document.querySelector('#logo');
+      if (badge) badge.title = 'Version ' + v;
+    }
+  } catch (e) {}
+})();
 </script>
 </body>
 </html>

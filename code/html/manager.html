@@ -32,6 +32,8 @@
     display:flex;align-items:center;gap:12px;padding:10px 18px;
     background:var(--panel);border-bottom:2px solid var(--border);flex-shrink:0;
   }
+  /* subtle elevation */
+  #topbar { box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
   #topbar-logo {
     font-family:'Bebas Neue',sans-serif;font-size:1.5rem;
     letter-spacing:0.15em;color:var(--accent);margin-right:6px;
@@ -90,6 +92,8 @@
   .section { background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;
     animation:sectionIn 0.25s ease-out both;
   }
+  .section { transition:transform 0.12s ease, box-shadow 0.12s ease; }
+  .section:hover { transform:translateY(-4px); box-shadow:0 8px 20px rgba(0,0,0,0.14); }
   @keyframes sectionIn { from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none} }
   .section-header {
     font-family:'Bebas Neue',sans-serif;font-size:0.85rem;letter-spacing:0.22em;
@@ -262,13 +266,15 @@ function save() {
 //  TIMER ENGINE
 // ============================================================
 function startTimer() {
-  if (timerInterval) clearInterval(timerInterval);
+  // ensure only one timer is active
+  stopTimer();
   timerInterval = setInterval(() => {
     if (S.intermissionRunning) {
       S.intermissionSeconds = Math.max(0, S.intermissionSeconds - 1);
       if (S.intermissionSeconds <= 0) {
         S.intermissionRunning = false;
-        startMatch(); return;
+        startMatch();
+        return;
       }
     } else if (S.matchRunning) {
       S.timerSeconds = Math.max(0, S.timerSeconds - 1);
@@ -277,7 +283,7 @@ function startTimer() {
         if ((S.sport==='basketball' && S.round>=4) || (S.sport==='football' && S.round>=2) || S.sport==='handball') {
           S.matchEnded = true;
         }
-        clearInterval(timerInterval);
+        stopTimer();
       }
     }
     save();
@@ -662,6 +668,17 @@ document.querySelectorAll('.sport-btn').forEach((b,i) => {
 });
 
 renderAll();
+// attempt to read version from query string (set by main process)
+(function(){
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const v = params.get('v');
+    if (v) {
+      const els = document.querySelectorAll('#topbar-logo .ver');
+      els.forEach(e => e.textContent = ' ' + v);
+    }
+  } catch(e){}
+})();
 </script>
 </body>
 </html>
