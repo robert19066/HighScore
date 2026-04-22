@@ -1,7 +1,12 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
+
+// Precompute common paths for small performance win
+const ROOT_DIR = path.join(__dirname, '..', '..');
+const ASSETS_DIR = path.join(ROOT_DIR, 'assets');
+const HTML_DIR = path.join(__dirname, '..', 'html');
 
 let splashWindow;
 let managerWindow;
@@ -9,10 +14,20 @@ let billboardWindow;
 
 function readVersion() {
   try {
-    const vpath = path.join(__dirname, '..', '..', 'assets', 'vrsn.txt');
+    const vpath = path.join(ASSETS_DIR, 'vrsn.txt');
     if (fs.existsSync(vpath)) return fs.readFileSync(vpath, 'utf8').trim();
   } catch (e) {}
   return '';
+}
+
+async function readVersionAsync(){
+  try{
+    const vpath = path.join(ASSETS_DIR, 'vrsn.txt');
+    const txt = await fs.promises.readFile(vpath,'utf8');
+    return txt.trim();
+  }catch(e){
+    return readVersion();
+  }
 }
 
 function fileUrlWithQuery(filePath, query) {
@@ -23,7 +38,7 @@ function fileUrlWithQuery(filePath, query) {
 }
 
 function createSplash(version) {
-  const splashIcon = path.join(__dirname, '..', '..', 'assets', 'splash.ico');
+  const splashIcon = path.join(ASSETS_DIR, 'splash.ico');
   splashWindow = new BrowserWindow({
     width: 600,
     height: 400,
@@ -38,7 +53,7 @@ function createSplash(version) {
     icon: splashIcon,
   });
 
-  const splashFile = path.join(__dirname, '..', 'html', 'splash.html');
+  const splashFile = path.join(HTML_DIR, 'splash.html');
   splashWindow.loadURL(fileUrlWithQuery(splashFile, { v: version }));
 
   splashWindow.once('ready-to-show', () => {
@@ -49,7 +64,7 @@ function createSplash(version) {
 function createWindows(version) {
   // Manager window
   const managerPreload = path.join(__dirname, 'preload-manager.js');
-  const managerIcon = path.join(__dirname, '..', '..', 'assets', 'settings.ico');
+  const managerIcon = path.join(ASSETS_DIR, 'settings.ico');
   managerWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -63,12 +78,21 @@ function createWindows(version) {
     icon: managerIcon,
   });
 
-  const managerFile = path.join(__dirname, '..', 'html', 'manager.html');
+  // CRITICAL FIX: Intercept window.open and route external links to the default system browser
+  managerWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      shell.openExternal(url);
+      return { action: 'deny' };
+    }
+    return { action: 'allow' };
+  });
+
+  const managerFile = path.join(HTML_DIR, 'manager.html');
   managerWindow.loadURL(fileUrlWithQuery(managerFile, { v: version }));
 
   // Billboard window
   const billboardPreload = path.join(__dirname, 'preload-billboard.js');
-  const billboardIcon = path.join(__dirname, '..', '..', 'assets', 'icon.ico');
+  const billboardIcon = path.join(ASSETS_DIR, 'icon.ico');
   billboardWindow = new BrowserWindow({
     width: 1400,
     height: 900,
@@ -82,18 +106,25 @@ function createWindows(version) {
     icon: billboardIcon,
   });
 
-  const billboardFile = path.join(__dirname, '..', 'html', 'billboard.html');
+  // Apply the same external link protection to the Billboard
+  billboardWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      shell.openExternal(url);
+      return { action: 'deny' };
+    }
+    return { action: 'allow' };
+  });
+
+  const billboardFile = path.join(HTML_DIR, 'billboard.html');
   billboardWindow.loadURL(fileUrlWithQuery(billboardFile, { v: version }));
 
   // Handle state updates from manager
   ipcMain.on('state-update', (event, state) => {
-    // Send to billboard
     if (billboardWindow && !billboardWindow.isDestroyed()) {
       billboardWindow.webContents.send('state-update', state);
     }
   });
 
-  // Close both windows when one is closed
   managerWindow.on('closed', () => {
     if (billboardWindow && !billboardWindow.isDestroyed()) {
       billboardWindow.close();
@@ -106,7 +137,6 @@ function createWindows(version) {
     }
   });
 
-  // Show windows after loading
   managerWindow.once('ready-to-show', () => {
     if (splashWindow) splashWindow.close();
     managerWindow.show();
@@ -117,10 +147,10 @@ function createWindows(version) {
   });
 }
 
-app.whenReady().then(() => {
-  const version = readVersion() || '';
+app.whenReady().then(async () => {
+  const version = (await readVersionAsync()) || '';
   createSplash(version);
-  setTimeout(() => createWindows(version), 7500); // Show splash for 7.5 seconds
+  setTimeout(() => createWindows(version), 7500);
 });
 
 app.on('window-all-closed', () => {

@@ -3,182 +3,250 @@
 <head>
 <meta charset="UTF-8">
 <title>HighScore – Loading</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <style>
-  body {
-    margin: 0;
-    padding: 0;
-    background: #0d0d14;
-    color: #f0c040;
-    font-family: 'Bebas Neue', sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    overflow: hidden;
-    opacity: 0;
-    animation: bodyFade 0.5s ease-in-out 0.5s forwards;
-  }
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100vh;overflow:hidden;background:#05050f;}
 
-  #logo {
-    font-size: 4rem;
-    letter-spacing: 0.3em;
-    opacity: 0;
-    text-shadow: 0 0 40px rgba(240,192,64,0.5);
-    animation: highFlash 0.5s ease-in-out 1.5s forwards;
-  }
+body{
+  font-family:'Barlow Condensed',sans-serif;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  position:relative;
+}
 
-  #logo span { 
-    color: #707088; 
-    opacity: 0;
-    animation: scoreAppear 0.5s ease-in-out 1s forwards;
-  }
+/* ── CANVAS BG ── */
+canvas#noise{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.04;}
 
-  #subtitle {
-    font-size: 1.5rem;
-    letter-spacing: 0.2em;
-    color: #707088;
-    margin-top: 20px;
-    opacity: 0;
-    animation: subtitleFade 2s ease-in-out 2s both;
-  }
+/* ── CINEMATIC LETTERBOX ── */
+.letterbox{
+  position:fixed;left:0;right:0;height:60px;z-index:50;pointer-events:none;
+  background:#000;
+}
+.letterbox.top{top:0;animation:lbSlideTop 1s cubic-bezier(0.77,0,0.18,1) 0.2s both;}
+.letterbox.bot{bottom:0;animation:lbSlideBot 1s cubic-bezier(0.77,0,0.18,1) 0.2s both;}
+@keyframes lbSlideTop{from{transform:translateY(0)}to{transform:translateY(-100%)}}
+@keyframes lbSlideBot{from{transform:translateY(0)}to{transform:translateY(100%)}}
 
-  #loading {
-    margin-top: 40px;
-    width: 200px;
-    height: 4px;
-    background: #252535;
-    border-radius: 2px;
-    overflow: hidden;
-    opacity: 0;
-    animation: loadingAppear 0.5s ease-in-out 2s forwards;
-  }
+/* ── VIGNETTE ── */
+#vignette{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 50%,transparent 30%,rgba(0,0,0,0.92) 100%);
+}
 
-  #subquote {
-    font-size: 1rem;
-    letter-spacing: 0.1em;
-    color: #a0a0b0;
-    margin-top: 20px;
-    opacity: 0;
-    animation: subquoteFade 2s ease-in-out 4.5s both;
-    text-align: center;
-  }
+/* ── SPOTLIGHT ── */
+.spot{
+  position:fixed;left:50%;top:-10%;
+  width:80vw;height:70vh;
+  transform:translateX(-50%);
+  pointer-events:none;z-index:1;
+  background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,0.07) 0%,transparent 60%);
+  filter:blur(30px);
+  opacity:0;animation:spotFade 2s ease 1s forwards;
+}
+@keyframes spotFade{to{opacity:1}}
 
-  /* version */
-  #version {
-    position: fixed; bottom: 12px; right: 16px; color: #707088;
-    font-size: 0.85rem; letter-spacing: 0.12em; opacity: 0; animation: versionIn 0.6s ease 2s forwards;
-  }
+/* ── SCAN LINES ── */
+#scan{
+  position:fixed;inset:0;z-index:2;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.06) 3px,rgba(0,0,0,0.06) 4px);
+}
 
-  @keyframes versionIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
+/* ── CONTENT ── */
+#wrap{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;text-align:center;}
 
-  #progress {
-    height: 100%;
-    background: linear-gradient(90deg, #f0c040, #40c880);
-    width: 0%;
-    animation: progress 3s ease-out 2.5s forwards, flicker 0.1s infinite alternate 2.5s;
-    border-radius: 2px;
-  }
+/* ── EYEBROW ── */
+#eyebrow{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:0.72rem;letter-spacing:0.55em;color:#33334a;
+  text-transform:uppercase;margin-bottom:18px;
+  opacity:0;animation:fadeUp 0.7s ease 1.2s forwards;
+}
 
-  /* cinematic spotlights */
-  .spot { position:absolute;left:50%;top:10%;width:60vw;height:60vh;pointer-events:none;transform:translateX(-50%);
-    background: radial-gradient(ellipse at center, rgba(255,255,255,0.18), rgba(255,255,255,0.02) 20%, transparent 35%);
-    filter: blur(26px); mix-blend-mode: screen; opacity:0.9; }
+/* ── LOGO ── */
+#logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(5rem,14vw,11rem);
+  letter-spacing:0.12em;line-height:1;
+  position:relative;
+  opacity:0;
+  animation:logoReveal 0.8s cubic-bezier(0.16,1,0.3,1) 1.5s forwards;
+}
+#logo .hi{
+  color:#f0c040;
+  text-shadow:0 0 60px rgba(240,192,64,0.6),0 0 120px rgba(240,192,64,0.2);
+}
+#logo .sc{color:#28283c;}
 
-  /* logo sweep */
-  #logo { position:relative; overflow:visible; }
-  #logo::after { content:''; position:absolute; left:-40%; top:-10%; width:30%; height:120%;
-    background: linear-gradient(90deg, rgba(255,255,255,0.0), rgba(255,255,255,0.14), rgba(255,255,255,0.0));
-    transform: skewX(-20deg); animation: sweep 2.8s ease-in-out 1.6s forwards; pointer-events:none; }
+/* logo sweep */
+#logo::after{
+  content:'';position:absolute;inset:-5% -5%;
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.12) 50%,transparent 100%);
+  transform:translateX(-110%) skewX(-15deg);
+  animation:sweep 1.2s ease 2.1s forwards;
+  pointer-events:none;
+}
+@keyframes sweep{from{transform:translateX(-110%) skewX(-15deg)}to{transform:translateX(130%) skewX(-15deg)}}
 
-  @keyframes sweep { 0% { left:-40%; opacity:0 } 50% { left:60%; opacity:0.8 } 100% { left:120%; opacity:0 } }
+@keyframes logoReveal{
+  from{opacity:0;transform:scale(0.85) translateY(20px);filter:blur(6px);}
+  to{opacity:1;transform:scale(1) translateY(0);filter:blur(0);}
+}
 
-  /* crowd silhouette (subtle) */
-  #crowd { position:absolute; left:0; right:0; bottom:6vh; height:8vh; background: repeating-linear-gradient(90deg, rgba(0,0,0,0.28) 0 2px, rgba(0,0,0,0.22) 2px 4px); opacity:0.45; filter: blur(2px); pointer-events:none; z-index:1 }
+/* ── SUBTITLE ── */
+#subtitle{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:clamp(0.7rem,1.5vw,1rem);
+  letter-spacing:0.5em;color:#383850;
+  text-transform:uppercase;margin-top:6px;
+  opacity:0;animation:fadeUp 0.6s ease 2.2s forwards;
+}
 
-  @keyframes logoFade {
-    0% { opacity: 0; transform: scale(0.8); }
-    50% { opacity: 1; transform: scale(1.1); }
-    100% { opacity: 1; transform: scale(1); }
-  }
+/* ── DIVIDER ── */
+#divider{
+  width:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(240,192,64,0.4),transparent);
+  margin:28px auto;
+  animation:divGrow 1s ease 2.5s forwards;
+}
+@keyframes divGrow{to{width:220px}}
 
-  @keyframes subtitleFade {
-    0% { opacity: 0; transform: translateY(20px); }
-    100% { opacity: 1; transform: translateY(0); }
-  }
+/* ── LOADING BAR ── */
+#loading-wrap{
+  width:220px;
+  opacity:0;animation:fadeUp 0.5s ease 2.6s forwards;
+}
+#loading-track{
+  width:100%;height:2px;
+  background:rgba(255,255,255,0.05);
+  border-radius:1px;overflow:hidden;
+  position:relative;
+}
+#loading-fill{
+  height:100%;width:0;
+  background:linear-gradient(90deg,#f0c040,#40e8a0);
+  border-radius:1px;
+  animation:barFill 3.2s cubic-bezier(0.4,0,0.2,1) 2.8s forwards;
+  position:relative;
+}
+#loading-fill::after{
+  content:'';position:absolute;right:0;top:-1px;
+  width:20px;height:4px;border-radius:50%;
+  background:rgba(255,255,255,0.8);
+  filter:blur(3px);
+}
+@keyframes barFill{0%{width:0}60%{width:70%}80%{width:88%}100%{width:100%}}
 
-  @keyframes progress {
-    0% { width: 0%; }
-    100% { width: 100%; }
-  }
+#loading-label{
+  margin-top:10px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:0.6rem;letter-spacing:0.38em;color:#252535;
+  text-transform:uppercase;
+  animation:loadTxt 0.5s ease 2.8s both;
+}
+@keyframes loadTxt{from{opacity:0}to{opacity:1}}
 
-  @keyframes flash {
-    0% { color: #f0c040; }
-    100% { color: #ff6b35; }
-  }
+/* ── QUOTE ── */
+#quote{
+  margin-top:40px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:0.85rem;letter-spacing:0.2em;
+  color:rgba(255,255,255,0.08);
+  font-style:italic;
+  opacity:0;animation:fadeUp 1s ease 4.5s forwards;
+}
+#quote span{color:rgba(240,192,64,0.2);}
 
-  @keyframes scoreFlash {
-    0% { color: #707088; }
-    100% { color: #ffff88; }
-  }
+/* ── CORNER DECO ── */
+.corner{position:fixed;width:30px;height:30px;z-index:10;opacity:0;animation:cornerIn 0.5s ease 1.8s forwards;}
+.corner.tl{top:20px;left:20px;border-top:1px solid rgba(240,192,64,0.15);border-left:1px solid rgba(240,192,64,0.15);}
+.corner.tr{top:20px;right:20px;border-top:1px solid rgba(240,192,64,0.15);border-right:1px solid rgba(240,192,64,0.15);}
+.corner.bl{bottom:20px;left:20px;border-bottom:1px solid rgba(240,192,64,0.15);border-left:1px solid rgba(240,192,64,0.15);}
+.corner.br{bottom:20px;right:20px;border-bottom:1px solid rgba(240,192,64,0.15);border-right:1px solid rgba(240,192,64,0.15);}
+@keyframes cornerIn{from{opacity:0;transform:scale(0.5)}to{opacity:1;transform:scale(1)}}
 
-  @keyframes subquoteFade {
-    0% { opacity: 0; transform: translateY(10px); }
-    100% { opacity: 1; transform: translateY(0); }
-  }
+/* ── VERSION ── */
+#version{
+  position:fixed;bottom:16px;right:20px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:0.62rem;letter-spacing:0.22em;color:#1e1e30;
+  z-index:10;
+  opacity:0;animation:fadeUp 0.5s ease 2.2s forwards;
+}
 
-  @keyframes glow {
-    0% { text-shadow: 0 0 20px rgba(240,192,64,0.3); }
-    50% { text-shadow: 0 0 60px rgba(240,192,64,0.8), 0 0 80px rgba(240,192,64,0.5); }
-    100% { text-shadow: 0 0 20px rgba(240,192,64,0.3); }
-  }
+/* ── CROWD SILHOUETTE ── */
+#crowd{
+  position:fixed;bottom:0;left:0;right:0;height:80px;
+  z-index:3;pointer-events:none;overflow:hidden;
+}
+#crowd svg{position:absolute;bottom:0;width:100%;opacity:0;animation:crowdIn 1.5s ease 2s forwards;}
+@keyframes crowdIn{to{opacity:0.06}}
 
-  @keyframes bodyFade {
-    0% { opacity: 0; }
-    100% { opacity: 1; }
-  }
-
-  @keyframes scoreAppear {
-    0% { opacity: 0; }
-    100% { opacity: 1; }
-  }
-
-  @keyframes highFlash {
-    0% { opacity: 0; color: #f0c040; }
-    50% { opacity: 1; color: #ffff88; }
-    100% { opacity: 1; color: #f0c040; }
-  }
-
-  @keyframes loadingAppear {
-    0% { opacity: 0; }
-    100% { opacity: 1; }
-  }
-
-  @keyframes flicker {
-    0% { opacity: 1; }
-    100% { opacity: 0.7; }
-  }
+/* ── SHARED ── */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}
+}
 </style>
 </head>
 <body>
-  <div id="logo">HIGH<span>SCORE</span></div>
-  <div id="subtitle">CNAIC'S SPORTS BILLBOARD SYSTEM</div>
-  <div id="loading">
-    <div id="progress"></div>
+
+<div class="letterbox top"></div>
+<div class="letterbox bot"></div>
+<div class="spot"></div>
+<canvas id="noise"></canvas>
+<div id="vignette"></div>
+<div id="scan"></div>
+
+<div class="corner tl"></div>
+<div class="corner tr"></div>
+<div class="corner bl"></div>
+<div class="corner br"></div>
+
+<div id="wrap">
+  <div id="eyebrow">CNAIC · Sports Billboard System</div>
+  <div id="logo"><span class="hi">HIGH</span><span class="sc">SCORE</span></div>
+  <div id="subtitle">Command · Control · Display</div>
+  <div id="divider"></div>
+  <div id="loading-wrap">
+    <div id="loading-track"><div id="loading-fill"></div></div>
+    <div id="loading-label">Initializing system</div>
   </div>
-  <div id="subquote">"Take Control of the GAME!"</div>
-  <div id="version"></div>
-  <div class="spot"></div>
-  <div id="crowd"></div>
-  <script>
-    (function(){
-      try {
-        const params = new URLSearchParams(window.location.search);
-        const v = params.get('v');
-        if (v) document.getElementById('version').textContent = 'Version ' + v;
-      } catch(e){}
-    })();
-  </script>
+  <div id="quote">"<span>Take Control of the</span> GAME"</div>
+</div>
+
+<div id="crowd">
+  <svg viewBox="0 0 1440 80" preserveAspectRatio="none" fill="white" xmlns="http://www.w3.org/2000/svg">
+    <!-- Crowd silhouette row -->
+    <path d="M0 80 L0 55 Q8 45 16 55 Q20 35 28 45 Q32 25 40 35 Q44 40 52 30 Q56 20 64 32 Q72 40 80 28 Q84 15 92 28 Q100 38 108 22 Q112 10 120 22 Q128 35 136 18 Q140 8 148 20 Q156 32 164 15 Q168 5 176 18 Q184 30 192 12 Q196 2 204 14 Q212 28 220 10 Q224 0 232 12 Q240 25 248 8 Q252 0 260 10 Q268 22 276 6 Q280 0 288 8 Q296 18 304 4 Q308 0 316 6 Q324 16 332 2 Q336 0 344 5 Q352 14 360 2 Q364 0 372 5 Q380 13 388 2 Q392 0 400 5 Q408 15 416 3 Q420 0 428 6 Q436 16 444 4 Q448 0 456 8 Q464 20 472 6 Q476 0 484 10 Q492 22 500 8 Q504 0 512 12 Q520 24 528 8 Q532 0 540 12 Q548 24 556 8 Q560 0 568 12 Q576 26 584 10 Q588 2 596 14 Q604 28 612 12 Q616 4 624 16 Q632 30 640 14 Q644 6 652 18 Q660 32 668 16 Q672 8 680 20 Q688 34 696 18 Q700 10 708 22 Q716 36 724 20 Q728 12 736 24 Q744 38 752 22 Q756 14 764 26 Q772 40 780 24 Q784 16 792 28 Q800 42 808 28 Q812 18 820 30 Q828 44 836 30 Q840 20 848 32 Q856 46 864 32 Q868 22 876 34 Q884 48 892 36 Q896 26 904 38 Q912 52 920 40 Q924 30 932 42 Q940 55 948 42 Q952 32 960 45 Q968 58 976 45 Q980 35 988 48 Q996 60 1004 48 Q1008 38 1016 50 Q1024 62 1032 50 Q1036 40 1044 52 Q1052 62 1060 52 Q1064 42 1072 54 Q1080 65 1088 55 Q1092 45 1100 55 Q1108 65 1116 56 Q1120 48 1128 56 Q1136 65 1144 57 Q1148 50 1156 57 Q1164 65 1172 58 Q1176 52 1184 58 Q1192 65 1200 60 Q1204 54 1212 60 Q1220 66 1228 61 Q1232 56 1240 62 Q1248 68 1256 63 Q1260 58 1268 63 Q1276 68 1284 64 Q1288 60 1296 65 Q1304 70 1312 66 Q1316 62 1324 66 Q1332 70 1340 67 Q1344 64 1352 68 Q1360 72 1368 68 Q1372 65 1380 69 Q1388 73 1396 70 Q1400 67 1408 71 Q1416 75 1424 72 Q1428 69 1436 73 L1440 75 L1440 80 Z"/>
+  </svg>
+</div>
+
+<div id="version"></div>
+
+<script>
+/* noise canvas */
+(function(){
+  const c=document.getElementById('noise'),ctx=c.getContext('2d');
+  c.width=256;c.height=256;
+  const d=ctx.createImageData(256,256);
+  for(let i=0;i<d.data.length;i+=4){const v=Math.random()*255;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=255;}
+  ctx.putImageData(d,0,0);
+  c.style.cssText='position:fixed;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.04;pointer-events:none;z-index:0;';
+})();
+
+/* loading label cycling */
+const labels=['Initializing system','Loading sport modules','Configuring timers','Syncing billboard','Ready'];
+let li=0;
+const lbl=document.getElementById('loading-label');
+const iv=setInterval(()=>{li++;if(li>=labels.length){clearInterval(iv);return;}lbl.textContent=labels[li];},800);
+
+/* version */
+(function(){
+  try{const v=new URLSearchParams(location.search).get('v');if(v)document.getElementById('version').textContent='v'+v;}catch(e){}
+})();
+</script>
 </body>
 </html>

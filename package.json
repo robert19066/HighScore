@@ -1,6 +1,6 @@
 {
   "name": "highscore",
-  "version": "2.0.0B2",
+  "version": "2.0.0RC",
   "description": "Bilboard App for Sports",
   "homepage": "https://github.com/robert19066/HighScore#readme",
   "bugs": {
@@ -10,7 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/robert19066/HighScore.git"
   },
-  "license": "AGPL3",
+  "license": "AGPL",
   "author": "robert19066",
   "type": "commonjs",
   "main": "code/js/main.js",
