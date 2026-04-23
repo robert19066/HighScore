@@ -677,7 +677,8 @@ body{
   position:relative;
 }
 #main::before{
-  content:'ARENA FEED · LIVE';
+  content:'';
+  display:none;
   position:absolute;
   top:-3px;left:50%;
   transform:translateX(-50%);
@@ -712,6 +713,11 @@ body{
 }
 .p-name-only{
   text-shadow:0 0 10px rgba(102,243,255,0.25);
+}
+
+/* Performance containment (no visual change) */
+#main,.team-block,#center-panel,#bottom-bar,.players-col{
+  contain:layout paint style;
 }
 
 /* Fluid interactions */
@@ -777,8 +783,7 @@ body.sport-football .cards-row{
 </div>
 
 <!-- TOP -->
-<div id="header-stripe"></div>
-<div id="sport-badge">HIGHSCORE</div>
+
 
 <!-- MAIN SCOREBOARD ROW -->
 <div id="main">
@@ -981,6 +986,7 @@ function handleTransitions(prev,curr){
   }
   for(let i=0;i<65;i++){const p=mk();p.y=Math.random()*H;P.push(p);}
   (function frame(){
+    if(document.hidden){requestAnimationFrame(frame);return;}
     ctx.clearRect(0,0,W,H);
     if(Math.random()<0.3)P.push(mk());
     while(P.length>100)P.shift();
@@ -1282,13 +1288,16 @@ function renderFreePlay(s){
 /* ════════════════════════════════════════════════════
    POLL / STORAGE SYNC
 ════════════════════════════════════════════════════ */
-function loadState(){try{const r=localStorage.getItem('hs_state');return r?JSON.parse(r):null;}catch(e){return null;}}
+function loadStateRaw(){try{return localStorage.getItem('hs_state')||'';}catch(e){return '';}}
 
-function applyState(ns){
-  const nsSer=ns?JSON.stringify(ns):'';
-  if(nsSer===_prevSer)return;
+function applyStateRaw(raw){
+  if(raw===_prevSer)return;
+  let ns=null;
+  if(raw){
+    try{ns=JSON.parse(raw);}catch(e){return;}
+  }
   try{handleTransitions(prevStateObj,ns);}catch(e){}
-  _prevSer=nsSer;
+  _prevSer=raw;
   prevStateObj=ns?JSON.parse(JSON.stringify(ns)):null;
   state=ns;
   if(state){
@@ -1299,10 +1308,20 @@ function applyState(ns){
 
 window.addEventListener('storage',e=>{
   if(e.key!=='hs_state')return;
-  try{applyState(e.newValue?JSON.parse(e.newValue):null);}catch(err){}
+  applyStateRaw(e.newValue||'');
 });
-setInterval(()=>applyState(loadState()),1000);
-applyState(loadState());
+
+// Receive immediate updates from preload (avoids polling)
+window.addEventListener('message', e => {
+  try{
+    if(e && e.data && e.data.type === 'hs_state_update'){
+      applyStateRaw(e.data.data || '');
+    }
+  }catch(err){}
+});
+
+// Initial load fallback (single immediate check)
+applyStateRaw(loadStateRaw());
 
 // version
 (function(){try{const v=new URLSearchParams(location.search).get('v');if(v)$('fl-ver').textContent='v'+v;}catch(e){}})();

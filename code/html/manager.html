@@ -775,6 +775,11 @@ input[type=text],input[type=number],.player-row{
   box-shadow:0 22px 62px rgba(0,0,0,0.52),0 0 24px rgba(102,243,255,0.2);
 }
 
+/* Performance containment (no visual change) */
+#cmd-bar,#workspace,.team-col,#ctrl-col,.module,.ctrl-mod,#update-modal,#upd-box{
+  contain:layout paint style;
+}
+
 /* Fluid dashboard motion */
 .module,.ctrl-mod,.team-header,.btn,#sport-pill,#live-capsule,#bar-round,#billboard-btn,.player-row,input[type=text],input[type=number],.sel-card{
   transition:background 220ms ease,border-color 220ms ease,box-shadow 280ms ease,transform 180ms ease,color 180ms ease,opacity 180ms ease;
@@ -1025,6 +1030,7 @@ input[type=text],input[type=number],.player-row{
   }
   for(let i=0;i<60;i++){const p=mk();p.y=Math.random()*H;P.push(p);}
   function frame(){
+    if(document.hidden){requestAnimationFrame(frame);return;}
     ctx.clearRect(0,0,W,H);
     if(Math.random()<0.25)P.push(mk());
     while(P.length>90)P.shift();
@@ -1406,6 +1412,17 @@ function closeModal(){document.getElementById('modal').classList.remove('show');
    GITHUB UPDATE CHECK
    ════════════════════════════════════════════════════ */
 let latestRelease=null; // full release object from GitHub
+const UPD={
+  modal:document.getElementById('update-modal'),
+  progressWrap:document.getElementById('upd-progress-wrap'),
+  progressFill:document.getElementById('upd-progress-fill'),
+  progressLabel:document.getElementById('upd-progress-label'),
+  doneMsg:document.getElementById('upd-done-msg'),
+  downloadBtn:document.getElementById('upd-download-btn'),
+  searchBtn:document.getElementById('upd-search-btn'),
+  result:document.getElementById('upd-result'),
+  newVer:document.getElementById('upd-new-ver')
+};
 
 /*
   Version comparison:
@@ -1492,26 +1509,26 @@ async function checkUpdate(){
 }
 
 function openUpdateModal(){
-  document.getElementById('update-modal').classList.add('show');
+  UPD.modal.classList.add('show');
   document.body.classList.add('modal-open');
   // reset state
-  document.getElementById('upd-progress-wrap').style.display='none';
-  document.getElementById('upd-done-msg').style.display='none';
-  document.getElementById('upd-download-btn').style.display='';
-  document.getElementById('upd-download-btn').disabled=false;
-  document.getElementById('upd-download-btn').textContent='⬇ DOWNLOAD UPDATE';
+  UPD.progressWrap.style.display='none';
+  UPD.doneMsg.style.display='none';
+  UPD.downloadBtn.style.display='';
+  UPD.downloadBtn.disabled=false;
+  UPD.downloadBtn.textContent='⬇ DOWNLOAD UPDATE';
 }
 function closeUpdateModal(){
-  document.getElementById('update-modal').classList.remove('show');
+  UPD.modal.classList.remove('show');
   document.body.classList.remove('modal-open');
 }
 
 function setUpdateBusy(isBusy,label){
-  const searchBtn=document.getElementById('upd-search-btn');
-  const downloadBtn=document.getElementById('upd-download-btn');
-  const progWrap=document.getElementById('upd-progress-wrap');
-  const progFill=document.getElementById('upd-progress-fill');
-  const progLabel=document.getElementById('upd-progress-label');
+  const searchBtn=UPD.searchBtn;
+  const downloadBtn=UPD.downloadBtn;
+  const progWrap=UPD.progressWrap;
+  const progFill=UPD.progressFill;
+  const progLabel=UPD.progressLabel;
   if(progLabel&&label)progLabel.textContent=label;
   if(isBusy){
     if(searchBtn)searchBtn.disabled=true;
@@ -1534,11 +1551,11 @@ function getExeAsset(release){
 }
 
 async function startDownload(){
-  const btn=document.getElementById('upd-download-btn');
-  const pw=document.getElementById('upd-progress-wrap');
-  const pf=document.getElementById('upd-progress-fill');
-  const pl=document.getElementById('upd-progress-label');
-  const done=document.getElementById('upd-done-msg');
+  const btn=UPD.downloadBtn;
+  const pw=UPD.progressWrap;
+  const pf=UPD.progressFill;
+  const pl=UPD.progressLabel;
+  const done=UPD.doneMsg;
 
   btn.disabled=true;btn.textContent='DOWNLOADING…';
   pw.style.display='flex';pw.classList.remove('busy');
@@ -1573,15 +1590,15 @@ function checkForUpdatesClicked(e){
   window.UpdateChecker && window.UpdateChecker.getLocalVersion && window.UpdateChecker.getLocalVersion().then(v=>{
     const lv=document.getElementById('upd-local-ver'); if(lv)lv.textContent=v||'-';
   }).catch(()=>{});
-  document.getElementById('upd-result').textContent='';
-  document.getElementById('upd-new-ver').textContent='';
-  document.getElementById('upd-download-btn').style.display='none';
-  document.getElementById('upd-search-btn').style.display='';
-  document.getElementById('upd-progress-wrap').style.display='none';
-  document.getElementById('upd-progress-wrap').classList.remove('busy');
-  document.getElementById('upd-progress-fill').style.width='0%';
-  document.getElementById('upd-progress-label').textContent='Preparing download…';
-  document.getElementById('update-modal').classList.add('show');
+  UPD.result.textContent='';
+  UPD.newVer.textContent='';
+  UPD.downloadBtn.style.display='none';
+  UPD.searchBtn.style.display='';
+  UPD.progressWrap.style.display='none';
+  UPD.progressWrap.classList.remove('busy');
+  UPD.progressFill.style.width='0%';
+  UPD.progressLabel.textContent='Preparing download…';
+  UPD.modal.classList.add('show');
   document.body.classList.add('modal-open');
 }
 

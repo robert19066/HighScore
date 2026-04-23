@@ -150,7 +150,8 @@ function createWindows(version) {
 app.whenReady().then(async () => {
   const version = (await readVersionAsync()) || '';
   createSplash(version);
-  setTimeout(() => createWindows(version), 7500);
+  // Shorten splash wait to improve startup latency while still showing splash
+  setTimeout(() => createWindows(version), 1500);
 });
 
 app.on('window-all-closed', () => {
