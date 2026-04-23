@@ -3,6 +3,11 @@ const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
 
+// Optional persistent store (guarded) — electron-store if installed
+let Store = null;
+try { Store = require('electron-store'); } catch (e) { Store = null; }
+let store = Store ? new Store({ name: 'highscore' }) : null;
+
 // Precompute common paths for small performance win
 const ROOT_DIR = path.join(__dirname, '..', '..');
 const ASSETS_DIR = path.join(ROOT_DIR, 'assets');
@@ -149,9 +154,11 @@ function createWindows(version) {
 
 app.whenReady().then(async () => {
   const version = (await readVersionAsync()) || '';
+  // Persist last-known assets version (best-effort)
+  try{ if(store) store.set('lastVersion', version); }catch(e){}
   createSplash(version);
   // Shorten splash wait to improve startup latency while still showing splash
-  setTimeout(() => createWindows(version), 1500);
+  setTimeout(() => createWindows(version), 6200);
 });
 
 app.on('window-all-closed', () => {

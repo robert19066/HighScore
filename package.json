@@ -1,6 +1,6 @@
 {
   "name": "highscore",
-  "version": "2.0.0",
+  "version": "2.0.0P1",
   "description": "Bilboard App for Sports",
   "homepage": "https://github.com/robert19066/HighScore#readme",
   "bugs": {
@@ -17,11 +17,23 @@
   "scripts": {
     "start": "electron .",
     "build": "electron-builder",
+    "build:ui": "npm run build:css && npm run build:js",
+    "build:css": "tailwindcss -i ./src/styles/tailwind.css -o ./dist/styles.css --minify",
+    "build:js": "esbuild code/js/main.js --bundle --platform=node --outfile=dist/js/main.js && esbuild code/js/preload-manager.js --bundle --platform=node --outfile=dist/js/preload-manager.js && esbuild code/js/preload-billboard.js --bundle --platform=node --outfile=dist/js/preload-billboard.js",
     "test": "echo \"no test cry bout it\" && exit 1"
+  },
+  "dependencies": {
+    "alpinejs": "^3.12.0",
+    "gsap": "^3.12.2",
+    "electron-store": "^8.0.2"
   },
   "devDependencies": {
     "electron": "^41.2.1",
-    "electron-builder": "^26.8.1"
+    "electron-builder": "^26.8.1",
+    "tailwindcss": "^3.4.8",
+    "postcss": "^8.4.21",
+    "autoprefixer": "^10.4.14",
+    "esbuild": "^0.17.19"
   },
   "build": {
     "appId": "com.highscore.app",

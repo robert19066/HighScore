@@ -871,6 +871,10 @@ body.sport-football .cards-row{
 
 <div id="footer-logo">HIGH<span>SCORE</span> <span class="ver" id="fl-ver"></span></div>
 
+<!-- UI libraries: Alpine.js (declarative micro-framework) + GSAP (animations) -->
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.12.0/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
+
 <script>
 /* ════════════════════════════════════════════════════
    UTILITIES
@@ -1060,6 +1064,14 @@ function triggerFlash(team,side){
   f.classList.remove('fire');void f.offsetWidth;f.classList.add('fire');
   BODY.classList.add('flash-glow');
   setTimeout(()=>BODY.classList.remove('flash-glow'),900);
+  // GSAP visual polish (best-effort, only when library is loaded)
+  try{
+    if(window.gsap){
+      gsap.killTweensOf(f);
+      gsap.fromTo(f, { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.48, ease: 'power2.out' });
+      gsap.to(f, { opacity: 0, delay: 1.1, duration: 0.6 });
+    }
+  }catch(e){}
   let sh=document.getElementById('score-sheen');
   if(!sh){sh=document.createElement('div');sh.id='score-sheen';sh.className='score-sheen';BODY.appendChild(sh);}
   sh.classList.remove('show');void sh.offsetWidth;sh.classList.add('show');

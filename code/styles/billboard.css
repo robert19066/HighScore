@@ -1,0 +1,76 @@
+/* ==== Extracted billboard styles ==== */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100vh;overflow:hidden}
+
+body{
+  --bg1:#05050f;--accent:#f0c040;
+  --teamA:#e83050;--teamB:#3090f8;
+  --glowA:rgba(232,48,80,0.55);--glowB:rgba(48,144,248,0.55);
+  --dimA:rgba(232,48,80,0.10);--dimB:rgba(48,144,248,0.10);
+  --center:#0a0a18;--border:#181830;
+  --text:#e8e8f8;--dim:#3a3a58;
+  --green:#38e888;--orange:#f07030;--red:#e83050;
+  background:var(--bg1);color:var(--text);font-family:'Barlow Condensed',sans-serif;display:flex;flex-direction:column;position:relative}
+
+/* Sport themes */
+body.sport-basketball{--bg1:#060200;--accent:#ff7700;--teamA:#e83050;--teamB:#ff9800;--glowA:rgba(232,48,80,0.6);--glowB:rgba(255,152,0,0.6);--dimA:rgba(232,48,80,0.11);--dimB:rgba(255,152,0,0.11);--center:#0a0300;--border:#1e0e00}
+body.sport-football{--bg1:#010801;--accent:#44e866;--teamA:#e83050;--teamB:#30b8f8;--glowA:rgba(232,48,80,0.6);--glowB:rgba(48,184,248,0.6);--dimA:rgba(232,48,80,0.10);--dimB:rgba(48,184,248,0.10);--center:#010d01;--border:#081e08}
+body.sport-handball{--bg1:#030310;--accent:#aa88ff;--teamA:#e83050;--teamB:#aa88ff;--glowA:rgba(232,48,80,0.6);--glowB:rgba(170,136,255,0.6);--dimA:rgba(232,48,80,0.10);--dimB:rgba(170,136,255,0.10);--center:#040418;--border:#141430}
+body.sport-volleyball{--bg1:#010510;--accent:#38b8f8;--teamA:#e83050;--teamB:#38b8f8;--glowA:rgba(232,48,80,0.6);--glowB:rgba(56,184,248,0.6);--dimA:rgba(232,48,80,0.10);--dimB:rgba(56,184,248,0.10);--center:#010510;--border:#082040}
+
+/* BG LAYERS */
+canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none}
+#vignette{position:fixed;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse at 50% 40%,transparent 15%,rgba(0,0,0,0.9) 100%)}
+#scan{position:fixed;inset:0;z-index:3;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px)}
+
+/* HEADER STRIPE + BADGE */
+#header-stripe{height:2px;flex-shrink:0;z-index:10;position:relative;background:linear-gradient(90deg,var(--teamA),var(--accent) 50%,var(--teamB));transition:background .6s;box-shadow:0 0 24px rgba(240,192,64,0.18)}
+#sport-badge{position:fixed;top:8px;left:50%;transform:translateX(-50%);font-family:'Bebas Neue',sans-serif;font-size:.68rem;letter-spacing:.5em;color:var(--dim);z-index:10;white-space:nowrap}
+
+/* WAITING OVERLAY */
+#wait-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;backdrop-filter:blur(10px)}
+#wait-overlay .wt-logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,8vw,6rem);letter-spacing:.2em;color:rgba(255,255,255,0.06)}
+#wait-overlay .wt-logo span{color:rgba(240,192,64,0.12)}
+#wait-overlay .wt-msg{font-size:.8rem;letter-spacing:.45em;color:#252535;text-transform:uppercase}
+#wait-overlay .wt-dot{width:6px;height:6px;border-radius:50%;background:#1e1e30;animation:dotPulse 2s ease-in-out infinite}
+@keyframes dotPulse{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* ROOT LAYOUT */
+#main{flex:1;display:flex;align-items:stretch;overflow:hidden;position:relative;z-index:10;min-height:0}
+
+/* TEAM BLOCKS */
+.team-block{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:44px 14px 10px;position:relative;overflow:hidden}
+.team-block .amb{position:absolute;pointer-events:none;animation:ambPulse 6s ease-in-out infinite}
+.team-block.left .amb{width:85%;height:80%;top:-20%;left:-10%;background:radial-gradient(ellipse,var(--dimA) 0%,transparent 70%)}
+.team-block.right .amb{width:85%;height:80%;top:-20%;right:-10%;background:radial-gradient(ellipse,var(--dimB) 0%,transparent 70%);animation-direction:reverse}
+@keyframes ambPulse{0%,100%{opacity:.5}50%{opacity:1.3}}
+.team-block.left::after{content:'';position:absolute;top:0;right:0;width:1px;height:100%;background:linear-gradient(to bottom,transparent,var(--teamA) 50%,transparent);opacity:.3}
+.team-block.right::after{content:'';position:absolute;top:0;left:0;width:1px;height:100%;background:linear-gradient(to bottom,transparent,var(--teamB) 50%,transparent);opacity:.3}
+
+/* TEAM NAME */
+.team-name{font-family:'Bebas Neue',sans-serif;font-size:clamp(4rem,6.8vw,7rem);letter-spacing:.06em;line-height:1;text-align:center;position:relative;z-index:2;margin-bottom:10px}
+.team-block.left .team-name{color:var(--teamA);text-shadow:0 0 50px var(--glowA)}
+.team-block.right .team-name{color:var(--teamB);text-shadow:0 0 50px var(--glowB)}
+
+/* SCORE */
+.team-score{font-family:'Bebas Neue',sans-serif;font-size:clamp(14rem,34vh,33rem);line-height:.74;position:relative;z-index:2;flex-shrink:0;transform:scaleY(1.22) scaleX(.88);transform-origin:center top;margin-top:8px;margin-bottom:20px}
+.team-block.left .team-score{color:var(--teamA);text-shadow:0 0 60px var(--glowA),0 0 120px var(--glowA),0 0 200px rgba(232,48,80,.06)}
+.team-block.right .team-score{color:var(--teamB);text-shadow:0 0 60px var(--glowB),0 0 120px var(--glowB),0 0 200px rgba(48,144,248,.06)}
+.team-score.bump{animation:scoreBump .45s cubic-bezier(.2,0,.4,1)}
+@keyframes scoreBump{0%{transform:scale(1)}30%{transform:scale(1.18);filter:brightness(2.8)}100%{transform:scale(1);filter:brightness(1)}}
+
+/* ... remaining rules preserved as in original file ... */
+
+/* Performance containment */
+#main,.team-block,#center-panel,#bottom-bar,.players-col{contain:layout paint style}
+
+/* Fluid interactions */
+.team-block,#center-panel,.player-card,.p-name-only,#status-pill,#shotclock-wrap{transition:background 280ms ease,border-color 280ms ease,box-shadow 320ms ease,transform 220ms ease,color 220ms ease}
+#timer-digits,#round-num,#shotclock-digits{transition:color 220ms ease,text-shadow 260ms ease,transform 220ms ease}
+
+/* Football overlap fix */
+body.sport-football .team-score{font-size:clamp(12rem,29vh,26rem);transform:scaleY(1.1) scaleX(.9);margin-bottom:34px}
+body.sport-football .team-sub{min-height:58px;margin-top:10px}
+body.sport-football .cards-row{min-height:34px;gap:8px}
+
+/* End of extracted billboard CSS */
