@@ -134,6 +134,7 @@ body{background:var(--ink);color:var(--text);font-family:'Barlow Condensed',sans
 .sel-card[data-sport="basketball"] .sel-card-bar{background:linear-gradient(90deg,#e83050,#ff7700);}
 .sel-card[data-sport="football"]   .sel-card-bar{background:linear-gradient(90deg,#44e866,#30b8f8);}
 .sel-card[data-sport="handball"]   .sel-card-bar{background:linear-gradient(90deg,#e83050,#aa88ff);}
+.sel-card[data-sport="volleyball"] .sel-card-bar{background:linear-gradient(90deg,#3090f8,#38b8f8);}
 
 /* glow overlay */
 .sel-card::before{
@@ -142,6 +143,7 @@ body{background:var(--ink);color:var(--text);font-family:'Barlow Condensed',sans
 .sel-card[data-sport="basketball"]::before{background:radial-gradient(ellipse at 50% 100%,rgba(255,119,0,0.1) 0%,transparent 70%);}
 .sel-card[data-sport="football"]::before  {background:radial-gradient(ellipse at 50% 100%,rgba(68,232,102,0.1) 0%,transparent 70%);}
 .sel-card[data-sport="handball"]::before  {background:radial-gradient(ellipse at 50% 100%,rgba(170,136,255,0.1) 0%,transparent 70%);}
+.sel-card[data-sport="volleyball"]::before{background:radial-gradient(ellipse at 50% 100%,rgba(56,184,248,0.1) 0%,transparent 70%);}
 
 .sel-card:hover{
   border-color:rgba(255,255,255,0.12);
@@ -449,6 +451,62 @@ body.modal-open > :not(#update-modal){
   filter:blur(6px) saturate(0.9);
   pointer-events:none;user-select:none;
 }
+
+/* ===== V2 FLAT REDESIGN OVERRIDES ===== */
+:root{
+  --ink:#0e1116;
+  --surface:#141922;
+  --raised:#181f2a;
+  --lift:#1f2733;
+  --wire:#253041;
+  --wire2:#334158;
+  --text:#eaf0f9;
+  --muted:#95a3bb;
+  --faint:#6f7f99;
+  --gold:#7aa2ff;
+  --green:#4dd58a;
+  --orange:#ffb454;
+  --ra:#ff5b7f;
+  --rb:#4ea0ff;
+  --sport-accent:#7aa2ff;
+}
+body{background:var(--ink);}
+#sport-selector{background:#0e1116;}
+#sel-bg,#sel-canvas,#sel-vignette,.sel-lb,#sel-divider{display:none;}
+#sel-logo .hi,#sel-logo .sc{color:#eaf0f9;text-shadow:none;}
+#sel-eyebrow,#sel-tagline,#sel-hint{color:#7e8ca3;}
+.sel-card{background:#161d28;border:1px solid #2b3648;border-radius:10px;box-shadow:none;transform:none!important;}
+.sel-card:hover{border-color:#3f5270;box-shadow:none;}
+.sel-card::before,.sc-brk{display:none;}
+.sel-name{color:#dce5f5;}
+.sel-desc{color:#8e9cb4;}
+#cmd-bar{height:60px;background:#121722;border-bottom:1px solid #253041;}
+#cmd-bar::before{display:none;}
+#logo-word{color:#eaf0f9;}
+#sport-pill,#live-capsule,#bar-round{background:#1a2230;border:1px solid #2c3a4e;color:#d6e0f0;}
+#bar-timer{color:#a8c0ff;}
+#workspace{background:#0e1116;}
+.team-col.col-a,.team-col.col-b{background:#111722;border:none;}
+#ctrl-col{width:240px;background:#121722;border-left:1px solid #253041;border-right:1px solid #253041;}
+.team-header{border-bottom:1px solid #253041;}
+.team-header::after{display:none;}
+.th-name-input{font-size:1.45rem;}
+.th-score{text-shadow:none;}
+.module,.ctrl-mod{background:#151d28;border:1px solid #273346;border-radius:10px;}
+.module-hd,.ctrl-hd{background:#1b2533;border-bottom:1px solid #2b374a;color:#91a0b8;}
+.module-body,.ctrl-body{gap:8px;}
+.btn{border-radius:8px;padding:8px 10px;font-size:.86rem;letter-spacing:.08em;}
+.bd{border-color:#334158;color:#b6c2d7;}
+input[type=text],input[type=number]{background:#192330;border:1px solid #324158;border-radius:8px;color:#edf2fa;}
+.player-row{background:#1b2432;border:1px solid #314055;border-radius:8px;}
+#ctrl-ring-wrap{width:104px;height:104px;}
+#crb{stroke:#2f3a4d;}
+#crf{filter:none;}
+#ctrl-liquid{display:none;}
+#update-modal{backdrop-filter:none;background:rgba(8,10,14,.88);}
+#upd-box{background:#151d28;border:1px solid #2f3d52;box-shadow:none;}
+#upd-box::before{display:none;}
+#update-badge{display:none!important;}
 </style>
 </head>
 <body>
@@ -485,7 +543,7 @@ body.modal-open > :not(#update-modal){
         <div class="sel-card-inner">
           <div class="sel-icon">⚽</div>
           <div class="sel-name">Football</div>
-          <div class="sel-desc">2 halves · yellow &amp; red cards</div>
+          <div class="sel-desc">2 halves · direct red cards</div>
         </div>
       </div>
       <div class="sel-card" data-sport="handball" onclick="selectSport('handball')">
@@ -496,6 +554,16 @@ body.modal-open > :not(#update-modal){
           <div class="sel-icon">🤾</div>
           <div class="sel-name">Handball</div>
           <div class="sel-desc">Open timer · continuous play</div>
+        </div>
+      </div>
+      <div class="sel-card" data-sport="volleyball" onclick="selectSport('volleyball')">
+        <div class="sel-card-bar"></div>
+        <div class="sc-brk tl"></div><div class="sc-brk tr"></div>
+        <div class="sc-brk bl"></div><div class="sc-brk br"></div>
+        <div class="sel-card-inner">
+          <div class="sel-icon">🏐</div>
+          <div class="sel-name">Volleyball</div>
+          <div class="sel-desc">Open timer · team roster view</div>
         </div>
       </div>
     </div>
@@ -667,14 +735,26 @@ body.modal-open > :not(#update-modal){
    ════════════════════════════════════════════════════ */
 const DEF={
   sport:'basketball',
-  teamA:{name:'TEAM A',score:0,yellowCards:0,players:[]},
-  teamB:{name:'TEAM B',score:0,yellowCards:0,players:[]},
+  teamA:{name:'TEAM A',score:0,redCards:0,teamFouls:0,players:[]},
+  teamB:{name:'TEAM B',score:0,redCards:0,teamFouls:0,players:[]},
   round:1,totalRounds:4,roundMinutes:15,intermissionMinutes:15,
   timerSeconds:900,intermissionSeconds:900,
   matchRunning:false,intermissionRunning:false,matchEnded:false
 };
 let S=JSON.parse(JSON.stringify(DEF));
 let timerInterval=null;
+
+function normalizeState(){
+  ['teamA','teamB'].forEach(k=>{
+    const t=S[k]||(S[k]={});
+    if(typeof t.redCards!=='number'){
+      const legacyYellow=Number(t.yellowCards)||0;
+      t.redCards=Math.max(0,Math.floor(legacyYellow/3));
+    }
+    if(typeof t.teamFouls!=='number')t.teamFouls=0;
+    if(!Array.isArray(t.players))t.players=[];
+  });
+}
 
 let _saveTimeout=null;
 function save(force){
@@ -691,13 +771,14 @@ function save(force){
 /* ════════════════════════════════════════════════════
    SPORT SELECTOR
    ════════════════════════════════════════════════════ */
-const SPORT_ICONS={basketball:'🏀',football:'⚽',handball:'🤾'};
-const SPORT_NAMES={basketball:'BASKETBALL',football:'FOOTBALL',handball:'HANDBALL'};
+const SPORT_ICONS={basketball:'🏀',football:'⚽',handball:'🤾',volleyball:'🏐'};
+const SPORT_NAMES={basketball:'BASKETBALL',football:'FOOTBALL',handball:'HANDBALL',volleyball:'VOLLEYBALL'};
 
 function selectSport(sport){
   S.sport=sport;
   S.teamA.score=0;S.teamB.score=0;
-  S.teamA.yellowCards=0;S.teamB.yellowCards=0;
+  S.teamA.redCards=0;S.teamB.redCards=0;
+  S.teamA.teamFouls=0;S.teamB.teamFouls=0;
   S.teamA.players=S.teamA.players||[];S.teamB.players=S.teamB.players||[];
   S.round=1;S.matchRunning=false;S.intermissionRunning=false;S.matchEnded=false;
   S.totalRounds=sport==='football'?2:4;
@@ -741,7 +822,7 @@ function startTimer(){
       S.timerSeconds=Math.max(0,S.timerSeconds-1);
       if(S.timerSeconds<=0){
         S.matchRunning=false;
-        if((S.sport==='basketball'&&S.round>=4)||(S.sport==='football'&&S.round>=2)||S.sport==='handball')S.matchEnded=true;
+        if((S.sport==='basketball'&&S.round>=4)||(S.sport==='football'&&S.round>=2)||S.sport==='handball'||S.sport==='volleyball')S.matchEnded=true;
         stopTimer();
       }
     }
@@ -812,15 +893,23 @@ function renderTeam(side){
   `,'SCORE'));
   if(S.sport==='basketball')renderBball(side,team,body,prevInputs);
   if(S.sport==='football')  renderFtbl(side,team,body);
+  if(S.sport==='handball'||S.sport==='volleyball') renderRoster(side,team,body,prevInputs);
 }
 
 function renderBball(side,team,body,prevInputs){
   body.appendChild(mkMod('PLAYERS — CONFIG',`
     <div class="lbl">Number of players</div>
     <div class="row">
-      <input type="number" id="pcount-${side}" value="${team.players.length}" min="1" max="15">
+      <input type="number" id="pcount-${side}" value="${team.players.length}" min="1" max="20">
       <button class="btn ba" onclick="setPlayerCount('${side}')">SET</button>
     </div>
+  `));
+  body.appendChild(mkMod('TEAM FOULS',`
+    <div class="row">
+      <button class="btn bo" onclick="addTeamFoul('${side}',1)">+ TEAM FOUL</button>
+      <button class="btn bd" onclick="addTeamFoul('${side}',-1)" ${(team.teamFouls||0)<=0?'disabled':''}>− TEAM FOUL</button>
+    </div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--muted)">Current: <span style="color:var(--orange)">${team.teamFouls||0}</span> (unlimited)</div>
   `));
   if(!team.players.length) return;
   const sec=mkMod('PLAYERS — FOULS','');
@@ -850,20 +939,47 @@ function renderBball(side,team,body,prevInputs){
 }
 
 function renderFtbl(side,team,body){
-  const y=team.yellowCards||0,reds=Math.floor(y/3),rem=y%3;
+  const reds=team.redCards||0;
   let chips='<div class="card-chips">';
   for(let r=0;r<reds;r++)chips+='<div class="chip r"></div>';
-  for(let yy=0;yy<rem;yy++)chips+='<div class="chip y"></div>';
-  if(!y)chips+='<span style="color:var(--muted);font-size:0.8rem">No cards</span>';
+  if(!reds)chips+='<span style="color:var(--muted);font-size:0.8rem">No red cards</span>';
   chips+='</div>';
-  chips+=`<div style="font-size:0.68rem;color:var(--muted);font-family:'JetBrains Mono',monospace">${y} yellow · ${reds} red · ${rem} pending</div>`;
-  body.appendChild(mkMod('YELLOW CARDS',chips+`
+  chips+=`<div style="font-size:0.68rem;color:var(--muted);font-family:'JetBrains Mono',monospace">${reds} red cards</div>`;
+  body.appendChild(mkMod('RED CARDS',chips+`
     <div class="row">
-      <button class="btn bo" onclick="addYellow('${side}',1)">+ YELLOW</button>
-      <button class="btn bd" onclick="addYellow('${side}',-1)" ${y<=0?'disabled':''}>− YELLOW</button>
+      <button class="btn br" onclick="addRed('${side}',1)">+ RED</button>
+      <button class="btn bd" onclick="addRed('${side}',-1)" ${reds<=0?'disabled':''}>− RED</button>
     </div>
     <button class="btn bd full" onclick="resetCards('${side}')">RESET CARDS</button>
   `));
+}
+
+function renderRoster(side,team,body,prevInputs){
+  body.appendChild(mkMod('PLAYERS — CONFIG',`
+    <div class="lbl">Number of players</div>
+    <div class="row">
+      <input type="number" id="pcount-${side}" value="${team.players.length}" min="1" max="20">
+      <button class="btn ba" onclick="setPlayerCount('${side}')">SET</button>
+    </div>
+  `));
+  if(!team.players.length) return;
+  const sec=mkMod('TEAM ROSTER','');
+  const bod=sec.querySelector('.module-body');
+  const frag=document.createDocumentFragment();
+  team.players.forEach((p,i)=>{
+    const row=document.createElement('div');row.className='player-row';row.style.animationDelay=(i*0.03)+'s';
+    const inp=document.createElement('input');inp.type='text';inp.className='pl-name-inp';inp.id=`pl-name-${side}-${i}`;
+    const prev = prevInputs && prevInputs[i] ? prevInputs[i] : null;
+    inp.value = prev && typeof prev.value!=='undefined' ? prev.value : (p.name||`P${i+1}`);
+    inp.placeholder=`P${i+1}`;
+    inp.oninput = e=>{ (side==='a'?S.teamA:S.teamB).players[i].name = e.target.value; save(); };
+    inp.onblur = e=>{ const v = (e.target.value||'').trim()||`P${i+1}`; (side==='a'?S.teamA:S.teamB).players[i].name = v; save(true); };
+    row.appendChild(inp);
+    frag.appendChild(row);
+    if(prev && prev.focused){ setTimeout(()=>{ try{ const el=document.getElementById(`pl-name-${side}-${i}`); if(el){ el.focus(); if(typeof prev.selStart==='number'&&typeof prev.selEnd==='number') el.setSelectionRange(prev.selStart,prev.selEnd); } }catch(e){} },0); }
+  });
+  bod.appendChild(frag);
+  body.appendChild(sec);
 }
 
 function renderCenter(){
@@ -940,11 +1056,12 @@ function addScore(side,delta){
   save();renderTeam('a');renderTeam('b');
 }
 function resetScore(side){(side==='a'?S.teamA:S.teamB).score=0;save();renderTeam('a');renderTeam('b');}
-function addYellow(side,delta){const t=side==='a'?S.teamA:S.teamB;t.yellowCards=Math.max(0,(t.yellowCards||0)+delta);save();renderTeam('a');renderTeam('b');}
-function resetCards(side){(side==='a'?S.teamA:S.teamB).yellowCards=0;save();renderTeam('a');renderTeam('b');}
+function addRed(side,delta){const t=side==='a'?S.teamA:S.teamB;t.redCards=Math.max(0,(t.redCards||0)+delta);save();renderTeam('a');renderTeam('b');}
+function resetCards(side){(side==='a'?S.teamA:S.teamB).redCards=0;save();renderTeam('a');renderTeam('b');}
 function addFoul(side,idx,delta){const t=side==='a'?S.teamA:S.teamB;t.players[idx].fouls=Math.max(0,Math.min(5,(t.players[idx].fouls||0)+delta));save();renderTeam(side);}
+function addTeamFoul(side,delta){const t=side==='a'?S.teamA:S.teamB;t.teamFouls=Math.max(0,(t.teamFouls||0)+delta);save();renderTeam(side);}
 function setPlayerCount(side){
-  const n=Math.max(1,Math.min(15,parseInt(document.getElementById('pcount-'+side).value)||1));
+  const n=Math.max(1,Math.min(20,parseInt(document.getElementById('pcount-'+side).value)||1));
   const t=side==='a'?S.teamA:S.teamB;const cur=t.players.length;
   if(n>cur)for(let i=cur;i<n;i++)t.players.push({name:`P${i+1}`,fouls:0});
   else t.players=t.players.slice(0,n);
@@ -1060,12 +1177,8 @@ async function checkUpdate(){
 
     if(bestRelease&&bestParsed){
       latestRelease=bestRelease;
-      const badge=document.getElementById('update-badge');
-      document.getElementById('upd-ver-badge').textContent=formatVersion(bestParsed,bestRelease.name||bestRelease.tag_name);
-      badge.style.display='';
-      // Also update the modal and auto-open to notify user
+      // Manual flow only: never auto-open or auto-highlight updates on startup.
       document.getElementById('upd-new-ver').textContent=formatVersion(bestParsed,bestRelease.name||bestRelease.tag_name);
-      try{openUpdateModal();}catch(e){}
     }
   }catch(e){/* silently fail */}
 }
@@ -1184,6 +1297,7 @@ function performUpdateSearch(){
    ════════════════════════════════════════════════════ */
 let VERSION='';
 try{const saved=localStorage.getItem('hs_state');if(saved)S=JSON.parse(saved);}catch(e){}
+normalizeState();
 try{
   const p=new URLSearchParams(location.search);
   VERSION=p.get('v')||'';
