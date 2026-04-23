@@ -450,53 +450,6 @@ body.sport-football   #sport-texture{opacity:0.05;}
 body.sport-handball   #sport-texture{opacity:0.03;}
 body.sport-volleyball #sport-texture{opacity:0.04;}
 
-/* ===== V2 FLAT REDESIGN OVERRIDES ===== */
-body{
-  --bg1:#0f1115;
-  --center:#171b22;
-  --border:#252b35;
-  --text:#eef2f8;
-  --dim:#8e97a8;
-  --accent:#7aa2ff;
-  --teamA:#ff5b7f;
-  --teamB:#4ea0ff;
-  background:#0f1115;
-}
-canvas#bg,#vignette,#scan,#sport-texture,#header-stripe,#footer-stripe,#footer-logo,.team-block .amb{display:none!important;}
-#main{gap:10px;padding:10px;background:#0f1115;}
-.team-block{background:#141922;border:1px solid #252b35;border-radius:10px;padding:18px 14px 8px;}
-.team-block.left::after,.team-block.right::after{display:none;}
-.team-name{text-shadow:none!important;opacity:.95;}
-.team-score{text-shadow:none!important;font-variant-numeric:tabular-nums;line-height:.74;}
-#center-panel{
-  background:#141922;
-  border:1px solid #252b35;
-  border-radius:10px;
-  box-shadow:none;
-}
-#center-panel::before,#center-panel::after,.cp-brk{display:none;}
-#timer-wrap{width:180px;height:180px;}
-#timer-svg{transform:none;}
-#t-bg{stroke:#2a3240;stroke-width:7;}
-#t-fill{stroke-width:7;filter:none;}
-#timer-liquid{display:none;}
-#timer-digits{font-size:3rem;}
-#timer-lbl-inner,#round-lbl,#round-of,.tf-label,.no-cards-lbl,#shotclock-label{color:#97a2b6;}
-#round-num{font-size:4.2rem;}
-#status-pill{background:#1d2530;border:1px solid #2a3444;color:#b8c3d5;border-radius:999px;padding:6px 14px;letter-spacing:.18em;}
-#status-pill.live,#status-pill.intermission,#status-pill.ended{animation:none;}
-#shotclock-wrap{background:#1a202a;border:1px solid #2a3444;border-radius:8px;}
-#bottom-bar{border-top:none;padding:0 10px 10px;max-height:43vh;}
-.players-col{background:#141922;border:1px solid #252b35;border-radius:10px;max-height:43vh;}
-#bb-spacer{background:transparent;border:none;}
-.player-card{background:#19202a;border:1px solid #2a3444;border-radius:8px;min-width:64px;max-width:88px;}
-.p-name-only{font-size:.95rem;color:#d8dfec;background:#19202a;border:1px solid #2a3444;border-radius:999px;padding:5px 10px;}
-#countdown-overlay{background:rgba(10,12,16,.88);}
-#countdown-digit{text-shadow:none;color:#9ab6ff;}
-#score-flash{display:none!important;}
-#int-overlay{background:rgba(12,14,18,.95);}
-#int-overlay::before,#int-overlay::after{display:none;}
-#int-label{text-shadow:none;color:#9ab6ff;}
 </style>
 </head>
 <body id="billboard-body">
