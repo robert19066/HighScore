@@ -672,6 +672,48 @@ body{
   text-shadow:0 0 90px rgba(102,243,255,0.75),0 0 180px rgba(255,62,168,0.35),0 0 250px rgba(83,167,255,0.25);
 }
 
+/* Extra esports billboard polish */
+#main{
+  position:relative;
+}
+#main::before{
+  content:'ARENA FEED · LIVE';
+  position:absolute;
+  top:-3px;left:50%;
+  transform:translateX(-50%);
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.56rem;
+  letter-spacing:0.36em;
+  color:rgba(102,243,255,0.58);
+  opacity:0.9;
+  pointer-events:none;
+}
+.team-block::before{
+  content:'';
+  position:absolute;
+  inset:8px;
+  border:1px solid rgba(102,243,255,0.13);
+  border-radius:12px;
+  pointer-events:none;
+}
+#center-panel::after{
+  height:2px;
+  opacity:1;
+  background:linear-gradient(90deg,transparent,#ff3ea8,#66f3ff,#53a7ff,transparent);
+}
+#status-pill{
+  box-shadow:0 0 14px rgba(102,243,255,0.2), inset 0 0 10px rgba(102,243,255,0.08);
+}
+#timer-wrap.warning{
+  filter:drop-shadow(0 0 18px rgba(255,62,168,0.48));
+}
+.players-col{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.04),0 0 0 1px rgba(102,243,255,0.08);
+}
+.p-name-only{
+  text-shadow:0 0 10px rgba(102,243,255,0.25);
+}
+
 /* Fluid interactions */
 .team-block,#center-panel,.player-card,.p-name-only,#status-pill,#shotclock-wrap{
   transition:background 280ms ease,border-color 280ms ease,box-shadow 320ms ease,transform 220ms ease,color 220ms ease;
