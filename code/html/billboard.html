@@ -672,6 +672,29 @@ body{
   text-shadow:0 0 90px rgba(102,243,255,0.75),0 0 180px rgba(255,62,168,0.35),0 0 250px rgba(83,167,255,0.25);
 }
 
+/* Fluid interactions */
+.team-block,#center-panel,.player-card,.p-name-only,#status-pill,#shotclock-wrap{
+  transition:background 280ms ease,border-color 280ms ease,box-shadow 320ms ease,transform 220ms ease,color 220ms ease;
+}
+#timer-digits,#round-num,#shotclock-digits{
+  transition:color 220ms ease,text-shadow 260ms ease,transform 220ms ease;
+}
+
+/* Football overlap fix: keep score dramatic but leave room for cards */
+body.sport-football .team-score{
+  font-size:clamp(12rem,29vh,26rem);
+  transform:scaleY(1.1) scaleX(0.9);
+  margin-bottom:34px;
+}
+body.sport-football .team-sub{
+  min-height:58px;
+  margin-top:10px;
+}
+body.sport-football .cards-row{
+  min-height:34px;
+  gap:8px;
+}
+
 </style>
 </head>
 <body id="billboard-body">
