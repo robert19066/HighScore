@@ -608,6 +608,70 @@ body.sport-basketball #timer-wrap{width:95%;height:176px;max-width:280px;}
   text-shadow:0 0 70px var(--accent),0 0 150px rgba(122,162,255,0.3),0 0 220px rgba(255,255,255,0.08);
 }
 
+/* ===== V5 ESPORTS ARENA SKIN ===== */
+body{
+  --accent:#66f3ff;
+  --teamA:#ff3ea8;
+  --teamB:#53a7ff;
+  --center:#0b0d1a;
+  --border:#3b2a6a;
+  --text:#f5f7ff;
+  --dim:#9ea0c8;
+  background:
+    radial-gradient(900px 340px at 50% -8%, rgba(102,243,255,0.30), transparent 65%),
+    radial-gradient(700px 260px at 15% 0%, rgba(255,62,168,0.20), transparent 60%),
+    radial-gradient(700px 260px at 85% 0%, rgba(83,167,255,0.20), transparent 60%),
+    linear-gradient(180deg,#050711 0%,#070912 100%);
+}
+#scan{
+  opacity:0.5;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(102,243,255,0.05) 2px,rgba(102,243,255,0.05) 3px);
+}
+#header-stripe{
+  background:linear-gradient(90deg,#ff3ea8 0%,#66f3ff 50%,#53a7ff 100%);
+  box-shadow:0 0 34px rgba(102,243,255,0.45),0 0 80px rgba(255,62,168,0.22);
+}
+#sport-badge{color:#9aa4d3;text-shadow:0 0 12px rgba(102,243,255,0.3);}
+.team-block{
+  border-color:rgba(102,243,255,0.25);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.05),0 0 0 1px rgba(255,62,168,0.08),0 16px 60px rgba(0,0,0,0.45);
+}
+.team-block.left{background:linear-gradient(180deg,rgba(29,10,28,0.86),rgba(10,12,24,0.86));}
+.team-block.right{background:linear-gradient(180deg,rgba(11,17,36,0.86),rgba(10,12,24,0.86));}
+#center-panel{
+  border-color:rgba(102,243,255,0.35);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.06),0 0 0 1px rgba(83,167,255,0.12),0 18px 68px rgba(0,0,0,0.52);
+}
+#timer-wrap{filter:drop-shadow(0 0 16px rgba(102,243,255,0.26));}
+#timer-digits,#round-num{
+  text-shadow:0 0 20px rgba(102,243,255,0.25);
+}
+#status-pill{
+  border-color:rgba(102,243,255,0.35);
+  background:linear-gradient(180deg,rgba(102,243,255,0.12),rgba(102,243,255,0.05));
+  color:#c5faff;
+}
+#shotclock-wrap{
+  border-color:rgba(255,62,168,0.35);
+  background:linear-gradient(180deg,rgba(255,62,168,0.12),rgba(255,62,168,0.05));
+}
+#shotclock-digits{color:#ff75c2;}
+.players-col{
+  border-color:rgba(102,243,255,0.22);
+  background:linear-gradient(180deg,rgba(11,14,28,0.8),rgba(9,12,22,0.8));
+}
+.player-card{
+  border-color:rgba(83,167,255,0.35);
+  box-shadow:0 0 14px rgba(83,167,255,0.12);
+}
+#countdown-overlay{
+  background:radial-gradient(circle at center, rgba(102,243,255,0.24), rgba(7,7,14,0.86) 42%, rgba(4,4,10,0.95));
+}
+#countdown-digit{
+  color:#e6faff;
+  text-shadow:0 0 90px rgba(102,243,255,0.75),0 0 180px rgba(255,62,168,0.35),0 0 250px rgba(83,167,255,0.25);
+}
+
 </style>
 </head>
 <body id="billboard-body">

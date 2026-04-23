@@ -648,6 +648,97 @@ input[type=text],input[type=number]{
 .sel-name{font-size:1.55rem;color:#dce7ff;}
 .sel-desc{color:#91a1c2;font-size:0.7rem;}
 
+/* ===== V5 ESPORTS DASHBOARD SKIN ===== */
+:root{
+  --ink:#060813;
+  --surface:#0d1124;
+  --raised:#141a33;
+  --lift:#1a2242;
+  --wire:#2e2b63;
+  --wire2:#3f3a7a;
+  --text:#f3f6ff;
+  --muted:#a8abda;
+  --faint:#8089c0;
+  --gold:#66f3ff;
+  --green:#5fffa7;
+  --orange:#ff9e66;
+  --ra:#ff3ea8;
+  --rb:#53a7ff;
+  --sport-accent:#66f3ff;
+}
+body{
+  background:
+    radial-gradient(900px 320px at 50% -8%, rgba(102,243,255,0.26), transparent 65%),
+    radial-gradient(700px 260px at 20% 0%, rgba(255,62,168,0.18), transparent 58%),
+    radial-gradient(700px 260px at 80% 0%, rgba(83,167,255,0.18), transparent 58%),
+    linear-gradient(180deg,#040613 0%,#060815 100%);
+}
+#cmd-bar{
+  border-bottom:1px solid rgba(102,243,255,0.26);
+  background:rgba(8,12,30,0.9);
+}
+#cmd-bar::before{
+  background:linear-gradient(90deg,transparent,#ff3ea8,#66f3ff,#53a7ff,transparent);
+  box-shadow:0 0 20px rgba(102,243,255,0.45);
+}
+#sport-pill{
+  border-color:rgba(102,243,255,0.45);
+  background:linear-gradient(180deg,rgba(102,243,255,0.22),rgba(102,243,255,0.08));
+  color:#d7fbff;
+}
+#live-capsule,#bar-round{
+  border-color:rgba(83,167,255,0.3);
+  background:rgba(83,167,255,0.08);
+}
+#bar-timer{
+  color:#bffbff;
+  text-shadow:0 0 16px rgba(102,243,255,0.35);
+}
+#billboard-btn{
+  border-color:rgba(255,62,168,0.45);
+  color:#ff8ccf;
+  background:rgba(255,62,168,0.14);
+}
+#workspace{gap:14px;}
+.team-col,#ctrl-col{
+  border-color:rgba(102,243,255,0.22);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.05),0 0 0 1px rgba(255,62,168,0.08),0 16px 58px rgba(0,0,0,0.42);
+}
+.team-header{
+  border-color:rgba(102,243,255,0.24);
+  background:linear-gradient(180deg,rgba(21,27,53,0.86),rgba(13,17,35,0.86));
+}
+.col-a .th-score{color:#ff62b4;}
+.col-b .th-score{color:#72b8ff;}
+.module,.ctrl-mod{
+  border-color:rgba(102,243,255,0.2);
+  background:linear-gradient(180deg,rgba(17,23,45,0.86),rgba(12,16,33,0.86));
+}
+.module-hd,.ctrl-hd{
+  border-bottom-color:rgba(102,243,255,0.22);
+  background:linear-gradient(180deg,rgba(35,46,81,0.9),rgba(27,36,66,0.9));
+}
+.btn{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.05),0 0 10px rgba(0,0,0,0.2);
+}
+input[type=text],input[type=number],.player-row{
+  border-color:rgba(83,167,255,0.28);
+  background:rgba(13,18,37,0.85);
+}
+#sport-selector{
+  background:
+    radial-gradient(900px 400px at 50% 10%, rgba(102,243,255,0.24), transparent 62%),
+    rgba(5,7,15,0.95);
+}
+.sel-card{
+  border-color:rgba(102,243,255,0.24);
+  background:linear-gradient(180deg,rgba(23,30,58,0.9),rgba(13,18,36,0.9));
+}
+.sel-card:hover{
+  border-color:rgba(102,243,255,0.52);
+  box-shadow:0 22px 62px rgba(0,0,0,0.52),0 0 24px rgba(102,243,255,0.2);
+}
+
 </style>
 </head>
 <body>
