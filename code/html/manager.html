@@ -452,6 +452,32 @@ body.modal-open > :not(#update-modal){
   pointer-events:none;user-select:none;
 }
 
+/* V3 streamlined manager look */
+:root{
+  --ink:#0c1118;
+  --surface:#121926;
+  --raised:#172031;
+  --lift:#1a2436;
+  --wire:#253349;
+  --wire2:#2e3d55;
+  --text:#e4ecf9;
+  --muted:#8f9cb3;
+  --faint:#6d7f9b;
+}
+#cmd-bar{height:56px;}
+#workspace{background:var(--ink);}
+.team-col.col-a,.team-col.col-b{background:linear-gradient(180deg,#111826 0%,#0c1118 100%);}
+#ctrl-col{width:228px;background:#101826;}
+.module,.ctrl-mod{border-radius:8px;border-color:var(--wire);}
+.module-hd,.ctrl-hd{background:var(--lift);}
+.btn{border-radius:6px;font-size:0.82rem;padding:7px 9px;}
+input[type=text],input[type=number]{border-radius:6px;}
+.player-row{border-radius:6px;}
+#sport-selector{backdrop-filter:blur(4px);}
+#sel-logo .sc{color:#2a2d42;}
+#sel-tagline{letter-spacing:0.35em;}
+#update-badge{display:none !important;}
+
 </style>
 </head>
 <body>
@@ -932,16 +958,14 @@ function renderCenter(){
   az.innerHTML='';az.style.display='flex';az.style.flexDirection='column';az.style.gap='5px';
   if(!S.matchEnded){
     if(!S.matchRunning&&!S.intermissionRunning){
-      az.appendChild(mkBtn('▶ START MATCH','btn bg big full',()=>startMatch()));
-      az.appendChild(mkBtn('☕ INTERMISSION','btn bo full',()=>{S.intermissionRunning=true;S.matchRunning=false;S.intermissionSeconds=S.intermissionMinutes*60;startTimer();save();renderAll();}));
+      const hasPausedTime = S.timerSeconds>0 && S.timerSeconds<(S.roundMinutes*60);
+      az.appendChild(mkBtn(hasPausedTime?'▶ RESUME MATCH':'▶ START MATCH','btn bg big full',()=>{S.matchRunning=true;S.intermissionRunning=false;startTimer();save();renderAll();}));
+      az.appendChild(mkBtn('☕ START INTERMISSION','btn bo full',()=>{S.intermissionRunning=true;S.matchRunning=false;S.intermissionSeconds=S.intermissionMinutes*60;startTimer();save();renderAll();}));
     }else if(S.matchRunning){
-      az.appendChild(mkBtn('⏸ PAUSE','btn bo big full',()=>{S.matchRunning=false;stopTimer();save();renderAll();}));
-      az.appendChild(mkBtn('⏹ STOP','btn br full',()=>{S.matchRunning=false;stopTimer();save();renderAll();}));
+      az.appendChild(mkBtn('⏸ PAUSE MATCH','btn bo big full',()=>{S.matchRunning=false;stopTimer();save();renderAll();}));
+      az.appendChild(mkBtn('⏹ STOP CLOCK','btn br full',()=>{S.matchRunning=false;stopTimer();save();renderAll();}));
     }else if(S.intermissionRunning){
       az.appendChild(mkBtn('⏹ END INTERMISSION','btn bo big full',()=>{S.intermissionRunning=false;stopTimer();startMatch();}));
-    }
-    if(!S.matchRunning&&!S.intermissionRunning){
-      az.appendChild(mkBtn('▶ RESUME','btn bg full',()=>{S.matchRunning=true;S.timerSeconds=S.timerSeconds||S.roundMinutes*60;startTimer();save();renderAll();}));
     }
   }
   const rcb=document.getElementById('round-config-block');rcb.innerHTML='';

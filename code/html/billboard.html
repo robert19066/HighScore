@@ -120,7 +120,7 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
   display:flex;flex-direction:column;
   align-items:center;
   justify-content:flex-start;
-  padding:20px 14px 10px;
+  padding:44px 14px 10px;
   position:relative;overflow:hidden;
 }
 /* ambient glow */
@@ -138,10 +138,10 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
 /* ── TEAM NAME ── */
 .team-name{
   font-family:'Bebas Neue',sans-serif;
-  font-size:clamp(4.2rem,7.4vw,7.4rem);
+  font-size:clamp(4rem,6.8vw,7rem);
   letter-spacing:0.06em;line-height:1;text-align:center;
   position:relative;z-index:2;
-  margin-bottom:0;
+  margin-bottom:10px;
 }
 .team-block.left  .team-name{color:var(--teamA);text-shadow:0 0 50px var(--glowA);}
 .team-block.right .team-name{color:var(--teamB);text-shadow:0 0 50px var(--glowB);}
@@ -149,10 +149,14 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
 /* ── SCORE ── very tall */
 .team-score{
   font-family:'Bebas Neue',sans-serif;
-  font-size:clamp(13rem,31vh,31rem);
-  line-height:0.78;
+  font-size:clamp(14rem,34vh,33rem);
+  line-height:0.74;
   position:relative;z-index:2;
   flex-shrink:0;
+  transform:scaleY(1.22) scaleX(0.88);
+  transform-origin:center top;
+  margin-top:8px;
+  margin-bottom:20px;
 }
 .team-block.left  .team-score{color:var(--teamA);text-shadow:0 0 60px var(--glowA),0 0 120px var(--glowA),0 0 200px rgba(232,48,80,0.06);}
 .team-block.right .team-score{color:var(--teamB);text-shadow:0 0 60px var(--glowB),0 0 120px var(--glowB),0 0 200px rgba(48,144,248,0.06);}
@@ -270,6 +274,11 @@ body.sport-basketball #timer-digits{font-size:3.2rem;}
   width:100%;
 }
 body.sport-basketball #shotclock-wrap{display:flex;}
+body.sport-basketball #round-lbl{order:2;}
+body.sport-basketball #round-num{order:3;}
+body.sport-basketball #round-of{order:4;}
+body.sport-basketball #shotclock-wrap{order:5;}
+body.sport-basketball #status-pill{order:6;}
 #shotclock-label{font-size:0.55rem;letter-spacing:0.35em;color:var(--dim);text-transform:uppercase;}
 #shotclock-digits{
   font-family:'Bebas Neue',sans-serif;
@@ -427,6 +436,7 @@ body.sport-basketball .players-col.right-col .player-card{border-color:rgba(255,
   color:var(--accent);letter-spacing:0.04em;
   text-shadow:0 0 80px var(--accent),0 0 160px rgba(255,255,255,0.08);
   animation:cdPop 0.4s cubic-bezier(0.16,1,0.3,1);
+  text-align:center;
 }
 @keyframes cdPop{from{transform:scale(1.7);opacity:0}to{transform:scale(1);opacity:1}}
 
@@ -449,6 +459,38 @@ body.sport-basketball #sport-texture{opacity:0.04;}
 body.sport-football   #sport-texture{opacity:0.05;}
 body.sport-handball   #sport-texture{opacity:0.03;}
 body.sport-volleyball #sport-texture{opacity:0.04;}
+
+/* V3 clean redesign */
+body{
+  background:
+    radial-gradient(1200px 500px at 50% -5%, rgba(255,255,255,0.06), transparent 60%),
+    linear-gradient(180deg,#0a0d13 0%,#090c12 100%);
+}
+#scan{opacity:0.25;}
+#header-stripe{height:3px;box-shadow:none;opacity:0.85;}
+#main{padding:10px;gap:10px;}
+.team-block{
+  background:rgba(12,16,24,0.74);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:14px;
+  backdrop-filter:blur(3px);
+}
+#center-panel{
+  border-radius:14px;
+  border-color:rgba(255,255,255,0.08);
+  background:rgba(12,16,24,0.92);
+}
+#status-pill{border-radius:999px;}
+.player-card{
+  background:rgba(10,14,22,0.92);
+  border-radius:8px;
+}
+.p-name-only{
+  background:rgba(10,14,22,0.65);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:999px;
+  padding:4px 10px;
+}
 
 </style>
 </head>
@@ -623,7 +665,20 @@ function showCountdown(from,cb){
     cdDigit.style.animation='none';void cdDigit.offsetWidth;cdDigit.style.animation='';
     cdOverlay.classList.add('show');
     if(n>1){n--;setTimeout(tick,1000);}
-    else{setTimeout(()=>{cdOverlay.classList.remove('show');if(cb)cb();},1000);}
+    else{
+      setTimeout(()=>{
+        cdDigit.textContent='TIME TO GAME!';
+        cdDigit.style.fontSize='clamp(4rem,9vw,7rem)';
+        cdDigit.style.letterSpacing='0.08em';
+        cdDigit.style.animation='none';void cdDigit.offsetWidth;cdDigit.style.animation='';
+      },1000);
+      setTimeout(()=>{
+        cdOverlay.classList.remove('show');
+        cdDigit.style.fontSize='';
+        cdDigit.style.letterSpacing='';
+        if(cb)cb();
+      },1900);
+    }
   }
   tick();
 }
