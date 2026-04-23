@@ -17,9 +17,6 @@
   "scripts": {
     "start": "electron .",
     "build": "electron-builder",
-    "build:ui": "npm run build:css && npm run build:js",
-    "build:css": "tailwindcss -i ./src/styles/tailwind.css -o ./dist/styles.css --minify",
-    "build:js": "esbuild code/js/main.js --bundle --platform=node --outfile=dist/js/main.js && esbuild code/js/preload-manager.js --bundle --platform=node --outfile=dist/js/preload-manager.js && esbuild code/js/preload-billboard.js --bundle --platform=node --outfile=dist/js/preload-billboard.js",
     "test": "echo \"no test cry bout it\" && exit 1"
   },
   "dependencies": {
