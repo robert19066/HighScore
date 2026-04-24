@@ -16,6 +16,10 @@ const HTML_DIR = path.join(__dirname, '..', 'html');
 let splashWindow;
 let managerWindow;
 let billboardWindow;
+let createWindowsTimer = null;
+let windowsCreated = false;
+let lastVersion = '';
+let windowsBlocked = false;
 
 function readVersion() {
   try {
@@ -43,13 +47,17 @@ function fileUrlWithQuery(filePath, query) {
 }
 
 function createSplash(version) {
-  const splashIcon = path.join(ASSETS_DIR, 'splash.ico');
+  const splashPreload = path.join(__dirname, 'preload-splash.js');
+  const splashIcon = path.join(ASSETS_DIR, 'icons', 'splash.ico');
   splashWindow = new BrowserWindow({
     width: 600,
     height: 400,
     frame: false,
     alwaysOnTop: true,
     webPreferences: {
+      // keep timers throttled when background to save CPU
+      backgroundThrottling: true,
+      preload: splashPreload,
       nodeIntegration: false,
       contextIsolation: true,
     },
@@ -63,17 +71,27 @@ function createSplash(version) {
 
   splashWindow.once('ready-to-show', () => {
     splashWindow.show();
+    // Start the fallback timer to create main windows only after splash is visible.
+    if (!windowsCreated && !windowsBlocked) {
+      if (createWindowsTimer) { clearTimeout(createWindowsTimer); createWindowsTimer = null; }
+      createWindowsTimer = setTimeout(() => {
+        if (windowsCreated) return;
+        windowsCreated = true;
+        createWindows(lastVersion);
+      }, 6200);
+    }
   });
 }
 
 function createWindows(version) {
   // Manager window
   const managerPreload = path.join(__dirname, 'preload-manager.js');
-  const managerIcon = path.join(ASSETS_DIR, 'settings.ico');
+  const managerIcon = path.join(ASSETS_DIR, 'icons', 'settings.ico');
   managerWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     webPreferences: {
+      backgroundThrottling: true,
       preload: managerPreload,
       nodeIntegration: false,
       contextIsolation: true,
@@ -97,11 +115,12 @@ function createWindows(version) {
 
   // Billboard window
   const billboardPreload = path.join(__dirname, 'preload-billboard.js');
-  const billboardIcon = path.join(ASSETS_DIR, 'icon.ico');
+  const billboardIcon = path.join(ASSETS_DIR, 'icons', 'icon.ico');
   billboardWindow = new BrowserWindow({
     width: 1400,
     height: 900,
     webPreferences: {
+      backgroundThrottling: true,
       preload: billboardPreload,
       nodeIntegration: false,
       contextIsolation: true,
@@ -122,6 +141,11 @@ function createWindows(version) {
 
   const billboardFile = path.join(HTML_DIR, 'billboard.html');
   billboardWindow.loadURL(fileUrlWithQuery(billboardFile, { v: version }));
+
+  // Immediately send persisted lowPower flag to newly created windows (best-effort)
+  const persistedLow = store ? !!store.get('lowPower') : false;
+  try{ managerWindow.webContents.once('did-finish-load', ()=>{ managerWindow.webContents.send('perf-low-power', persistedLow); }); }catch(e){}
+  try{ billboardWindow.webContents.once('did-finish-load', ()=>{ billboardWindow.webContents.send('perf-low-power', persistedLow); }); }catch(e){}
 
   // Handle state updates from manager
   ipcMain.on('state-update', (event, state) => {
@@ -176,11 +200,10 @@ function createWindows(version) {
 
 app.whenReady().then(async () => {
   const version = (await readVersionAsync()) || '';
+  lastVersion = version;
   // Persist last-known assets version (best-effort)
   try{ if(store) store.set('lastVersion', version); }catch(e){}
   createSplash(version);
-  // Shorten splash wait to improve startup latency while still showing splash
-  setTimeout(() => createWindows(version), 6200);
 });
 
 app.on('window-all-closed', () => {
@@ -192,4 +215,60 @@ app.on('activate', () => {
     const version = readVersion() || '';
     createWindows(version);
   }
+});
+
+// IPC: read/write DSCP config and handle splash decisions
+ipcMain.handle('dscp-read', async () => {
+  try {
+    const cfgPath = path.join(ASSETS_DIR, 'DSCPconfig.txt');
+    const txt = await fs.promises.readFile(cfgPath, 'utf8');
+    return txt.trim();
+  } catch (e) {
+    return 'WN';
+  }
+});
+
+ipcMain.handle('dscp-write', async (event, val) => {
+  try {
+    const cfgPath = path.join(ASSETS_DIR, 'DSCPconfig.txt');
+    await fs.promises.writeFile(cfgPath, String(val || '').trim(), 'utf8');
+    return true;
+  } catch (e) {
+    return false;
+  }
+});
+
+ipcMain.on('splash-blocking', (event, flagged) => {
+  try {
+    if (flagged) {
+      windowsBlocked = true;
+      if (createWindowsTimer) { clearTimeout(createWindowsTimer); createWindowsTimer = null; }
+    } else {
+      windowsBlocked = false;
+    }
+  } catch (e) { /* ignore */ }
+});
+
+ipcMain.on('splash-allow', () => {
+  if (windowsCreated) return;
+  windowsCreated = true;
+  if (createWindowsTimer) { clearTimeout(createWindowsTimer); createWindowsTimer = null; }
+  createWindows(lastVersion || readVersion());
+});
+
+ipcMain.on('splash-exit', () => {
+  app.quit();
+});
+
+// Persist and broadcast a low-power / reduced-mode flag
+ipcMain.handle('set-low-power', async (event, flag) => {
+  try {
+    const val = !!flag;
+    // persist best-effort
+    try { if (store) store.set('lowPower', val); } catch (e) {}
+    // broadcast to existing windows
+    try { if (managerWindow && !managerWindow.isDestroyed()) managerWindow.webContents.send('perf-low-power', val); } catch (e) {}
+    try { if (billboardWindow && !billboardWindow.isDestroyed()) billboardWindow.webContents.send('perf-low-power', val); } catch (e) {}
+    return true;
+  } catch (e) { return false; }
 });

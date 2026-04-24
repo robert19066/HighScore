@@ -15,6 +15,11 @@ const { contextBridge, ipcRenderer } = require('electron');
         originalSetItem(key, value);
         if (key === 'hs_state') safeSendState(value);
       };
+      // listen for perf flag from main and mirror into the page
+      try { ipcRenderer.on('perf-low-power', (ev, flag) => {
+        try { if (typeof window !== 'undefined' && window && typeof window.postMessage === 'function') window.postMessage({ type: 'hs_low_power', flag: !!flag }, '*'); } catch(e){ }
+        try { originalSetItem.call(localStorage, 'hs_low_power', !!flag ? '1' : '0'); } catch(e){}
+      }); } catch(e){}
     } else {
       // localStorage might not be ready yet in some contexts — defer until DOM is ready
       window.addEventListener('DOMContentLoaded', () => {

@@ -6,190 +6,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
-html,body{width:100%;height:100vh;overflow:hidden;background:#05050f;}
-
-body{
-  font-family:'Barlow Condensed',sans-serif;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  position:relative;
-}
-
-/* ── CANVAS BG ── */
-canvas#noise{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.04;}
-
-/* ── CINEMATIC LETTERBOX ── */
-.letterbox{
-  position:fixed;left:0;right:0;height:60px;z-index:50;pointer-events:none;
-  background:#000;
-}
-.letterbox.top{top:0;animation:lbSlideTop 1s cubic-bezier(0.77,0,0.18,1) 0.2s both;}
-.letterbox.bot{bottom:0;animation:lbSlideBot 1s cubic-bezier(0.77,0,0.18,1) 0.2s both;}
-@keyframes lbSlideTop{from{transform:translateY(0)}to{transform:translateY(-100%)}}
-@keyframes lbSlideBot{from{transform:translateY(0)}to{transform:translateY(100%)}}
-
-/* ── VIGNETTE ── */
-#vignette{
-  position:fixed;inset:0;z-index:1;pointer-events:none;
-  background:radial-gradient(ellipse at 50% 50%,transparent 30%,rgba(0,0,0,0.92) 100%);
-}
-
-/* ── SPOTLIGHT ── */
-.spot{
-  position:fixed;left:50%;top:-10%;
-  width:80vw;height:70vh;
-  transform:translateX(-50%);
-  pointer-events:none;z-index:1;
-  background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,0.07) 0%,transparent 60%);
-  filter:blur(30px);
-  opacity:0;animation:spotFade 2s ease 1s forwards;
-}
-@keyframes spotFade{to{opacity:1}}
-
-/* ── SCAN LINES ── */
-#scan{
-  position:fixed;inset:0;z-index:2;pointer-events:none;
-  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.06) 3px,rgba(0,0,0,0.06) 4px);
-}
-
-/* ── CONTENT ── */
-#wrap{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;text-align:center;}
-
-/* ── EYEBROW ── */
-#eyebrow{
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:0.72rem;letter-spacing:0.55em;color:#33334a;
-  text-transform:uppercase;margin-bottom:18px;
-  opacity:0;animation:fadeUp 0.7s ease 1.2s forwards;
-}
-
-/* ── LOGO ── */
-#logo{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:clamp(5rem,14vw,11rem);
-  letter-spacing:0.12em;line-height:1;
-  position:relative;
-  opacity:0;
-  animation:logoReveal 0.8s cubic-bezier(0.16,1,0.3,1) 1.5s forwards;
-}
-#logo .hi{
-  color:#f0c040;
-  text-shadow:0 0 60px rgba(240,192,64,0.6),0 0 120px rgba(240,192,64,0.2);
-}
-#logo .sc{color:#28283c;}
-
-/* logo sweep */
-#logo::after{
-  content:'';position:absolute;inset:-5% -5%;
-  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.12) 50%,transparent 100%);
-  transform:translateX(-110%) skewX(-15deg);
-  animation:sweep 1.2s ease 2.1s forwards;
-  pointer-events:none;
-}
-@keyframes sweep{from{transform:translateX(-110%) skewX(-15deg)}to{transform:translateX(130%) skewX(-15deg)}}
-
-@keyframes logoReveal{
-  from{opacity:0;transform:scale(0.85) translateY(20px);filter:blur(6px);}
-  to{opacity:1;transform:scale(1) translateY(0);filter:blur(0);}
-}
-
-/* ── SUBTITLE ── */
-#subtitle{
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:clamp(0.7rem,1.5vw,1rem);
-  letter-spacing:0.5em;color:#383850;
-  text-transform:uppercase;margin-top:6px;
-  opacity:0;animation:fadeUp 0.6s ease 2.2s forwards;
-}
-
-/* ── DIVIDER ── */
-#divider{
-  width:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(240,192,64,0.4),transparent);
-  margin:28px auto;
-  animation:divGrow 1s ease 2.5s forwards;
-}
-@keyframes divGrow{to{width:220px}}
-
-/* ── LOADING BAR ── */
-#loading-wrap{
-  width:220px;
-  opacity:0;animation:fadeUp 0.5s ease 2.6s forwards;
-}
-#loading-track{
-  width:100%;height:2px;
-  background:rgba(255,255,255,0.05);
-  border-radius:1px;overflow:hidden;
-  position:relative;
-}
-#loading-fill{
-  height:100%;width:0;
-  background:linear-gradient(90deg,#f0c040,#40e8a0);
-  border-radius:1px;
-  animation:barFill 3.2s cubic-bezier(0.4,0,0.2,1) 2.8s forwards;
-  position:relative;
-}
-#loading-fill::after{
-  content:'';position:absolute;right:0;top:-1px;
-  width:20px;height:4px;border-radius:50%;
-  background:rgba(255,255,255,0.8);
-  filter:blur(3px);
-}
-@keyframes barFill{0%{width:0}60%{width:70%}80%{width:88%}100%{width:100%}}
-
-#loading-label{
-  margin-top:10px;
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:0.6rem;letter-spacing:0.38em;color:#252535;
-  text-transform:uppercase;
-  animation:loadTxt 0.5s ease 2.8s both;
-}
-@keyframes loadTxt{from{opacity:0}to{opacity:1}}
-
-/* ── QUOTE ── */
-#quote{
-  margin-top:40px;
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:0.85rem;letter-spacing:0.2em;
-  color:rgba(255,255,255,0.08);
-  font-style:italic;
-  opacity:0;animation:fadeUp 1s ease 4.5s forwards;
-}
-#quote span{color:rgba(240,192,64,0.2);}
-
-/* ── CORNER DECO ── */
-.corner{position:fixed;width:30px;height:30px;z-index:10;opacity:0;animation:cornerIn 0.5s ease 1.8s forwards;}
-.corner.tl{top:20px;left:20px;border-top:1px solid rgba(240,192,64,0.15);border-left:1px solid rgba(240,192,64,0.15);}
-.corner.tr{top:20px;right:20px;border-top:1px solid rgba(240,192,64,0.15);border-right:1px solid rgba(240,192,64,0.15);}
-.corner.bl{bottom:20px;left:20px;border-bottom:1px solid rgba(240,192,64,0.15);border-left:1px solid rgba(240,192,64,0.15);}
-.corner.br{bottom:20px;right:20px;border-bottom:1px solid rgba(240,192,64,0.15);border-right:1px solid rgba(240,192,64,0.15);}
-@keyframes cornerIn{from{opacity:0;transform:scale(0.5)}to{opacity:1;transform:scale(1)}}
-
-/* ── VERSION ── */
-#version{
-  position:fixed;bottom:16px;right:20px;
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:0.62rem;letter-spacing:0.22em;color:#1e1e30;
-  z-index:10;
-  opacity:0;animation:fadeUp 0.5s ease 2.2s forwards;
-}
-
-/* ── CROWD SILHOUETTE ── */
-#crowd{
-  position:fixed;bottom:0;left:0;right:0;height:80px;
-  z-index:3;pointer-events:none;overflow:hidden;
-}
-#crowd svg{position:absolute;bottom:0;width:100%;opacity:0;animation:crowdIn 1.5s ease 2s forwards;}
-@keyframes crowdIn{to{opacity:0.06}}
-
-/* ── SHARED ── */
-@keyframes fadeUp{
-  from{opacity:0;transform:translateY(10px)}
-  to{opacity:1;transform:translateY(0)}
-}
-</style>
+<link rel="stylesheet" href="../styles/splash.css">
 </head>
 <body>
 
@@ -211,8 +28,20 @@ canvas#noise{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.04;}
   <div id="subtitle">Command · Control · Display</div>
   <div id="divider"></div>
   <div id="loading-wrap">
-    <div id="loading-track"><div id="loading-fill"></div></div>
-    <div id="loading-label">Initializing system</div>
+    <div id="loading-area">
+      <div id="loading-track"><div id="loading-fill"></div></div>
+      <div id="loading-label">Initializing system</div>
+    </div>
+    <div id="spec-prompt" class="hidden" aria-hidden="true">
+      <h2 id="spec-title">Performance warning</h2>
+      <p id="spec-message">Your device's specs might be too low to run this app.</p>
+      <div id="spec-details" class="details"></div>
+      <label><input type="checkbox" id="dont-warn"> Don't warn me again</label>
+      <div class="actions">
+        <button id="spec-exit">Exit</button>
+        <button id="spec-yes" class="primary">Yes, continue</button>
+      </div>
+    </div>
   </div>
   <div id="quote">"<span>Take Control of the</span> GAME"</div>
 </div>
@@ -223,6 +52,8 @@ canvas#noise{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.04;}
     <path d="M0 80 L0 55 Q8 45 16 55 Q20 35 28 45 Q32 25 40 35 Q44 40 52 30 Q56 20 64 32 Q72 40 80 28 Q84 15 92 28 Q100 38 108 22 Q112 10 120 22 Q128 35 136 18 Q140 8 148 20 Q156 32 164 15 Q168 5 176 18 Q184 30 192 12 Q196 2 204 14 Q212 28 220 10 Q224 0 232 12 Q240 25 248 8 Q252 0 260 10 Q268 22 276 6 Q280 0 288 8 Q296 18 304 4 Q308 0 316 6 Q324 16 332 2 Q336 0 344 5 Q352 14 360 2 Q364 0 372 5 Q380 13 388 2 Q392 0 400 5 Q408 15 416 3 Q420 0 428 6 Q436 16 444 4 Q448 0 456 8 Q464 20 472 6 Q476 0 484 10 Q492 22 500 8 Q504 0 512 12 Q520 24 528 8 Q532 0 540 12 Q548 24 556 8 Q560 0 568 12 Q576 26 584 10 Q588 2 596 14 Q604 28 612 12 Q616 4 624 16 Q632 30 640 14 Q644 6 652 18 Q660 32 668 16 Q672 8 680 20 Q688 34 696 18 Q700 10 708 22 Q716 36 724 20 Q728 12 736 24 Q744 38 752 22 Q756 14 764 26 Q772 40 780 24 Q784 16 792 28 Q800 42 808 28 Q812 18 820 30 Q828 44 836 30 Q840 20 848 32 Q856 46 864 32 Q868 22 876 34 Q884 48 892 36 Q896 26 904 38 Q912 52 920 40 Q924 30 932 42 Q940 55 948 42 Q952 32 960 45 Q968 58 976 45 Q980 35 988 48 Q996 60 1004 48 Q1008 38 1016 50 Q1024 62 1032 50 Q1036 40 1044 52 Q1052 62 1060 52 Q1064 42 1072 54 Q1080 65 1088 55 Q1092 45 1100 55 Q1108 65 1116 56 Q1120 48 1128 56 Q1136 65 1144 57 Q1148 50 1156 57 Q1164 65 1172 58 Q1176 52 1184 58 Q1192 65 1200 60 Q1204 54 1212 60 Q1220 66 1228 61 Q1232 56 1240 62 Q1248 68 1256 63 Q1260 58 1268 63 Q1276 68 1284 64 Q1288 60 1296 65 Q1304 70 1312 66 Q1316 62 1324 66 Q1332 70 1340 67 Q1344 64 1352 68 Q1360 72 1368 68 Q1372 65 1380 69 Q1388 73 1396 70 Q1400 67 1408 71 Q1416 75 1424 72 Q1428 69 1436 73 L1440 75 L1440 80 Z"/>
   </svg>
 </div>
+
+
 
 <div id="version"></div>
 
@@ -246,6 +77,75 @@ const iv=setInterval(()=>{li++;if(li>=labels.length){clearInterval(iv);return;}l
 /* version */
 (function(){
   try{const v=new URLSearchParams(location.search).get('v');if(v)document.getElementById('version').textContent='v'+v;}catch(e){}
+})();
+</script>
+
+<script>
+(async function(){
+  const DSCP = window.DSCP || null;
+  let cfg = 'WN';
+  try{
+    if (DSCP && typeof DSCP.readConfig === 'function') {
+      cfg = (await DSCP.readConfig()) || 'WN';
+    } else {
+      try{
+        const resp = await fetch('../assets/DSCPconfig.txt');
+        if (resp && resp.ok) cfg = (await resp.text()) || 'WN';
+      }catch(e){}
+    }
+  }catch(e){ cfg = 'WN'; }
+  cfg = String(cfg).trim().toUpperCase();
+
+  function hasWebGL(){
+    try{const c=document.createElement('canvas');return !!(c.getContext('webgl')||c.getContext('experimental-webgl'));}catch(e){return false}
+  }
+
+  const mem = (typeof navigator.deviceMemory !== 'undefined') ? navigator.deviceMemory : null;
+  const cores = (typeof navigator.hardwareConcurrency !== 'undefined') ? navigator.hardwareConcurrency : null;
+  const webgl = hasWebGL();
+  const low = ((mem !== null && mem < 2) || (cores !== null && cores < 2) || !webgl);
+
+  let showPrompt = false;
+  if (cfg === 'NEVER') showPrompt = false;
+  else if (cfg === 'ALLWAYS' || cfg === 'ALWAYS') showPrompt = true;
+  else showPrompt = low;
+
+  const promptEl = document.getElementById('spec-prompt');
+  const detailsEl = document.getElementById('spec-details');
+  const dontWarnCheckbox = document.getElementById('dont-warn');
+  const yesBtn = document.getElementById('spec-yes');
+  const exitBtn = document.getElementById('spec-exit');
+  const loadingArea = document.getElementById('loading-area');
+
+  if (showPrompt && promptEl){
+    if (DSCP && DSCP.blocking) DSCP.blocking(true);
+    detailsEl.innerHTML = `<ul style="margin:6px 0 8px 16px"><li>Approx RAM: ${mem===null?'unknown':mem+' GB'}</li><li>CPU cores: ${cores===null?'unknown':cores}</li><li>WebGL: ${webgl ? 'available' : 'unavailable'}</li></ul>`;
+    promptEl.classList.remove('hidden');
+    promptEl.setAttribute('aria-hidden','false');
+    if (loadingArea) loadingArea.style.display = 'none';
+
+    yesBtn.addEventListener('click', async function(){
+      if (dontWarnCheckbox.checked) {
+        try{ if (DSCP && DSCP.writeConfig) await DSCP.writeConfig('NEVER'); }catch(e){}
+      }
+      // If device was detected as low, request reduced/perf mode and apply immediate CSS fallback
+      try{
+        if (typeof low !== 'undefined' && low) {
+          if (DSCP && DSCP.setLowPower) await DSCP.setLowPower(true);
+          try{ document.documentElement.classList.add('low-power'); }catch(e){}
+        }
+      }catch(e){}
+      try{ if (DSCP && DSCP.blocking) DSCP.blocking(false); }catch(e){}
+      try{ if (DSCP && DSCP.allow) DSCP.allow(); }catch(e){ promptEl.classList.add('hidden'); if (loadingArea) loadingArea.style.display=''; }
+    });
+
+    exitBtn.addEventListener('click', function(){
+      try{ if (DSCP && DSCP.exit) DSCP.exit(); }catch(e){ window.close(); }
+    });
+  } else {
+    if (loadingArea) loadingArea.style.display = '';
+    try{ if (DSCP && DSCP.blocking) DSCP.blocking(false); }catch(e){}
+  }
 })();
 </script>
 </body>

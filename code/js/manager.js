@@ -5,7 +5,17 @@
   const canvas=document.getElementById('sel-canvas');
   const ctx=canvas.getContext('2d');
   let W,H;
-  function resize(){W=canvas.width=canvas.offsetWidth;H=canvas.height=canvas.offsetHeight;}
+  function resize(){
+    const dpr = window.devicePixelRatio || 1;
+    const scale = (window.HS_REDUCED ? Math.max(0.5, dpr * 0.6) : dpr);
+    const w = Math.max(120, Math.floor((canvas.offsetWidth || innerWidth) * scale));
+    const h = Math.max(80, Math.floor((canvas.offsetHeight || innerHeight*0.25) * scale));
+    canvas.width = w; canvas.height = h;
+    canvas.style.width = (canvas.offsetWidth || innerWidth) + 'px';
+    canvas.style.height = (canvas.offsetHeight || 160) + 'px';
+    try{ ctx.setTransform(scale,0,0,scale,0,0); }catch(e){}
+    W = Math.floor(canvas.offsetWidth || innerWidth); H = Math.floor(canvas.offsetHeight || 160);
+  }
   resize();window.addEventListener('resize',resize);
   const P=[];
   function mk(){
@@ -13,19 +23,33 @@
     return{x,y:H+5,col:[Math.random()<0.5?240:48,Math.random()<0.5?192:144,Math.random()<0.5?64:248],sz:Math.random()*1.2+0.2,vy:-(Math.random()*0.35+0.1),vx:(Math.random()-0.5)*0.15,life:1,decay:Math.random()*0.003+0.001};
   }
   for(let i=0;i<60;i++){const p=mk();p.y=Math.random()*H;P.push(p);}  
+  // Performance: allow reduced-mode throttling and pause when hidden
+  window.HS_REDUCED = (function(){ try{ return localStorage.getItem('hs_low_power')==='1'; }catch(e){return false;} })();
+  window.addEventListener('message', (e)=>{ try{ if(e && e.data && e.data.type==='hs_low_power'){ window.HS_REDUCED = !!e.data.flag; document.documentElement.classList.toggle('low-power', !!e.data.flag);
+      if(window.gsap){ try{ if(window.HS_REDUCED||document.hidden){ try{ gsap.globalTimeline.pause(); }catch(e){}; try{ gsap.globalTimeline.clear(); }catch(e){} } else { try{ gsap.globalTimeline.resume(); }catch(e){} } }catch(_){} }
+    } }catch(_){}});
+  document.addEventListener('visibilitychange', ()=>{
+    try{ if(window.gsap){ if(document.hidden||window.HS_REDUCED) gsap.globalTimeline.pause(); else gsap.globalTimeline.resume(); } }catch(e){}
+  });
+
   function frame(){
-    if(document.hidden){requestAnimationFrame(frame);return;}
-    ctx.clearRect(0,0,W,H);
-    if(Math.random()<0.25)P.push(mk());
-    while(P.length>90)P.shift();
-    for(let i=P.length-1;i>=0;i--){
-      const p=P[i];p.y+=p.vy;p.x+=p.vx;p.life-=p.decay;
-      if(p.life<=0||p.y<-3){P.splice(i,1);continue;}
-      ctx.beginPath();ctx.arc(p.x,p.y,p.sz,0,Math.PI*2);
-      ctx.fillStyle=`rgba(${p.col[0]},${p.col[1]},${p.col[2]},${(p.life*0.12).toFixed(3)})`;
-      ctx.fill();
-    }
-    requestAnimationFrame(frame);
+    try{
+      if(document.hidden){ setTimeout(frame,1000); return; }
+      ctx.clearRect(0,0,W,H);
+      // spawn & cap adapted for reduced-mode
+      if(Math.random() < (window.HS_REDUCED ? 0.05 : 0.25)) P.push(mk());
+      const maxP = window.HS_REDUCED ? 40 : 90;
+      while(P.length > maxP) P.shift();
+      for(let i=P.length-1;i>=0;i--){
+        const p=P[i];p.y+=p.vy;p.x+=p.vx;p.life-=p.decay;
+        if(p.life<=0||p.y<-3){P.splice(i,1);continue;}
+        ctx.beginPath();ctx.arc(p.x,p.y,p.sz,0,Math.PI*2);
+        ctx.fillStyle=`rgba(${p.col[0]},${p.col[1]},${p.col[2]},${(p.life*0.12).toFixed(3)})`;
+        ctx.fill();
+      }
+    }catch(e){}
+    // schedule next frame with optional throttling
+    if(window.HS_REDUCED) setTimeout(frame, Math.round(1000/20)); else requestAnimationFrame(frame);
   }
   frame();
 })();
@@ -37,10 +61,12 @@ const DEF={
   teamB:{name:'TEAM B',score:0,redCards:0,teamFouls:0,players:[]},
   round:1,totalRounds:4,roundMinutes:15,intermissionMinutes:15,
   timerSeconds:900,intermissionSeconds:900,
-  matchRunning:false,intermissionRunning:false,matchEnded:false
+  matchRunning:false,intermissionRunning:false,matchEnded:false,
+  shotclockSeconds:15,shotclockRunning:false
 };
 let S=JSON.parse(JSON.stringify(DEF));
 let timerInterval=null;
+let scIntervalManager=null;
 
 function normalizeState(){
   ['teamA','teamB'].forEach(k=>{
@@ -52,6 +78,75 @@ function normalizeState(){
     if(typeof t.teamFouls!=='number')t.teamFouls=0;
     if(!Array.isArray(t.players))t.players=[];
   });
+
+  if(typeof S.shotclockSeconds!=='number') S.shotclockSeconds = 15;
+  if(typeof S.shotclockRunning!=='boolean') S.shotclockRunning = false;
+}
+
+// Message listener for countdown completion from billboard
+window.addEventListener('message', e => {
+  try{
+    const d = e && e.data;
+    if(!d) return;
+    if(d.type === 'hs_countdown_done'){
+      // Billboard reported countdown finished — now start the match
+      try{ startMatch(); }catch(err){}
+    }
+  }catch(err){}
+});
+
+let _matchEndTimeout = null;
+
+function handleMatchEnd(){
+  try{
+    // determine winner
+    const a = (S.teamA&&S.teamA.score)||0;
+    const b = (S.teamB&&S.teamB.score)||0;
+    const winner = a>b ? 'a' : (b>a ? 'b' : 'tie');
+    // notify billboard to show winner
+    const bb = window.open('','HighScore_Billboard');
+    try{ if(bb && !bb.closed) bb.postMessage({type:'hs_match_end', winner:winner, scoreA:a, scoreB:b, duration:10}, '*'); }catch(e){}
+    // clear previous timeout
+    if(_matchEndTimeout) clearTimeout(_matchEndTimeout);
+    _matchEndTimeout = setTimeout(()=>{
+      // reset match automatically after 10s
+      try{ stopTimer(); }catch(e){}
+      const sp = S.sport;
+      S = JSON.parse(JSON.stringify(DEF));
+      S.sport = sp;
+      S.totalRounds = sp==='football'?2:4;
+      S.roundMinutes = sp==='basketball'?15:sp==='football'?45:30;
+      S.timerSeconds = S.roundMinutes*60;
+      S.intermissionSeconds = S.intermissionMinutes*60;
+      S.shotclockSeconds = 15; S.shotclockRunning = false;
+      if(scIntervalManager){ clearInterval(scIntervalManager); scIntervalManager=null; }
+      save(true); renderAll();
+    }, 10000);
+  }catch(e){}
+}
+
+function requestStartMatch(){
+  try{
+    // ensure fresh timer for new match start
+    S.timerSeconds = S.roundMinutes * 60;
+    S.intermissionRunning = false;
+    const bb = window.open('','HighScore_Billboard');
+    if(bb && !bb.closed){
+      try{
+        bb.postMessage({type:'hs_countdown', seconds:3}, '*');
+        const onMsg = function(e){ try{ const d=e&&e.data; if(!d) return; if(d.type==='hs_countdown_done'){ window.removeEventListener('message', onMsg); startMatch(); } }catch(err){} };
+        window.addEventListener('message', onMsg);
+        // fallback to start after 6s
+        setTimeout(()=>{ try{ window.removeEventListener('message', onMsg); startMatch(); }catch(e){} }, 6000);
+      }catch(e){ setTimeout(()=>startMatch(),3000); }
+    }else{
+      // Open billboard and try to send countdown
+      let nb=null;
+      try{ nb = window.open('billboard.html','HighScore_Billboard','width=1280,height=720,toolbar=no,menubar=no,scrollbars=no'); }catch(e){}
+      if(nb){ setTimeout(()=>{ try{ nb.postMessage({type:'hs_countdown', seconds:3}, '*'); }catch(e){} },500); }
+      setTimeout(()=>startMatch(),3000);
+    }
+  }catch(e){}
 }
 
 let _saveTimeout=null;
@@ -96,12 +191,42 @@ function selectSport(sport){
 function openSportSelector(){const sel=document.getElementById('sport-selector');sel.style.display='flex';sel.style.opacity='0';sel.style.transform='scale(0.97)';requestAnimationFrame(()=>{sel.style.transition='opacity 0.35s ease,transform 0.35s ease';sel.style.opacity='1';sel.style.transform='scale(1)';});}
 
 /* TIMER ENGINE */
-function startTimer(){stopTimer();timerInterval=setInterval(()=>{if(S.intermissionRunning){S.intermissionSeconds=Math.max(0,S.intermissionSeconds-1);if(S.intermissionSeconds<=0){S.intermissionRunning=false;startMatch();return;}}else if(S.matchRunning){S.timerSeconds=Math.max(0,S.timerSeconds-1);if(S.timerSeconds<=0){S.matchRunning=false;if((S.sport==='basketball'&&S.round>=4)||(S.sport==='football'&&S.round>=2)||S.sport==='handball'||S.sport==='volleyball')S.matchEnded=true;stopTimer();}}save();renderStatus();},1000);} 
+function startTimer(){
+  stopTimer();
+  timerInterval = setInterval(()=>{
+    if(S.intermissionRunning){
+      S.intermissionSeconds = Math.max(0, S.intermissionSeconds-1);
+      if(S.intermissionSeconds<=0){ S.intermissionRunning = false; startMatch(); return; }
+    } else if(S.matchRunning){
+      S.timerSeconds = Math.max(0, S.timerSeconds-1);
+      if(S.timerSeconds<=0){
+        S.matchRunning = false;
+        if((S.sport==='basketball'&&S.round>=4) || (S.sport==='football'&&S.round>=2) || S.sport==='handball' || S.sport==='volleyball'){
+          S.matchEnded = true;
+          stopTimer();
+          try{ handleMatchEnd(); }catch(e){}
+        } else {
+          stopTimer();
+        }
+      }
+    }
+    save();
+    renderStatus();
+  },1000);
+}
+
 function stopTimer(){if(timerInterval){clearInterval(timerInterval);timerInterval=null;}}
 function startMatch(){S.matchRunning=true;S.intermissionRunning=false;S.timerSeconds=S.roundMinutes*60;startTimer();save();renderAll();}
 
 /* RENDER */
-function renderAll(){renderTeam('a');renderTeam('b');renderCenter();renderStatus();}
+function renderAll(){renderTeam('a');renderTeam('b');renderCenter();renderStatus();renderShotclockManager();}
+function renderShotclockManager(){
+  const el = document.getElementById('shotclock-disp');
+  if(!el) return;
+  el.textContent = String(S.shotclockSeconds||15).padStart(2,'0');
+  if((S.shotclockSeconds||0) <= 5) el.style.color = '#e83050'; else el.style.color = '';
+}
+
 const CIRC=263.9;
 function renderStatus(){
   const secs=S.intermissionRunning?S.intermissionSeconds:S.timerSeconds;
@@ -249,7 +374,11 @@ function renderCenter(){
   if(!S.matchEnded){
     if(!S.matchRunning&&!S.intermissionRunning){
       const hasPausedTime = S.timerSeconds>0 && S.timerSeconds<(S.roundMinutes*60);
-      az.appendChild(mkBtn(hasPausedTime?'▶ RESUME MATCH':'▶ START MATCH','btn bg big full',()=>{S.matchRunning=true;S.intermissionRunning=false;startTimer();save();renderAll();}));
+      if(hasPausedTime){
+        az.appendChild(mkBtn('▶ RESUME MATCH','btn bg big full',()=>{S.matchRunning=true;S.intermissionRunning=false;startTimer();save();renderAll();}));
+      }else{
+        az.appendChild(mkBtn('▶ START MATCH','btn bg big full',()=>{requestStartMatch();}));
+      }
       az.appendChild(mkBtn('☕ START INTERMISSION','btn bo full',()=>{S.intermissionRunning=true;S.matchRunning=false;S.intermissionSeconds=S.intermissionMinutes*60;startTimer();save();renderAll();}));
     }else if(S.matchRunning){
       az.appendChild(mkBtn('⏸ PAUSE MATCH','btn bo big full',()=>{S.matchRunning=false;stopTimer();save();renderAll();}));
@@ -281,6 +410,20 @@ function renderCenter(){
       </div>
     `));
   }
+  if(S.sport==='basketball'){
+    tcb.appendChild(mkCtrlMod('SHOT CLOCK',`
+      <div style="display:flex;align-items:center;gap:12px">
+        <div id="shotclock-disp" style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;padding:6px 10px;border-radius:8px;background:var(--raised);min-width:56px;text-align:center">${String(S.shotclockSeconds||15).padStart(2,'0')}</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;gap:6px">
+            <button class="btn bg" onclick="startShotclockManager()">▶ START</button>
+            <button class="btn bd" onclick="resetShotclockManager()">↺ RESET</button>
+          </div>
+          <div style="font-size:0.78rem;color:var(--muted)">15 second shot clock</div>
+        </div>
+      </div>
+    `));
+  }
   tcb.appendChild(mkCtrlMod('INTERMISSION',`
     <div class="lbl">Minutes</div>
     <div class="row">
@@ -289,6 +432,35 @@ function renderCenter(){
     </div>
   `));
 }
+
+  /* SHOTCLOCK (manager-side control + messaging to billboard) */
+  function startShotclockManager(){
+    try{
+      if(scIntervalManager) clearInterval(scIntervalManager);
+      S.shotclockSeconds = 15;
+      S.shotclockRunning = true;
+      scIntervalManager = setInterval(()=>{
+        S.shotclockSeconds = Math.max(0,(S.shotclockSeconds||15)-1);
+        renderShotclockManager();
+        save();
+        if(S.shotclockSeconds<=0){ clearInterval(scIntervalManager); scIntervalManager=null; S.shotclockRunning=false; save(); }
+      },1000);
+      renderShotclockManager();
+      save();
+      const bb = window.open('billboard.html','HighScore_Billboard');
+      try{ if(bb && !bb.closed) bb.postMessage({type:'hs_shotclock', action:'start'}, '*'); }catch(e){}
+    }catch(e){}
+  }
+
+  function resetShotclockManager(){
+    try{
+      if(scIntervalManager){ clearInterval(scIntervalManager); scIntervalManager=null; }
+      S.shotclockSeconds = 15; S.shotclockRunning = false;
+      renderShotclockManager(); save();
+      const bb = window.open('billboard.html','HighScore_Billboard');
+      try{ if(bb && !bb.closed) bb.postMessage({type:'hs_shotclock', action:'reset'}, '*'); }catch(e){}
+    }catch(e){}
+  }
 
 /* HELPERS */
 function mkMod(title,bodyHtml,altTitle){const d=document.createElement('div');d.className='module';const hd=document.createElement('div');hd.className='module-hd';const dot=document.createElement('div');dot.className='dot';hd.appendChild(dot);const span=document.createElement('span');span.textContent=title||altTitle||'';hd.appendChild(span);const bd=document.createElement('div');bd.className='module-body';bd.innerHTML=bodyHtml;d.appendChild(hd);d.appendChild(bd);return d}
@@ -344,5 +516,18 @@ if(window.UpdateChecker&&window.UpdateChecker.getLocalVersion){window.UpdateChec
 function initSportFromState(){const s=S.sport||'basketball';S.sport=s;const pi=document.getElementById('pill-icon'); if(pi) pi.textContent=SPORT_ICONS[s]||'🏀';const pn=document.getElementById('pill-name'); if(pn) pn.textContent=SPORT_NAMES[s]||'BASKETBALL';S.totalRounds = s==='football'?2:4;S.roundMinutes = S.roundMinutes|| (s==='basketball'?15:s==='football'?45:30);S.intermissionMinutes = S.intermissionMinutes||15;S.timerSeconds = S.timerSeconds||S.roundMinutes*60;S.intermissionSeconds = S.intermissionSeconds||S.intermissionMinutes*60;const sel=document.getElementById('sport-selector'); if(sel) sel.style.display='none';renderAll();}
 
 if(S.sport) initSportFromState();
+
+// Resume shotclock if state indicates it was running
+if(S.shotclockRunning){
+  try{
+    if(scIntervalManager) clearInterval(scIntervalManager);
+    scIntervalManager = setInterval(()=>{
+      S.shotclockSeconds = Math.max(0,(S.shotclockSeconds||15)-1);
+      renderShotclockManager();
+      save();
+      if(S.shotclockSeconds<=0){ clearInterval(scIntervalManager); scIntervalManager=null; S.shotclockRunning=false; save(); }
+    },1000);
+  }catch(e){}
+}
 
 // Automatic update checks disabled — use the "Check For Updates" button

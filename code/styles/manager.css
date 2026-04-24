@@ -498,6 +498,17 @@ body.modal-open > :not(#update-modal){
 .module,.ctrl-mod{border-radius:8px;border-color:var(--wire);}
 .module-hd,.ctrl-hd{background:var(--lift);}
 .btn{border-radius:6px;font-size:0.82rem;padding:7px 9px;}
+
+/* LOW-POWER FALLBACK */
+body.low-power *{
+  animation-play-state: paused !important;
+  transition: none !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+body.low-power canvas{opacity:0.7 !important}
+body.low-power .sel-logo::after, body.low-power #sel-logo::after{display:none !important}
+body.low-power .sel-card::before{display:none !important}
 input[type=text],input[type=number]{border-radius:6px;}
 .player-row{border-radius:6px;}
 #sport-selector{backdrop-filter:blur(4px);}

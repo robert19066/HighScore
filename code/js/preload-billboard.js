@@ -13,3 +13,9 @@ ipcRenderer.on('state-update', (event, state) => {
     } catch (e) { /* best-effort notify */ }
   } catch (e) { /* ignore malformed state */ }
 });
+
+// Listen for perf mode broadcasts and notify renderer
+try { ipcRenderer.on('perf-low-power', (ev, flag) => {
+  try { if (typeof window !== 'undefined' && window && typeof window.postMessage === 'function') window.postMessage({ type: 'hs_low_power', flag: !!flag }, '*'); } catch(e){}
+  try { localStorage.setItem('hs_low_power', !!flag ? '1' : '0'); } catch(e){}
+}); } catch(e){}

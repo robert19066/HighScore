@@ -13,19 +13,34 @@ function assetPath(name){
 	}catch(e){return 'assets/'+name;}
 }
 const SFX={countdown:assetPath('countdown.mp3'),matchstart:assetPath('matchstart.mp3'),foulOrRed:assetPath('foulOrRedCard.mp3'),matchend:assetPath('matchend.mp3')};
-const SFX_PLAYERS={};
-Object.keys(SFX).forEach(k=>{
-	const a=new Audio(SFX[k]);
-	a.preload='auto';
-	SFX_PLAYERS[k]=a;
-});
+
+// Aggressive audio memory optimization: tiny lazy pool of <audio> elements
+const AudioPool = {
+	pool: [],
+	max: 2,
+	get(){
+		for(let i=0;i<this.pool.length;i++){ const a=this.pool[i]; if(!a._busy){ a._busy=true; return a; } }
+		if(this.pool.length < this.max){
+			const a = new Audio(); a.preload='none'; a._busy = true;
+			a.addEventListener('ended', ()=>{ try{ a._busy = false; a.src=''; a.load(); }catch(e){} });
+			a.addEventListener('error', ()=>{ try{ a._busy = false; a.src=''; a.load(); }catch(e){} });
+			this.pool.push(a); return a;
+		}
+		// fallback reuse oldest
+		const a = this.pool.shift(); a._busy = true; this.pool.push(a); return a;
+	},
+	release(a){ try{ a._busy = false; a.src=''; a.load(); }catch(e){} }
+};
+
 function playSound(key){
 	try{
-		const a=SFX_PLAYERS[key];
-		if(!a)return;
-		a.currentTime=0;
-		a.volume=0.85;
-		a.play().catch(()=>{});
+		// Skip sounds entirely in reduced mode for maximal memory/CPU savings
+		if(window.HS_REDUCED) return;
+		const src = SFX[key]; if(!src) return;
+		const a = AudioPool.get();
+		try{ a.src = src; a.currentTime = 0; a.volume = 0.85; a.play().catch(()=>{ AudioPool.release(a); }); }catch(e){ AudioPool.release(a); }
+		// Safety release in case ended/error handlers don't run
+		setTimeout(()=>{ try{ if(a && a._busy) AudioPool.release(a); }catch(e){} }, 7000);
 	}catch(e){}
 }
 
@@ -58,17 +73,29 @@ function showCountdown(from,cb){
 	tick();
 }
 
+/* WINNER OVERLAY */
+const winnerOverlay = $('winner-overlay'), winnerText = $('winner-text');
+function showWinner(winner, scoreA, scoreB, duration){
+	if(!winnerOverlay || !winnerText) return;
+	let label='';
+	try{
+		if(winner==='a') label = `${(state&&state.teamA&&state.teamA.name) || 'TEAM A'} WINS ${scoreA}-${scoreB}`;
+		else if(winner==='b') label = `${(state&&state.teamB&&state.teamB.name) || 'TEAM B'} WINS ${scoreB}-${scoreA}`;
+		else label = `DRAW ${scoreA}-${scoreB}`;
+	}catch(e){ label = 'MATCH OVER'; }
+	winnerText.textContent = label;
+	winnerOverlay.classList.add('show');
+	setTimeout(()=>{ winnerOverlay.classList.remove('show'); }, (Number(duration)||10)*1000);
+}
+
 /* ════════════════════════════════════════════════════
 	 STATE TRANSITIONS → SOUND
 ════════════════════════════════════════════════════ */
 function handleTransitions(prev,curr){
 	if(!prev||!curr)return;
-	if(!prev.matchRunning&&curr.matchRunning&&!curr.intermissionRunning)
-		showCountdown(3,()=>playSound('matchstart'));
-	if(!prev.intermissionRunning&&curr.intermissionRunning)
-		showCountdown(3,()=>{});
-	if(prev.intermissionRunning&&!curr.intermissionRunning&&curr.matchRunning)
-		showCountdown(3,()=>playSound('matchstart'));
+	if(!prev.matchRunning && curr.matchRunning && !curr.intermissionRunning)
+		showCountdown(3, ()=> playSound('matchstart'));
+	// Do not show the large countdown overlay when entering or exiting intermission.
 	if(!prev.matchEnded&&curr.matchEnded) playSound('matchend');
 	['teamA','teamB'].forEach(k=>{
 		const pp=(prev[k]&&prev[k].players)||[];
@@ -89,9 +116,20 @@ function handleTransitions(prev,curr){
 	 PARTICLES
 ════════════════════════════════════════════════════ */
 (function(){
-	const cv=$('bg'),ctx=cv.getContext('2d');let W,H;
-	function rsz(){W=cv.width=innerWidth;H=cv.height=innerHeight;}
-	rsz();addEventListener('resize',rsz);
+		const cv=$('bg'),ctx=cv.getContext('2d');let W,H;
+		function rsz(){
+			// Downscale canvas backing store aggressively when in reduced-mode
+			const dpr = window.devicePixelRatio || 1;
+			const scale = (window.HS_REDUCED ? Math.max(0.5, dpr * 0.6) : dpr);
+			const w = Math.max(200, Math.floor(innerWidth * scale));
+			const h = Math.max(120, Math.floor(innerHeight * scale));
+			cv.width = w; cv.height = h;
+			// keep CSS size at full viewport while drawing is scaled
+			cv.style.width = innerWidth + 'px'; cv.style.height = innerHeight + 'px';
+			try{ ctx.setTransform(scale,0,0,scale,0,0); }catch(e){}
+			W = Math.floor(innerWidth); H = Math.floor(innerHeight);
+		}
+		rsz();addEventListener('resize',rsz);
 	const P=[];
 	function mk(){
 		const s=Math.random()<0.5?'L':'R',c=Math.random()<0.1;
@@ -102,19 +140,32 @@ function handleTransitions(prev,curr){
 		return{x,y:H+6,col,sz:Math.random()*1.3+0.2,vy:-(Math.random()*0.4+0.12),vx:(Math.random()-.5)*0.22,life:1,decay:Math.random()*0.003+0.001};
 	}
 	for(let i=0;i<65;i++){const p=mk();p.y=Math.random()*H;P.push(p);}
+	// Performance: reduced-mode throttling and pause when hidden
+		window.HS_REDUCED = (function(){ try{ return localStorage.getItem('hs_low_power')==='1'; }catch(e){return false;} })();
+		window.addEventListener('message', (e)=>{ try{ if(e && e.data && e.data.type==='hs_low_power'){ window.HS_REDUCED = !!e.data.flag; document.documentElement.classList.toggle('low-power', !!e.data.flag);
+					if(window.gsap){ try{ if(window.HS_REDUCED||document.hidden){ try{ gsap.globalTimeline.pause(); }catch(e){}; /* aggressively clear tweens to free memory */ try{ gsap.globalTimeline.clear(); }catch(e){} } else { try{ gsap.globalTimeline.resume(); }catch(e){} } }catch(_){} }
+				} }catch(_){}});
+	document.addEventListener('visibilitychange', ()=>{
+		try{ if(window.gsap){ if(document.hidden||window.HS_REDUCED) gsap.globalTimeline.pause(); else gsap.globalTimeline.resume(); } }catch(e){}
+	});
+
 	(function frame(){
-		if(document.hidden){requestAnimationFrame(frame);return;}
-		ctx.clearRect(0,0,W,H);
-		if(Math.random()<0.3)P.push(mk());
-		while(P.length>100)P.shift();
-		for(let i=P.length-1;i>=0;i--){
-			const p=P[i];p.y+=p.vy;p.x+=p.vx;p.life-=p.decay;
-			if(p.life<=0||p.y<-4){P.splice(i,1);continue;}
-			ctx.beginPath();ctx.arc(p.x,p.y,p.sz,0,Math.PI*2);
-			ctx.fillStyle=`rgba(${p.col[0]},${p.col[1]},${p.col[2]},${(p.life*0.13).toFixed(3)})`;
-			ctx.fill();
-		}
-		requestAnimationFrame(frame);
+		if(document.hidden){ setTimeout(frame,1000); return; }
+		try{
+			ctx.clearRect(0,0,W,H);
+			// spawn less and cap count lower when reduced
+			if(Math.random() < (window.HS_REDUCED ? 0.06 : 0.3)) P.push(mk());
+			const maxParticles = window.HS_REDUCED ? 40 : 100;
+			while(P.length > maxParticles) P.shift();
+			for(let i=P.length-1;i>=0;i--){
+				const p=P[i];p.y+=p.vy;p.x+=p.vx;p.life-=p.decay;
+				if(p.life<=0||p.y<-4){P.splice(i,1);continue;}
+				ctx.beginPath();ctx.arc(p.x,p.y,p.sz,0,Math.PI*2);
+				ctx.fillStyle=`rgba(${p.col[0]},${p.col[1]},${p.col[2]},${(p.life*0.13).toFixed(3)})`;
+				ctx.fill();
+			}
+		}catch(e){}
+		if(window.HS_REDUCED) setTimeout(frame, Math.round(1000/20)); else requestAnimationFrame(frame);
 	})();
 })();
 
@@ -353,13 +404,49 @@ function applyStateRaw(raw){
 	if(raw===_prevSer)return;
 	let ns=null;
 	if(raw){ try{ns=JSON.parse(raw);}catch(e){return;} }
-	try{handleTransitions(prevStateObj,ns);}catch(e){}
-	_prevSer=raw; prevStateObj=ns?JSON.parse(JSON.stringify(ns)):null; state=ns;
+	try{ handleTransitions(prevStateObj, ns); }catch(e){}
+	_prevSer = raw;
+	// Avoid deep-cloning the entire state (saves memory) — keep a reference to previous parsed state
+	prevStateObj = state;
+	state = ns;
 	if(state){ if(state.sport&&state.sport!==activeSport)applySport(state.sport); if(activeSport)renderBillboard(state); }
 }
 
 window.addEventListener('storage',e=>{ if(e.key!=='hs_state')return; applyStateRaw(e.newValue||''); });
-window.addEventListener('message', e => { try{ if(e && e.data && e.data.type === 'hs_state_update'){ applyStateRaw(e.data.data || ''); } }catch(err){} });
+window.addEventListener('message', e => {
+	try{
+		const d = e && e.data;
+		if(!d) return;
+		if(d.type === 'hs_state_update'){
+			applyStateRaw(d.data || '');
+			return;
+		}
+		// Countdown requested by manager — show overlay then report back
+		if(d.type === 'hs_countdown'){
+			const secs = Number(d.seconds) || 3;
+			showCountdown(secs, ()=>{
+				try{ if(e.source && e.source.postMessage) e.source.postMessage({type:'hs_countdown_done'}, '*'); }catch(err){}
+			});
+			return;
+		}
+		// Shotclock control messages from manager
+		if(d.type === 'hs_shotclock'){
+			const a = d.action;
+			if(a === 'start') startShotclock();
+			else if(a === 'reset') resetShotclock();
+			else if(a === 'set'){
+				scSecs = Number(d.seconds) || SC_MAX;
+				renderShotclock();
+			}
+			return;
+		}
+		// Match end / show winner
+		if(d.type === 'hs_match_end'){
+			try{ showWinner(d.winner, d.scoreA, d.scoreB, d.duration||10); }catch(err){}
+			return;
+		}
+	}catch(err){}
+});
 applyStateRaw(loadStateRaw());
 (function(){try{const v=new URLSearchParams(location.search).get('v');if(v)$('fl-ver').textContent='v'+v;}catch(e){} })();
 
