@@ -1,76 +1,731 @@
-/* ==== Extracted billboard styles ==== */
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100vh;overflow:hidden}
+/* ══════════════════════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════════════════════ */
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100vh;overflow:hidden;}
 
 body{
-  --bg1:#05050f;--accent:#f0c040;
+  --bg1:#05050f;
+  --accent:#f0c040;
   --teamA:#e83050;--teamB:#3090f8;
   --glowA:rgba(232,48,80,0.55);--glowB:rgba(48,144,248,0.55);
   --dimA:rgba(232,48,80,0.10);--dimB:rgba(48,144,248,0.10);
   --center:#0a0a18;--border:#181830;
   --text:#e8e8f8;--dim:#3a3a58;
   --green:#38e888;--orange:#f07030;--red:#e83050;
-  background:var(--bg1);color:var(--text);font-family:'Barlow Condensed',sans-serif;display:flex;flex-direction:column;position:relative}
+  background:var(--bg1);
+  color:var(--text);
+  font-family:'Barlow Condensed',sans-serif;
+  display:flex;flex-direction:column;
+  position:relative;
+}
 
 /* Sport themes */
-body.sport-basketball{--bg1:#060200;--accent:#ff7700;--teamA:#e83050;--teamB:#ff9800;--glowA:rgba(232,48,80,0.6);--glowB:rgba(255,152,0,0.6);--dimA:rgba(232,48,80,0.11);--dimB:rgba(255,152,0,0.11);--center:#0a0300;--border:#1e0e00}
-body.sport-football{--bg1:#010801;--accent:#44e866;--teamA:#e83050;--teamB:#30b8f8;--glowA:rgba(232,48,80,0.6);--glowB:rgba(48,184,248,0.6);--dimA:rgba(232,48,80,0.10);--dimB:rgba(48,184,248,0.10);--center:#010d01;--border:#081e08}
-body.sport-handball{--bg1:#030310;--accent:#aa88ff;--teamA:#e83050;--teamB:#aa88ff;--glowA:rgba(232,48,80,0.6);--glowB:rgba(170,136,255,0.6);--dimA:rgba(232,48,80,0.10);--dimB:rgba(170,136,255,0.10);--center:#040418;--border:#141430}
-body.sport-volleyball{--bg1:#010510;--accent:#38b8f8;--teamA:#e83050;--teamB:#38b8f8;--glowA:rgba(232,48,80,0.6);--glowB:rgba(56,184,248,0.6);--dimA:rgba(232,48,80,0.10);--dimB:rgba(56,184,248,0.10);--center:#010510;--border:#082040}
+body.sport-basketball{
+  --bg1:#060200;--accent:#ff7700;
+  --teamA:#e83050;--teamB:#ff9800;
+  --glowA:rgba(232,48,80,0.6);--glowB:rgba(255,152,0,0.6);
+  --dimA:rgba(232,48,80,0.11);--dimB:rgba(255,152,0,0.11);
+  --center:#0a0300;--border:#1e0e00;
+}
+body.sport-football{
+  --bg1:#010801;--accent:#44e866;
+  --teamA:#e83050;--teamB:#30b8f8;
+  --glowA:rgba(232,48,80,0.6);--glowB:rgba(48,184,248,0.6);
+  --dimA:rgba(232,48,80,0.10);--dimB:rgba(48,184,248,0.10);
+  --center:#010d01;--border:#081e08;
+}
+body.sport-handball{
+  --bg1:#030310;--accent:#aa88ff;
+  --teamA:#e83050;--teamB:#aa88ff;
+  --glowA:rgba(232,48,80,0.6);--glowB:rgba(170,136,255,0.6);
+  --dimA:rgba(232,48,80,0.10);--dimB:rgba(170,136,255,0.10);
+  --center:#040418;--border:#141430;
+}
+body.sport-volleyball{
+  --bg1:#010510;--accent:#38b8f8;
+  --teamA:#e83050;--teamB:#38b8f8;
+  --glowA:rgba(232,48,80,0.6);--glowB:rgba(56,184,248,0.6);
+  --dimA:rgba(232,48,80,0.10);--dimB:rgba(56,184,248,0.10);
+  --center:#010510;--border:#082040;
+}
 
-/* BG LAYERS */
-canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none}
-#vignette{position:fixed;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse at 50% 40%,transparent 15%,rgba(0,0,0,0.9) 100%)}
-#scan{position:fixed;inset:0;z-index:3;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px)}
+/* ══════════════════════════════════════════════════════
+   BG LAYERS
+══════════════════════════════════════════════════════ */
+canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+#vignette{position:fixed;inset:0;z-index:2;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 40%,transparent 15%,rgba(0,0,0,0.9) 100%);}
+#scan{position:fixed;inset:0;z-index:3;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);}
 
-/* HEADER STRIPE + BADGE */
-#header-stripe{height:2px;flex-shrink:0;z-index:10;position:relative;background:linear-gradient(90deg,var(--teamA),var(--accent) 50%,var(--teamB));transition:background .6s;box-shadow:0 0 24px rgba(240,192,64,0.18)}
-#sport-badge{position:fixed;top:8px;left:50%;transform:translateX(-50%);font-family:'Bebas Neue',sans-serif;font-size:.68rem;letter-spacing:.5em;color:var(--dim);z-index:10;white-space:nowrap}
+/* ══════════════════════════════════════════════════════
+   HEADER STRIPE + BADGE
+══════════════════════════════════════════════════════ */
+#header-stripe{
+  height:2px;flex-shrink:0;z-index:10;position:relative;
+  background:linear-gradient(90deg,var(--teamA),var(--accent) 50%,var(--teamB));
+  transition:background 0.6s;
+  box-shadow:0 0 24px rgba(240,192,64,0.18);
+}
+#sport-badge{
+  position:fixed;top:8px;left:50%;transform:translateX(-50%);
+  font-family:'Bebas Neue',sans-serif;font-size:0.68rem;
+  letter-spacing:0.5em;color:var(--dim);z-index:10;white-space:nowrap;
+}
 
-/* WAITING OVERLAY */
-#wait-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;backdrop-filter:blur(10px)}
-#wait-overlay .wt-logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,8vw,6rem);letter-spacing:.2em;color:rgba(255,255,255,0.06)}
-#wait-overlay .wt-logo span{color:rgba(240,192,64,0.12)}
-#wait-overlay .wt-msg{font-size:.8rem;letter-spacing:.45em;color:#252535;text-transform:uppercase}
-#wait-overlay .wt-dot{width:6px;height:6px;border-radius:50%;background:#1e1e30;animation:dotPulse 2s ease-in-out infinite}
-@keyframes dotPulse{0%,100%{opacity:.3}50%{opacity:1}}
+/* ══════════════════════════════════════════════════════
+   WAITING OVERLAY
+══════════════════════════════════════════════════════ */
+#wait-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,0.97);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:16px;backdrop-filter:blur(10px);
+}
+#wait-overlay .wt-logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,8vw,6rem);letter-spacing:0.2em;color:rgba(255,255,255,0.06);}
+#wait-overlay .wt-logo span{color:rgba(240,192,64,0.12);}
+#wait-overlay .wt-msg{font-size:0.8rem;letter-spacing:0.45em;color:#252535;text-transform:uppercase;}
+#wait-overlay .wt-dot{width:6px;height:6px;border-radius:50%;background:#1e1e30;animation:dotPulse 2s ease-in-out infinite;}
+@keyframes dotPulse{0%,100%{opacity:0.3}50%{opacity:1}}
 
-/* ROOT LAYOUT */
-#main{flex:1;display:flex;align-items:stretch;overflow:hidden;position:relative;z-index:10;min-height:0}
+/* ══════════════════════════════════════════════════════
+   ROOT LAYOUT
+   body → #header-stripe / #main / #bottom-bar / #footer-stripe
+   #main → .team-left | #center-panel | .team-right
+══════════════════════════════════════════════════════ */
+#main{
+  flex:1;
+  display:flex;
+  align-items:stretch;
+  overflow:hidden;
+  position:relative;z-index:10;
+  min-height:0;
+}
 
-/* TEAM BLOCKS */
-.team-block{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:44px 14px 10px;position:relative;overflow:hidden}
-.team-block .amb{position:absolute;pointer-events:none;animation:ambPulse 6s ease-in-out infinite}
-.team-block.left .amb{width:85%;height:80%;top:-20%;left:-10%;background:radial-gradient(ellipse,var(--dimA) 0%,transparent 70%)}
-.team-block.right .amb{width:85%;height:80%;top:-20%;right:-10%;background:radial-gradient(ellipse,var(--dimB) 0%,transparent 70%);animation-direction:reverse}
-@keyframes ambPulse{0%,100%{opacity:.5}50%{opacity:1.3}}
-.team-block.left::after{content:'';position:absolute;top:0;right:0;width:1px;height:100%;background:linear-gradient(to bottom,transparent,var(--teamA) 50%,transparent);opacity:.3}
-.team-block.right::after{content:'';position:absolute;top:0;left:0;width:1px;height:100%;background:linear-gradient(to bottom,transparent,var(--teamB) 50%,transparent);opacity:.3}
+/* ══════════════════════════════════════════════════════
+   TEAM BLOCKS (left / right)
+══════════════════════════════════════════════════════ */
+.team-block{
+  flex:1;
+  display:flex;flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:20px 14px 14px;
+  position:relative;overflow:hidden;
+}
+/* ambient glow */
+.team-block .amb{
+  position:absolute;pointer-events:none;
+  animation:ambPulse 6s ease-in-out infinite;
+}
+.team-block.left  .amb{width:85%;height:80%;top:-20%;left:-10%;background:radial-gradient(ellipse,var(--dimA) 0%,transparent 70%);}
+.team-block.right .amb{width:85%;height:80%;top:-20%;right:-10%;background:radial-gradient(ellipse,var(--dimB) 0%,transparent 70%);animation-direction:reverse;}
+@keyframes ambPulse{0%,100%{opacity:0.5}50%{opacity:1.3}}
+/* side border */
+.team-block.left::after{content:'';position:absolute;top:0;right:0;width:1px;height:100%;background:linear-gradient(to bottom,transparent,var(--teamA) 50%,transparent);opacity:0.3;}
+.team-block.right::after{content:'';position:absolute;top:0;left:0;width:1px;height:100%;background:linear-gradient(to bottom,transparent,var(--teamB) 50%,transparent);opacity:0.3;}
 
-/* TEAM NAME */
-.team-name{font-family:'Bebas Neue',sans-serif;font-size:clamp(4rem,6.8vw,7rem);letter-spacing:.06em;line-height:1;text-align:center;position:relative;z-index:2;margin-bottom:10px}
-.team-block.left .team-name{color:var(--teamA);text-shadow:0 0 50px var(--glowA)}
-.team-block.right .team-name{color:var(--teamB);text-shadow:0 0 50px var(--glowB)}
+/* ── TEAM NAME ── */
+.team-name{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(3rem,5.5vw,6rem);
+  letter-spacing:0.06em;line-height:1;text-align:center;
+  position:relative;z-index:2;
+  margin-bottom:6px;
+  order:1;
+}
+.team-block.left  .team-name{color:var(--teamA);text-shadow:0 0 50px var(--glowA);}
+.team-block.right .team-name{color:var(--teamB);text-shadow:0 0 50px var(--glowB);}
 
-/* SCORE */
-.team-score{font-family:'Bebas Neue',sans-serif;font-size:clamp(14rem,34vh,33rem);line-height:.74;position:relative;z-index:2;flex-shrink:0;transform:scaleY(1.22) scaleX(.88);transform-origin:center top;margin-top:8px;margin-bottom:20px}
-.team-block.left .team-score{color:var(--teamA);text-shadow:0 0 60px var(--glowA),0 0 120px var(--glowA),0 0 200px rgba(232,48,80,.06)}
-.team-block.right .team-score{color:var(--teamB);text-shadow:0 0 60px var(--glowB),0 0 120px var(--glowB),0 0 200px rgba(48,144,248,.06)}
-.team-score.bump{animation:scoreBump .45s cubic-bezier(.2,0,.4,1)}
-@keyframes scoreBump{0%{transform:scale(1)}30%{transform:scale(1.18);filter:brightness(2.8)}100%{transform:scale(1);filter:brightness(1)}}
+/* ── SCORE ── centered, very large, dominant */
+.team-score{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(18rem,48vh,56rem);
+  line-height:0.78;
+  position:relative;z-index:2;
+  flex-shrink:0;
+  transform:scaleY(1.18) scaleX(0.86);
+  transform-origin:center center;
+  margin:0;
+  order:2;
+}
+.team-block.left  .team-score{color:var(--teamA);text-shadow:0 0 70px var(--glowA),0 0 140px var(--glowA),0 0 240px rgba(232,48,80,0.08);}
+.team-block.right .team-score{color:var(--teamB);text-shadow:0 0 70px var(--glowB),0 0 140px var(--glowB),0 0 240px rgba(48,144,248,0.08);}
+.team-score.bump{animation:scoreBump 0.45s cubic-bezier(0.2,0,0.4,1);}
+@keyframes scoreBump{0%{transform:scaleY(1.18) scaleX(0.86)}30%{transform:scaleY(1.3) scaleX(0.9);filter:brightness(3)}100%{transform:scaleY(1.18) scaleX(0.86);filter:brightness(1)}}
 
-/* ... remaining rules preserved as in original file ... */
+/* ── TEAM SUB (below score) ── */
+.team-sub{
+  position:relative;z-index:2;
+  width:100%;text-align:center;
+  margin-top:6px;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+}
+/* Basketball: team fouls display */
+.tf-label{font-size:0.72rem;letter-spacing:0.35em;color:var(--dim);text-transform:uppercase;}
+.tf-count{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2.4rem;line-height:1;
+  color:var(--orange);
+}
+/* Football: cards */
+.cards-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:2px;}
+.card-icon{display:inline-block;border-radius:3px;}
+.card-icon.red{
+  width:22px;height:30px;
+  background:var(--red);
+  box-shadow:0 0 10px rgba(232,48,80,0.8),0 0 20px rgba(232,48,80,0.4);
+}
+.card-icon.yellow{
+  width:18px;height:24px;
+  background:#f0c040;
+  box-shadow:0 0 8px rgba(240,192,64,0.8);
+}
+.no-cards-lbl{font-size:0.68rem;letter-spacing:0.2em;color:var(--dim);}
 
-/* Performance containment */
-#main,.team-block,#center-panel,#bottom-bar,.players-col{contain:layout paint style}
+/* ══════════════════════════════════════════════════════
+   CENTER PANEL
+══════════════════════════════════════════════════════ */
+#center-panel{
+  width:280px;
+  min-width:230px;
+  flex-shrink:0;
+  display:flex;flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  background:var(--center);
+  border-left:2px solid var(--border);
+  border-right:2px solid var(--border);
+  padding:16px 12px 12px;
+  gap:10px;
+  position:relative;z-index:5;
+  transition:background 0.6s,border-color 0.6s,width 0.3s;
+}
+#center-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0.6;}
+#center-panel::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0.25;}
+.cp-brk{position:absolute;width:10px;height:10px;}
+.cp-brk.tl{top:6px;left:6px;border-top:1px solid var(--accent);border-left:1px solid var(--accent);opacity:0.4;}
+.cp-brk.tr{top:6px;right:6px;border-top:1px solid var(--accent);border-right:1px solid var(--accent);opacity:0.4;}
+.cp-brk.bl{bottom:6px;left:6px;border-bottom:1px solid var(--accent);border-left:1px solid var(--accent);opacity:0.4;}
+.cp-brk.br{bottom:6px;right:6px;border-bottom:1px solid var(--accent);border-right:1px solid var(--accent);opacity:0.4;}
+
+/* ── MAIN TIMER RING ── */
+#timer-wrap{
+  width:190px;height:190px;
+  position:relative;flex-shrink:0;
+}
+body.sport-basketball #timer-wrap{width:92%;height:160px;max-width:250px;}
+
+#timer-svg{
+  width:100%;height:100%;
+  transform:rotate(-90deg);
+  position:absolute;top:0;left:0;
+}
+/* For basketball wide mode, use an ellipse-friendly viewBox stretch */
+body.sport-basketball #timer-svg{preserveAspectRatio:none;}
+
+#t-bg{fill:none;stroke:var(--border);stroke-width:4;}
+#t-fill{fill:none;stroke-width:4;stroke-linecap:round;stroke:var(--accent);
+  transition:stroke-dashoffset 0.9s linear,stroke 0.5s;
+  filter:drop-shadow(0 0 5px var(--accent));}
+#timer-text{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+#timer-digits{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:3.1rem;letter-spacing:0.05em;line-height:1;
+  color:var(--text);transition:color 0.3s;
+}
+body.sport-basketball #timer-digits{font-size:3.2rem;}
+#timer-lbl-inner{font-size:0.48rem;letter-spacing:0.3em;color:var(--dim);margin-top:2px;}
+#timer-liquid{
+  position:absolute;bottom:0;left:0;width:100%;
+  border-radius:0 0 55px 55px;
+  background:rgba(240,192,64,0.06);
+  transition:height 1s linear,background 0.5s;
+  pointer-events:none;overflow:hidden;
+}
+#timer-liquid::after{content:'';position:absolute;top:-8px;left:-50%;width:200%;height:14px;
+  background:rgba(240,192,64,0.08);border-radius:40%;
+  animation:wave 2.4s ease-in-out infinite;}
+@keyframes wave{0%,100%{transform:translateX(-10px) scaleY(1)}50%{transform:translateX(10px) scaleY(1.6)}}
+#timer-wrap.warning #timer-digits{color:var(--orange);animation:tPulse 0.8s ease-in-out infinite;}
+@keyframes tPulse{0%,100%{opacity:1}50%{opacity:0.2}}
+
+/* ── SHOTCLOCK (basketball 15-second timer) ── */
+#shotclock-wrap{
+  display:none;  /* shown only in basketball */
+  align-items:center;justify-content:center;
+  gap:6px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:4px 12px;
+  width:100%;
+}
+body.sport-basketball #shotclock-wrap{display:flex;}
+body.sport-basketball #round-lbl{order:2;}
+body.sport-basketball #round-num{order:3;}
+body.sport-basketball #round-of{order:4;}
+body.sport-basketball #shotclock-wrap{order:5;}
+body.sport-basketball #status-pill{order:6;}
+#shotclock-label{font-size:0.55rem;letter-spacing:0.35em;color:var(--dim);text-transform:uppercase;}
+#shotclock-digits{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2rem;letter-spacing:0.05em;line-height:1;
+  color:var(--accent);
+  transition:color 0.3s;
+}
+#shotclock-digits.warn{color:var(--red);animation:tPulse 0.6s ease-in-out infinite;}
+#sc-ring{position:relative;width:32px;height:32px;flex-shrink:0;}
+#sc-ring svg{position:absolute;top:0;left:0;width:100%;height:100%;transform:rotate(-90deg);}
+#sc-bg{fill:none;stroke:var(--border);stroke-width:5;}
+#sc-fill{fill:none;stroke-width:5;stroke-linecap:round;stroke:var(--accent);transition:stroke-dashoffset 0.9s linear,stroke 0.3s;filter:drop-shadow(0 0 3px var(--accent));}
+
+/* ── ROUND / HALF / QUARTER ── */
+#round-lbl{font-family:'Bebas Neue',sans-serif;font-size:0.7rem;letter-spacing:0.4em;color:var(--dim);}
+#round-num{font-family:'Bebas Neue',sans-serif;font-size:4.4rem;color:var(--text);line-height:1;}
+#round-of{font-size:0.55rem;letter-spacing:0.25em;color:var(--dim);margin-top:-4px;}
+
+/* ── STATUS PILL ── */
+#status-pill{
+  background:var(--border);border-radius:3px;
+  padding:3px 14px;font-size:0.58rem;letter-spacing:0.32em;
+  color:var(--dim);text-transform:uppercase;
+  font-family:'Bebas Neue',sans-serif;transition:all 0.3s;
+}
+#status-pill.live{background:rgba(56,232,136,0.08);color:var(--green);border:1px solid rgba(56,232,136,0.25);animation:liveBlink 2.5s ease-in-out infinite;}
+@keyframes liveBlink{0%,100%{opacity:1}50%{opacity:0.5}}
+#status-pill.intermission{background:rgba(240,112,48,0.1);color:var(--orange);border:1px solid rgba(240,112,48,0.28);}
+#status-pill.ended{background:rgba(232,48,80,0.1);color:var(--red);border:1px solid rgba(232,48,80,0.28);}
+
+/* ══════════════════════════════════════════════════════
+   BOTTOM BAR — players section
+   Hidden unless basketball/handball/volleyball
+══════════════════════════════════════════════════════ */
+#bottom-bar{
+  display:none;  /* enabled per-sport via JS */
+  flex-shrink:0;
+  position:relative;z-index:10;
+  border-top:1px solid var(--border);
+  max-height:40vh;
+  overflow:hidden;
+}
+#bottom-bar.show{display:flex;}
+
+/* basketball layout: left players | spacer | right players */
+#bottom-bar.bball-layout{
+  flex-direction:row;
+  align-items:flex-start;
+}
+/* handball/volleyball layout: two columns side by side */
+#bottom-bar.free-layout{
+  flex-direction:row;
+  align-items:flex-start;
+}
+
+.players-col{
+  flex:1;
+  display:flex;flex-wrap:wrap;
+  gap:4px;
+  padding:8px 10px;
+  align-content:flex-start;
+  overflow-y:auto;
+  max-height:40vh;
+}
+.players-col.left-col{justify-content:flex-end;}
+.players-col.right-col{justify-content:flex-start;}
+
+/* center spacer aligning with center panel */
+#bb-spacer{
+  width:280px;flex-shrink:0;
+  border-left:1px solid var(--border);
+  border-right:1px solid var(--border);
+  background:var(--center);
+}
+body.sport-basketball #bb-spacer{width:var(--cp-width,220px);}
+
+/* ── PLAYER CARD (basketball) ── */
+.player-card{
+  display:flex;flex-direction:column;align-items:center;
+  background:rgba(8,8,20,0.88);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:4px 7px;
+  min-width:58px;max-width:80px;
+  position:relative;
+  animation:cardIn 0.25s ease-out both;
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.player-card.fouled-out{opacity:0.2;filter:grayscale(1);}
+#players-a .player-card{border-color:rgba(232,48,80,0.2);}
+#players-b .player-card{border-color:rgba(48,144,248,0.2);}
+body.sport-basketball .players-col.left-col  .player-card{border-color:rgba(232,48,80,0.22);}
+body.sport-basketball .players-col.right-col .player-card{border-color:rgba(255,152,0,0.22);}
+
+.p-name{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:0.9rem;letter-spacing:0.04em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  max-width:72px;
+}
+.p-fouls{display:flex;gap:2px;margin-top:2px;}
+.foul-dot{width:7px;height:7px;border-radius:50%;border:1.5px solid var(--dim);}
+.foul-dot.active{background:var(--orange);border-color:var(--orange);box-shadow:0 0 4px var(--orange);}
+.foul-dot.fifth{background:var(--red);border-color:var(--red);box-shadow:0 0 6px var(--red);}
+.fo-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-12deg);font-family:'Bebas Neue',sans-serif;font-size:0.85rem;color:var(--red);}
+
+/* ── PLAYER NAME ONLY (handball/volleyball/football) ── */
+.p-name-only{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:0.88rem;font-weight:600;
+  letter-spacing:0.06em;
+  padding:2px 8px;
+  color:rgba(255,255,255,0.55);
+  white-space:nowrap;
+}
+
+/* ══════════════════════════════════════════════════════
+   FOOTER
+══════════════════════════════════════════════════════ */
+#footer-stripe{height:1px;flex-shrink:0;position:relative;z-index:10;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0.15;}
+#footer-logo{position:fixed;bottom:10px;right:12px;font-family:'Bebas Neue',sans-serif;font-size:0.85rem;letter-spacing:0.22em;z-index:10;padding:2px 7px;border:1px solid rgba(255,255,255,0.03);border-radius:3px;background:rgba(255,255,255,0.01);color:rgba(255,255,255,0.05);}
+#footer-logo span{color:var(--accent);opacity:0.18;}
+
+/* ══════════════════════════════════════════════════════
+   INTERMISSION OVERLAY
+══════════════════════════════════════════════════════ */
+#int-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.97);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  z-index:50;gap:12px;backdrop-filter:blur(18px);
+}
+#int-overlay.show{display:flex;animation:fadeIn 0.5s ease;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+#int-overlay::before{content:'';position:absolute;width:280px;height:280px;border-radius:50%;border:1px solid rgba(240,112,48,0.12);animation:ringP 3s ease-in-out infinite;}
+#int-overlay::after{content:'';position:absolute;width:430px;height:430px;border-radius:50%;border:1px solid rgba(240,112,48,0.06);animation:ringP 3.8s ease-in-out infinite 0.7s;}
+@keyframes ringP{0%,100%{transform:scale(0.92);opacity:0.4}50%{transform:scale(1.05);opacity:1}}
+#int-label{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,7vw,5.5rem);letter-spacing:0.28em;color:var(--orange);text-shadow:0 0 80px rgba(240,112,48,0.6);animation:floatT 3.5s ease-in-out infinite;position:relative;z-index:1;}
+@keyframes floatT{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+#int-timer{font-family:'Bebas Neue',sans-serif;font-size:clamp(4rem,9vw,8rem);color:var(--text);letter-spacing:0.06em;position:relative;z-index:1;}
+#int-next{font-size:0.8rem;letter-spacing:0.38em;color:var(--dim);position:relative;z-index:1;}
+
+/* ══════════════════════════════════════════════════════
+   COUNTDOWN OVERLAY
+══════════════════════════════════════════════════════ */
+#countdown-overlay{
+  position:fixed;inset:0;display:none;
+  align-items:center;justify-content:center;
+  z-index:120;pointer-events:none;
+  background:rgba(0,0,0,0.75);
+}
+#countdown-overlay.show{display:flex;}
+#countdown-digit{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(10rem,25vw,20rem);
+  color:var(--accent);letter-spacing:0.04em;
+  text-shadow:0 0 80px var(--accent),0 0 160px rgba(255,255,255,0.08);
+  animation:cdPop 0.4s cubic-bezier(0.16,1,0.3,1);
+  text-align:center;
+}
+@keyframes cdPop{from{transform:scale(1.7);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* ══════════════════════════════════════════════════════
+   SCORE FLASH
+══════════════════════════════════════════════════════ */
+#score-flash{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:60;pointer-events:none;opacity:0;}
+#score-flash.fire{animation:flashPop 1.9s ease-out forwards;}
+@keyframes flashPop{0%{opacity:0;transform:scale(0.6)}10%{opacity:1;transform:scale(1.1)}30%{opacity:1;transform:scale(1)}70%{opacity:1}100%{opacity:0;transform:scale(1.08)}}
+#flash-text{font-family:'Bebas Neue',sans-serif;font-size:clamp(5rem,14vw,11rem);letter-spacing:0.08em;line-height:1;text-shadow:0 0 80px currentColor,0 0 160px currentColor;}
+#flash-sub{font-family:'Bebas Neue',sans-serif;font-size:clamp(0.9rem,2vw,1.5rem);letter-spacing:0.55em;color:rgba(255,255,255,0.3);margin-top:6px;}
+body.flash-glow #vignette{background:radial-gradient(ellipse at 50% 40%,rgba(255,255,255,0.07) 0%,rgba(0,0,0,0.88) 100%);transition:background 0.3s;}
+.score-sheen{position:fixed;left:-20%;top:10%;width:60%;height:120%;pointer-events:none;transform:skewX(-18deg);opacity:0;mix-blend-mode:screen;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent);}
+.score-sheen.show{animation:sheenMove 900ms linear forwards;}
+@keyframes sheenMove{from{transform:translateX(-30%) skewX(-18deg);}to{transform:translateX(130%) skewX(-18deg);opacity:0}}
+
+/* SVG texture */
+#sport-texture{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity 0.8s;}
+body.sport-basketball #sport-texture{opacity:0.04;}
+body.sport-football   #sport-texture{opacity:0.05;}
+body.sport-handball   #sport-texture{opacity:0.03;}
+body.sport-volleyball #sport-texture{opacity:0.04;}
+
+/* V3 clean redesign */
+body{
+  background:
+    radial-gradient(1200px 500px at 50% -5%, rgba(255,255,255,0.06), transparent 60%),
+    linear-gradient(180deg,#0a0d13 0%,#090c12 100%);
+}
+#scan{opacity:0.25;}
+#header-stripe{height:3px;box-shadow:none;opacity:0.85;}
+#main{padding:10px;gap:10px;}
+.team-block{
+  background:rgba(12,16,24,0.74);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:14px;
+  backdrop-filter:blur(3px);
+}
+#center-panel{
+  border-radius:14px;
+  border-color:rgba(255,255,255,0.08);
+  background:rgba(12,16,24,0.92);
+}
+#status-pill{border-radius:999px;}
+.player-card{
+  background:rgba(10,14,22,0.92);
+  border-radius:8px;
+}
+.p-name-only{
+  background:rgba(10,14,22,0.65);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:999px;
+  padding:4px 10px;
+}
+
+/* ===== V4 CINEMATIC DASHBOARD THEME ===== */
+body{
+  --center:#0e1420;
+  --border:#27364c;
+  --text:#f2f6ff;
+  --dim:#9caad0;
+  background:
+    radial-gradient(1200px 500px at 50% -10%, rgba(108,152,255,0.2), transparent 65%),
+    linear-gradient(180deg,#070b12 0%,#080d15 100%);
+}
+#vignette{
+  background:radial-gradient(ellipse at 50% 45%,transparent 5%,rgba(0,0,0,0.8) 100%);
+}
+#scan{opacity:0.38;}
+#header-stripe{
+  height:4px;
+  box-shadow:0 0 30px rgba(108,152,255,0.35),0 0 70px rgba(232,48,80,0.22);
+}
+#sport-badge{font-size:0.84rem;letter-spacing:0.62em;color:#7f8fb2;}
+
+#main{
+  padding:14px;
+  gap:12px;
+}
+.team-block{
+  border:1px solid rgba(110,136,176,0.24);
+  border-radius:16px;
+  backdrop-filter:blur(4px);
+  background:
+    linear-gradient(180deg,rgba(20,28,42,0.86),rgba(10,14,24,0.86));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.04),0 12px 45px rgba(0,0,0,0.35);
+}
+
+#center-panel{
+  width:340px;
+  min-width:300px;
+  border-radius:16px;
+  border:1px solid rgba(122,162,255,0.28);
+  background:
+    linear-gradient(180deg,rgba(18,24,38,0.95),rgba(9,13,22,0.95));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.05),0 14px 55px rgba(0,0,0,0.45);
+  padding:20px 14px 14px;
+  gap:12px;
+}
+#center-panel::before,#center-panel::after{opacity:0.8;}
+
+/* Bigger center elements in every sport */
+#timer-wrap{width:220px;height:220px;}
+body.sport-basketball #timer-wrap{width:95%;height:176px;max-width:280px;}
+#timer-digits{font-size:3.5rem;letter-spacing:0.06em;}
+#timer-lbl-inner{font-size:0.58rem;letter-spacing:0.35em;}
+#round-lbl{font-size:0.86rem;letter-spacing:0.42em;}
+#round-num{font-size:5.1rem;}
+#round-of{font-size:0.68rem;letter-spacing:0.3em;}
+#status-pill{font-size:0.72rem;padding:5px 16px;letter-spacing:0.34em;}
+
+#shotclock-wrap{
+  border-radius:8px;
+  padding:7px 14px;
+  border-color:rgba(122,162,255,0.24);
+  background:rgba(255,255,255,0.04);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
+}
+#shotclock-label{font-size:0.62rem;}
+#shotclock-digits{font-size:2.15rem;}
+#sc-ring{width:40px;height:40px;}
+
+.team-name{
+  font-size:clamp(4rem,7vw,7.3rem);
+  letter-spacing:0.08em;
+}
+.team-score{
+  font-size:clamp(20rem,52vh,60rem);
+  transform:scaleY(1.24) scaleX(0.84);
+  line-height:0.76;
+}
+
+/* More cinematic energy */
+.team-score.bump{animation:scoreBump 0.5s cubic-bezier(0.2,0,0.4,1);}
+@keyframes scoreBump{
+  0%{transform:scaleY(1.24) scaleX(0.84)}
+  30%{transform:scaleY(1.34) scaleX(0.9);filter:brightness(3)}
+  100%{transform:scaleY(1.24) scaleX(0.84);filter:brightness(1)}
+}
+#score-flash{mix-blend-mode:screen;}
+#flash-sub{color:rgba(255,255,255,0.46);}
+
+#bottom-bar{
+  max-height:42vh;
+  padding:0 14px 14px;
+  border-top:none;
+}
+.players-col{
+  max-height:42vh;
+  border:1px solid rgba(110,136,176,0.2);
+  border-radius:14px;
+  background:rgba(12,16,26,0.74);
+}
+#bb-spacer{
+  background:transparent;
+  border:none;
+}
+.player-card{
+  border-radius:8px;
+  background:rgba(12,17,28,0.9);
+}
+
+/* Countdown/title drama */
+#countdown-overlay{
+  background:
+    radial-gradient(circle at center, rgba(100,150,255,0.18), rgba(0,0,0,0.82) 45%, rgba(0,0,0,0.92));
+}
+#countdown-digit{
+  text-shadow:0 0 70px var(--accent),0 0 150px rgba(122,162,255,0.3),0 0 220px rgba(255,255,255,0.08);
+}
+
+/* ===== V5 ESPORTS ARENA SKIN ===== */
+body{
+  --accent:#66f3ff;
+  --teamA:#ff3ea8;
+  --teamB:#53a7ff;
+  --center:#0b0d1a;
+  --border:#3b2a6a;
+  --text:#f5f7ff;
+  --dim:#9ea0c8;
+  background:
+    radial-gradient(900px 340px at 50% -8%, rgba(102,243,255,0.30), transparent 65%),
+    radial-gradient(700px 260px at 15% 0%, rgba(255,62,168,0.20), transparent 60%),
+    radial-gradient(700px 260px at 85% 0%, rgba(83,167,255,0.20), transparent 60%),
+    linear-gradient(180deg,#050711 0%,#070912 100%);
+}
+#scan{
+  opacity:0.5;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(102,243,255,0.05) 2px,rgba(102,243,255,0.05) 3px);
+}
+#header-stripe{
+  background:linear-gradient(90deg,#ff3ea8 0%,#66f3ff 50%,#53a7ff 100%);
+  box-shadow:0 0 34px rgba(102,243,255,0.45),0 0 80px rgba(255,62,168,0.22);
+}
+#sport-badge{color:#9aa4d3;text-shadow:0 0 12px rgba(102,243,255,0.3);}
+.team-block{
+  border-color:rgba(102,243,255,0.25);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.05),0 0 0 1px rgba(255,62,168,0.08),0 16px 60px rgba(0,0,0,0.45);
+}
+.team-block.left{background:linear-gradient(180deg,rgba(29,10,28,0.86),rgba(10,12,24,0.86));}
+.team-block.right{background:linear-gradient(180deg,rgba(11,17,36,0.86),rgba(10,12,24,0.86));}
+#center-panel{
+  border-color:rgba(102,243,255,0.35);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.06),0 0 0 1px rgba(83,167,255,0.12),0 18px 68px rgba(0,0,0,0.52);
+}
+#timer-wrap{filter:drop-shadow(0 0 16px rgba(102,243,255,0.26));}
+#timer-digits,#round-num{
+  text-shadow:0 0 20px rgba(102,243,255,0.25);
+}
+#status-pill{
+  border-color:rgba(102,243,255,0.35);
+  background:linear-gradient(180deg,rgba(102,243,255,0.12),rgba(102,243,255,0.05));
+  color:#c5faff;
+}
+#shotclock-wrap{
+  border-color:rgba(255,62,168,0.35);
+  background:linear-gradient(180deg,rgba(255,62,168,0.12),rgba(255,62,168,0.05));
+}
+#shotclock-digits{color:#ff75c2;}
+.players-col{
+  border-color:rgba(102,243,255,0.22);
+  background:linear-gradient(180deg,rgba(11,14,28,0.8),rgba(9,12,22,0.8));
+}
+.player-card{
+  border-color:rgba(83,167,255,0.35);
+  box-shadow:0 0 14px rgba(83,167,255,0.12);
+}
+#countdown-overlay{
+  background:radial-gradient(circle at center, rgba(102,243,255,0.24), rgba(7,7,14,0.86) 42%, rgba(4,4,10,0.95));
+}
+#countdown-digit{
+  color:#e6faff;
+  text-shadow:0 0 90px rgba(102,243,255,0.75),0 0 180px rgba(255,62,168,0.35),0 0 250px rgba(83,167,255,0.25);
+}
+
+/* Extra esports billboard polish */
+#main{
+  position:relative;
+}
+#main::before{
+  content:'';
+  display:none;
+  position:absolute;
+  top:-3px;left:50%;
+  transform:translateX(-50%);
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.56rem;
+  letter-spacing:0.36em;
+  color:rgba(102,243,255,0.58);
+  opacity:0.9;
+  pointer-events:none;
+}
+.team-block::before{
+  content:'';
+  position:absolute;
+  inset:8px;
+  border:1px solid rgba(102,243,255,0.13);
+  border-radius:12px;
+  pointer-events:none;
+}
+#center-panel::after{
+  height:2px;
+  opacity:1;
+  background:linear-gradient(90deg,transparent,#ff3ea8,#66f3ff,#53a7ff,transparent);
+}
+#status-pill{
+  box-shadow:0 0 14px rgba(102,243,255,0.2), inset 0 0 10px rgba(102,243,255,0.08);
+}
+#timer-wrap.warning{
+  filter:drop-shadow(0 0 18px rgba(255,62,168,0.48));
+}
+.players-col{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.04),0 0 0 1px rgba(102,243,255,0.08);
+}
+.p-name-only{
+  text-shadow:0 0 10px rgba(102,243,255,0.25);
+}
+
+/* Performance containment (no visual change) */
+#main,.team-block,#center-panel,#bottom-bar,.players-col{
+  contain:layout paint style;
+}
 
 /* Fluid interactions */
-.team-block,#center-panel,.player-card,.p-name-only,#status-pill,#shotclock-wrap{transition:background 280ms ease,border-color 280ms ease,box-shadow 320ms ease,transform 220ms ease,color 220ms ease}
-#timer-digits,#round-num,#shotclock-digits{transition:color 220ms ease,text-shadow 260ms ease,transform 220ms ease}
+.team-block,#center-panel,.player-card,.p-name-only,#status-pill,#shotclock-wrap{
+  transition:background 280ms ease,border-color 280ms ease,box-shadow 320ms ease,transform 220ms ease,color 220ms ease;
+}
+#timer-digits,#round-num,#shotclock-digits{
+  transition:color 220ms ease,text-shadow 260ms ease,transform 220ms ease;
+}
 
-/* Football overlap fix */
-body.sport-football .team-score{font-size:clamp(12rem,29vh,26rem);transform:scaleY(1.1) scaleX(.9);margin-bottom:34px}
-body.sport-football .team-sub{min-height:58px;margin-top:10px}
-body.sport-football .cards-row{min-height:34px;gap:8px}
-
-/* End of extracted billboard CSS */
+/* Football overlap fix: keep score dramatic but leave room for cards */
+body.sport-football .team-score{
+  font-size:clamp(16rem,40vh,44rem);
+  transform:scaleY(1.12) scaleX(0.88);
+  margin-bottom:12px;
+}
+body.sport-football .team-block{
+  justify-content:center;
+}

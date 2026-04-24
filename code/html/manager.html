@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" x-data="managerApp()" x-init="init()">
 <head>
   <meta charset="UTF-8">
   <title>HighScore — Command Center</title>
@@ -7,9 +7,360 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,300;0,400;0,600;0,700;1,300&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../styles/manager.css">
+
+  <!-- Alpine.js -->
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
+  <!-- GSAP -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+
+  <style>
+    /* ── UPDATE ICON BUTTON ── */
+    #update-icon-btn {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--wire2);
+      background: var(--raised);
+      cursor: pointer;
+      transition: all .18s ease;
+      font-size: 1rem;
+      margin-left: 4px;
+    }
+    #update-icon-btn:hover {
+      border-color: rgba(102,243,255,0.45);
+      background: rgba(102,243,255,0.08);
+    }
+    #update-icon-btn .upd-dot {
+      position: absolute;
+      top: 4px; right: 4px;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ff3ea8;
+      box-shadow: 0 0 6px rgba(255,62,168,0.8);
+      display: none;
+    }
+    #update-icon-btn .upd-dot.show {
+      display: block;
+      animation: dotBlink 2s ease-in-out infinite;
+    }
+    @keyframes dotBlink {
+      0%,100%{opacity:1} 50%{opacity:.35}
+    }
+
+    /* ── iOS-STYLE UPDATE SHEET ── */
+    #ios-update-sheet {
+      position: fixed;
+      inset: 0;
+      z-index: 900;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      pointer-events: none;
+      opacity: 0;
+    }
+    #ios-update-sheet.open {
+      pointer-events: auto;
+      opacity: 1;
+    }
+    #ios-sheet-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.72);
+      backdrop-filter: blur(12px);
+      cursor: pointer;
+    }
+    #ios-sheet-box {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 540px;
+      background: linear-gradient(180deg,rgba(18,22,42,0.98),rgba(10,14,28,0.98));
+      border: 1px solid rgba(102,243,255,0.22);
+      border-bottom: none;
+      border-radius: 20px 20px 0 0;
+      padding: 0 0 env(safe-area-inset-bottom,0);
+      overflow: hidden;
+      transform: translateY(100%);
+      box-shadow: 0 -20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,62,168,0.08);
+    }
+
+    /* drag pill */
+    .ios-drag-pill {
+      width: 38px; height: 4px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 999px;
+      margin: 10px auto 0;
+    }
+
+    /* sheet header */
+    .ios-sheet-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid rgba(102,243,255,0.1);
+    }
+    .ios-app-icon {
+      width: 56px; height: 56px;
+      border-radius: 14px;
+      background: linear-gradient(135deg,#1a2248,#0d1030);
+      border: 1px solid rgba(102,243,255,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem;
+      flex-shrink: 0;
+      box-shadow: 0 0 20px rgba(102,243,255,0.15);
+    }
+    .ios-header-text { flex: 1; }
+    .ios-app-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.45rem;
+      letter-spacing: .14em;
+      color: #e6f4ff;
+      line-height: 1;
+      margin-bottom: 3px;
+    }
+    .ios-app-sub {
+      font-size: .7rem;
+      letter-spacing: .2em;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .ios-ver-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .68rem;
+      letter-spacing: .08em;
+      padding: 3px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(102,243,255,0.28);
+      color: #66f3ff;
+      background: rgba(102,243,255,0.08);
+      align-self: flex-start;
+      white-space: nowrap;
+    }
+
+    /* channel selector */
+    .ios-channel-bar {
+      display: flex;
+      gap: 6px;
+      padding: 12px 20px 0;
+    }
+    .ios-ch-btn {
+      flex: 1;
+      padding: 7px 0;
+      border-radius: 8px;
+      border: 1px solid var(--wire2);
+      background: var(--raised);
+      color: var(--muted);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: .82rem;
+      letter-spacing: .14em;
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+    .ios-ch-btn.active {
+      border-color: rgba(102,243,255,0.5);
+      background: rgba(102,243,255,0.12);
+      color: #66f3ff;
+    }
+
+    /* releases list */
+    #ios-releases {
+      max-height: 52vh;
+      overflow-y: auto;
+      padding: 14px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    #ios-releases::-webkit-scrollbar { width: 3px; }
+    #ios-releases::-webkit-scrollbar-thumb { background: var(--wire2); border-radius: 99px; }
+
+    /* skeleton loader */
+    .ios-skeleton {
+      display: flex; flex-direction: column; gap: 10px; padding: 10px 0;
+    }
+    .skel-line {
+      height: 12px; border-radius: 6px;
+      background: linear-gradient(90deg, rgba(255,255,255,.04) 0%, rgba(255,255,255,.09) 50%, rgba(255,255,255,.04) 100%);
+      background-size: 200% 100%;
+      animation: skelShimmer 1.6s ease infinite;
+    }
+    .skel-line.w80 { width: 80%; }
+    .skel-line.w55 { width: 55%; }
+    .skel-line.w90 { width: 90%; margin-top: 4px; }
+    @keyframes skelShimmer {
+      0%{background-position:200% 0} 100%{background-position:-200% 0}
+    }
+
+    /* release card */
+    .ios-release-card {
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(102,243,255,0.08);
+    }
+    .ios-release-card:last-child { border-bottom: none; }
+    .irc-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .irc-ver {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.15rem;
+      letter-spacing: .12em;
+      color: #e6f4ff;
+    }
+    .irc-tag {
+      font-size: .6rem;
+      letter-spacing: .18em;
+      padding: 2px 8px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+    }
+    .irc-tag.new { background: rgba(102,243,255,0.14); color: #66f3ff; border: 1px solid rgba(102,243,255,0.3); }
+    .irc-tag.beta { background: rgba(255,62,168,0.12); color: #ff75c2; border: 1px solid rgba(255,62,168,0.28); }
+    .irc-tag.current { background: rgba(56,232,136,0.1); color: #38e888; border: 1px solid rgba(56,232,136,0.25); }
+    .irc-date {
+      margin-left: auto;
+      font-size: .62rem;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: .04em;
+    }
+    .irc-desc {
+      font-size: .82rem;
+      color: rgba(200,210,240,0.65);
+      line-height: 1.55;
+      letter-spacing: .03em;
+      margin-bottom: 10px;
+      white-space: pre-line;
+    }
+    .irc-actions { display: flex; gap: 8px; align-items: center; }
+    .irc-btn-dl {
+      flex: 1;
+      padding: 9px 0;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg,rgba(102,243,255,0.28),rgba(83,167,255,0.22));
+      color: #c5faff;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: .88rem;
+      letter-spacing: .14em;
+      cursor: pointer;
+      transition: all .15s ease;
+      box-shadow: 0 0 14px rgba(102,243,255,0.12);
+    }
+    .irc-btn-dl:hover { background: linear-gradient(135deg,rgba(102,243,255,0.4),rgba(83,167,255,0.34)); }
+    .irc-btn-dl:disabled { opacity: .4; cursor: default; }
+    .irc-btn-web {
+      padding: 9px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--wire2);
+      background: var(--raised);
+      color: var(--muted);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: .82rem;
+      letter-spacing: .12em;
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+    .irc-btn-web:hover { border-color: rgba(102,243,255,0.35); color: var(--text); }
+
+    /* download progress (per-item) */
+    .irc-progress {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      margin-top: 8px;
+    }
+    .irc-progress.show { display: flex; }
+    .irc-prog-track {
+      height: 3px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .irc-prog-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg,#66f3ff,#53a7ff);
+      border-radius: 99px;
+      transition: width .4s ease;
+    }
+    .irc-prog-label {
+      font-size: .62rem;
+      letter-spacing: .18em;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* success banner */
+    .irc-done {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: rgba(56,232,136,0.08);
+      border: 1px solid rgba(56,232,136,0.22);
+      color: #38e888;
+      font-size: .78rem;
+      letter-spacing: .12em;
+      margin-top: 6px;
+    }
+    .irc-done.show { display: flex; }
+
+    /* empty state */
+    .ios-empty {
+      text-align: center;
+      padding: 30px 0;
+      color: var(--muted);
+      font-size: .82rem;
+      letter-spacing: .2em;
+      font-family: 'Barlow Condensed', sans-serif;
+    }
+    .ios-error {
+      text-align: center;
+      padding: 20px 0;
+      color: rgba(255,62,168,0.7);
+      font-size: .78rem;
+      letter-spacing: .14em;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* sheet close btn */
+    .ios-sheet-close {
+      position: absolute;
+      top: 14px; right: 16px;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.06);
+      color: var(--muted);
+      font-size: .8rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .15s ease;
+    }
+    .ios-sheet-close:hover { background: rgba(255,255,255,0.12); color: var(--text); }
+
+    /* hide old update-modal completely */
+    #update-modal { display: none !important; }
+    #update-badge { display: none !important; }
+    #check-update-btn { display: none !important; }
+  </style>
 </head>
 <body>
 
+<!-- ══════════════════════════════════════════════════════
+     SPORT SELECTOR OVERLAY
+══════════════════════════════════════════════════════ -->
 <div id="sport-selector">
   <div id="sel-bg"></div>
   <canvas id="sel-canvas"></canvas>
@@ -71,6 +422,9 @@
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════
+     TOP COMMAND BAR
+══════════════════════════════════════════════════════ -->
 <div id="cmd-bar">
   <div id="logo-block" onclick="openSportSelector()" title="Change sport">
     <div id="logo-word">HIGH<span style="color:rgba(255,255,255,0.2)">SCORE</span></div>
@@ -90,14 +444,25 @@
     </div>
     <div id="bar-round" style="display:none"></div>
     <div id="bar-timer">—:——</div>
-    <div id="update-badge" title="New version available">
-      ▲ UPDATE <span id="upd-ver-badge"></span>
-    </div>
-    <button id="check-update-btn" class="btn bd" style="margin-left:6px;padding:6px 8px;font-size:0.72rem;" onclick="checkForUpdatesClicked(event)">Check For Updates (stable)</button>
+
+    <!-- Update icon button (replaces old badge + check button) -->
+    <button id="update-icon-btn" onclick="openUpdateSheet()" title="Check for updates">
+      <span style="font-size:1rem">⬆</span>
+      <div class="upd-dot" id="upd-notify-dot"></div>
+    </button>
+
+    <!-- Keep old elements but hide via CSS above -->
+    <div id="update-badge" title="New version available">▲ UPDATE <span id="upd-ver-badge"></span></div>
+    <button id="check-update-btn" class="btn bd" onclick="checkForUpdatesClicked(event)">Check For Updates (stable)</button>
+    <div id="upd-check-msg" style="display:none"><span id="upd-local-ver">-</span></div>
+
     <button id="billboard-btn" onclick="openBillboard()">OPN BILLBOARD</button>
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════
+     WORKSPACE
+══════════════════════════════════════════════════════ -->
 <div id="workspace">
 
   <div class="team-col col-a" id="col-a">
@@ -155,6 +520,9 @@
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════
+     CONFIRM MODAL
+══════════════════════════════════════════════════════ -->
 <div id="modal">
   <div id="modal-box">
     <div id="modal-title">CONFIRM</div>
@@ -166,32 +534,54 @@
   </div>
 </div>
 
+<!-- Keep old update-modal in DOM for compatibility but hidden via CSS -->
 <div id="update-modal">
   <div id="upd-box">
     <div id="upd-icon">📦</div>
-      <div id="upd-title">CHECK FOR UPDATES</div>
-      <div id="upd-body">
-        <div style="display:flex;gap:8px;justify-content:center;margin-bottom:8px;">
-          <button id="upd-ch-stable" class="btn bd" onclick="setUpdateChannel('stable')">Stable</button>
-          <button id="upd-ch-beta" class="btn bd" onclick="setUpdateChannel('beta')">Beta</button>
-        </div>
-        <div id="upd-check-msg" style="font-size:0.88rem;color:var(--muted);margin-bottom:6px;text-align:center;">Local version: <span id="upd-local-ver">-</span></div>
-        <div id="upd-result" style="font-size:0.95rem;color:var(--text);text-align:center;"></div>
-        <div style="margin-top:6px;"><strong id="upd-new-ver"></strong></div>
-        <div id="upd-list" style="margin-top:6px;"></div>
-      </div>
+    <div id="upd-title">CHECK FOR UPDATES</div>
+    <div id="upd-body">
+      <div id="upd-result"></div>
+      <div><strong id="upd-new-ver"></strong></div>
+      <div id="upd-list"></div>
+    </div>
     <div id="upd-progress-wrap">
       <div id="upd-progress-track"><div id="upd-progress-fill"></div></div>
       <div id="upd-progress-label">Preparing download…</div>
     </div>
-    <div id="upd-done-msg">
-      ✓ Download complete!<br>
-      Open your <strong>File Explorer / Downloads folder</strong> and run the new installer to update HighScore.
-    </div>
+    <div id="upd-done-msg"></div>
     <div id="upd-acts">
       <button class="btn bg full" id="upd-search-btn" onclick="performUpdateSearch()">🔎 SEARCH</button>
       <button class="btn ba full" id="upd-download-btn" onclick="startDownload()" style="display:none;">⬇ DOWNLOAD</button>
-      <button class="btn bd" onclick="closeUpdateModal()" style="white-space:nowrap;padding:6px 14px;">CLOSE</button>
+      <button class="btn bd" onclick="closeUpdateModal()">CLOSE</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     iOS-STYLE UPDATE SHEET
+══════════════════════════════════════════════════════ -->
+<div id="ios-update-sheet">
+  <div id="ios-sheet-backdrop" onclick="closeUpdateSheet()"></div>
+  <div id="ios-sheet-box">
+    <div class="ios-drag-pill"></div>
+    <button class="ios-sheet-close" onclick="closeUpdateSheet()">✕</button>
+
+    <div class="ios-sheet-header">
+      <div class="ios-app-icon">⬆</div>
+      <div class="ios-header-text">
+        <div class="ios-app-name">HIGHSCORE</div>
+        <div class="ios-app-sub" id="ios-local-ver-lbl">Version —</div>
+      </div>
+      <div class="ios-ver-badge" id="ios-ver-badge" style="display:none"></div>
+    </div>
+
+    <div class="ios-channel-bar">
+      <button class="ios-ch-btn active" id="ios-ch-stable" onclick="iosSetChannel('stable')">Stable</button>
+      <button class="ios-ch-btn" id="ios-ch-beta" onclick="iosSetChannel('beta')">Beta</button>
+    </div>
+
+    <div id="ios-releases">
+      <!-- populated by JS -->
     </div>
   </div>
 </div>
@@ -199,5 +589,330 @@
 <script src="../js/update-checker.js"></script>
 <script src="../js/vendor.js" defer></script>
 <script src="../js/manager.js" defer></script>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   iOS UPDATE SHEET — standalone controller
+   (separate from legacy update code in manager.js)
+══════════════════════════════════════════════════════ */
+
+let _iosChannel = 'stable';
+let _iosOpen = false;
+let _iosChecked = false; // avoid double-search on re-open
+
+const iosSheet      = document.getElementById('ios-update-sheet');
+const iosSheetBox   = document.getElementById('ios-sheet-box');
+const iosReleases   = document.getElementById('ios-releases');
+const iosLocalVerLbl= document.getElementById('ios-local-ver-lbl');
+const iosVerBadge   = document.getElementById('ios-ver-badge');
+const iosNotifyDot  = document.getElementById('upd-notify-dot');
+
+/* ── helpers ── */
+function iosParseVer(vstr){
+  const s=(vstr||'').replace(/^v/i,'').trim();
+  let m=s.match(/^(\d+)\.(\d+)\.(\d+)[\-_ ]?[Bb](\d+)$/i);
+  if(m)return{major:+m[1],minor:+m[2],patch:+m[3],type:'beta',betaNum:+m[4]};
+  m=s.match(/^(\d+)\.(\d+)\.(\d+)$/);
+  if(m)return{major:+m[1],minor:+m[2],patch:+m[3],type:'stable'};
+  return null;
+}
+function iosIsNewer(latest,current){
+  if(!latest||!current)return false;
+  if(latest.major!==current.major)return latest.major>current.major;
+  if(latest.minor!==current.minor)return latest.minor>current.minor;
+  if(latest.patch!==current.patch)return latest.patch>current.patch;
+  const ord={stable:3,beta:1};
+  return(ord[latest.type]||0)>(ord[current.type]||0);
+}
+function iosFmtVer(p,raw){
+  if(!p)return raw||'?';
+  if(p.type==='beta')return`V${p.major}.${p.minor}.${p.patch} Beta ${p.betaNum}`;
+  return`V${p.major}.${p.minor}.${p.patch}`;
+}
+function iosFmtDate(iso){
+  if(!iso)return'';
+  try{
+    const d=new Date(iso);
+    return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  }catch{return'';}
+}
+
+/* ── show skeleton ── */
+function iosShowSkeleton(){
+  iosReleases.innerHTML=`
+    <div class="ios-skeleton">
+      <div class="skel-line w55"></div>
+      <div class="skel-line w90"></div>
+      <div class="skel-line w80"></div>
+      <div class="skel-line w55" style="margin-top:14px"></div>
+      <div class="skel-line w80"></div>
+    </div>`;
+}
+
+/* ── render release cards ── */
+function iosRenderReleases(list, localParsed, installDate){
+  iosReleases.innerHTML='';
+  if(!list||!list.length){
+    iosReleases.innerHTML='<div class="ios-empty">No releases found</div>';
+    return;
+  }
+
+  list.forEach((item,idx)=>{
+    const rel   = item.release||item;
+    const parsed= item.parsed||iosParseVer(rel.name||rel.tag_name||'');
+    const vtxt  = iosFmtVer(parsed,rel.name||rel.tag_name);
+    const date  = rel.published_at?iosFmtDate(rel.published_at):'';
+    const desc  = (rel.body||'').trim();
+    const isNew = localParsed&&parsed&&iosIsNewer(parsed,localParsed);
+    const isCur = localParsed&&parsed&&!iosIsNewer(parsed,localParsed)&&
+                  parsed.major===localParsed.major&&parsed.minor===localParsed.minor&&parsed.patch===localParsed.patch;
+    const exe   = (rel.assets||[]).find(a=>a.name.toLowerCase().endsWith('.exe'));
+
+    const cardId = 'irc-'+idx;
+    const card = document.createElement('div');
+    card.className='ios-release-card';
+    card.id=cardId;
+
+    let tagHtml='';
+    if(isNew) tagHtml='<span class="irc-tag new">NEW</span>';
+    else if(parsed&&parsed.type==='beta') tagHtml='<span class="irc-tag beta">BETA</span>';
+    if(isCur) tagHtml+='<span class="irc-tag current">INSTALLED</span>';
+
+    // truncate body for display
+    const shortDesc = desc.length>280 ? desc.slice(0,280)+'…' : desc;
+
+    card.innerHTML=`
+      <div class="irc-top">
+        <span class="irc-ver">${vtxt}</span>
+        ${tagHtml}
+        <span class="irc-date">${date}</span>
+      </div>
+      ${shortDesc?`<div class="irc-desc">${shortDesc.replace(/</g,'&lt;')}</div>`:''}
+      <div class="irc-actions">
+        ${exe?`<button class="irc-btn-dl" onclick="iosDownload(${idx})">⬇ Download</button>`:''}
+        ${rel.html_url?`<button class="irc-btn-web" onclick="window.open('${rel.html_url}','_blank')">View Release</button>`:''}
+      </div>
+      <div class="irc-progress" id="irc-prog-${idx}">
+        <div class="irc-prog-track"><div class="irc-prog-fill" id="irc-fill-${idx}"></div></div>
+        <div class="irc-prog-label" id="irc-plbl-${idx}">Starting…</div>
+      </div>
+      <div class="irc-done" id="irc-done-${idx}">✓ Downloaded! Run the installer from your Downloads folder.</div>
+    `;
+    iosReleases.appendChild(card);
+
+    // GSAP stagger in
+    gsap.from(card,{opacity:0,y:14,duration:.35,ease:'power2.out',delay:idx*0.06});
+  });
+
+  // store releases for download
+  window._iosReleaseList = list;
+}
+
+/* ── download handler ── */
+async function iosDownload(idx){
+  const item = window._iosReleaseList[idx];
+  const rel  = item.release||item;
+  const prog = document.getElementById('irc-prog-'+idx);
+  const fill = document.getElementById('irc-fill-'+idx);
+  const plbl = document.getElementById('irc-plbl-'+idx);
+  const done = document.getElementById('irc-done-'+idx);
+  const btns = document.querySelectorAll('#irc-'+idx+' .irc-btn-dl');
+
+  btns.forEach(b=>{b.disabled=true;b.textContent='Downloading…';});
+  prog.classList.add('show');
+  gsap.to(fill,{width:'35%',duration:.6,ease:'power1.out'});
+
+  try{
+    const ok = await window.UpdateChecker.downloadRelease(rel);
+    gsap.to(fill,{width:'100%',duration:.5,ease:'power2.out'});
+    plbl.textContent='Complete!';
+    setTimeout(()=>{
+      prog.classList.remove('show');
+      done.classList.add('show');
+      gsap.from(done,{opacity:0,y:6,duration:.3,ease:'power2.out'});
+    },600);
+  }catch(e){
+    plbl.textContent='Error — try the web link instead';
+    btns.forEach(b=>{b.disabled=false;b.textContent='⬇ Download';});
+  }
+}
+
+/* ── channel switcher ── */
+function iosSetChannel(ch){
+  _iosChannel=ch;
+  document.getElementById('ios-ch-stable').classList.toggle('active',ch==='stable');
+  document.getElementById('ios-ch-beta').classList.toggle('active',ch==='beta');
+  _iosChecked=false;
+  iosDoSearch();
+}
+
+/* ── main search ── */
+async function iosDoSearch(){
+  if(_iosChecked)return;
+  _iosChecked=true;
+  iosShowSkeleton();
+
+  let localVersion='';
+  let localParsed=null;
+  let installDate=null;
+
+  try{
+    if(window.UpdateChecker&&window.UpdateChecker.getLocalVersion){
+      const lv=await window.UpdateChecker.getLocalVersion();
+      if(lv)localVersion=lv.trim();
+    }
+    // Try to get install date via electron store or app stats
+    if(window.UpdateChecker&&window.UpdateChecker.getInstallDate){
+      installDate=await window.UpdateChecker.getInstallDate();
+    }
+  }catch(e){}
+
+  localParsed=iosParseVer(localVersion);
+  iosLocalVerLbl.textContent=localVersion?`Version ${localVersion}`:'Version —';
+
+  // Update version badge in header if newer found
+  let hasNewerUpdate=false;
+
+  try{
+    const UC=window.UpdateChecker;
+    if(!UC||!UC.getRecentReleases){
+      // Fallback: direct GitHub fetch
+      const r=await fetch(
+        `https://api.github.com/repos/robert19066/HighScore/releases?per_page=5`,
+        {headers:{'Accept':'application/vnd.github.v3+json'},cache:'no-store'}
+      );
+      if(!r.ok)throw new Error('fetch fail');
+      const raw=await r.json();
+      const list=raw.map(rel=>({
+        release:rel,
+        parsed:iosParseVer(rel.name||rel.tag_name||''),
+        exe:(rel.assets||[]).find(a=>a.name.toLowerCase().endsWith('.exe'))
+      })).filter(item=>_iosChannel==='beta'||item.parsed?.type!=='beta');
+
+      // Check install date vs newest release date
+      if(installDate&&list.length){
+        const newestDate=new Date(list[0].release.published_at||0);
+        const instDate=new Date(installDate);
+        if(newestDate>instDate&&iosIsNewer(list[0].parsed,localParsed)){
+          hasNewerUpdate=true;
+        }
+      }else if(list.length&&iosIsNewer(list[0].parsed,localParsed)){
+        hasNewerUpdate=true;
+      }
+
+      iosRenderReleases(list,localParsed,installDate);
+    }else{
+      const list=await UC.getRecentReleases({channel:_iosChannel,count:5});
+      if(list&&list.length){
+        if(installDate){
+          const newestDate=new Date(list[0].release?.published_at||0);
+          if(new Date(installDate)<newestDate&&iosIsNewer(list[0].parsed,localParsed)){
+            hasNewerUpdate=true;
+          }
+        }else if(iosIsNewer(list[0].parsed,localParsed)){
+          hasNewerUpdate=true;
+        }
+      }
+      iosRenderReleases(list||[],localParsed,installDate);
+    }
+
+    // Show update notification dot
+    if(hasNewerUpdate){
+      iosNotifyDot.classList.add('show');
+      if(list&&list.length){
+        const top=list[0];
+        const vtxt=iosFmtVer(top.parsed||iosParseVer(top.release?.name||''),top.release?.name||'');
+        iosVerBadge.textContent=vtxt;
+        iosVerBadge.style.display='';
+        gsap.from(iosVerBadge,{scale:.7,opacity:0,duration:.4,ease:'back.out(2)'});
+      }
+      // Pulse the update button with GSAP
+      gsap.to('#update-icon-btn',{
+        keyframes:[
+          {scale:1.18,duration:.2,ease:'power2.out'},
+          {scale:1,duration:.25,ease:'power2.in'}
+        ],
+        repeat:2,
+        repeatDelay:.15
+      });
+    }else{
+      iosNotifyDot.classList.remove('show');
+      iosVerBadge.style.display='none';
+    }
+
+  }catch(err){
+    iosReleases.innerHTML=`<div class="ios-error">Could not reach update server.<br><span style="color:var(--muted);font-size:.65rem">${err.message||''}</span></div>`;
+  }
+}
+
+/* ── open / close sheet ── */
+function openUpdateSheet(){
+  _iosOpen=true;
+  _iosChecked=false;
+  iosSheet.classList.add('open');
+  gsap.fromTo(iosSheetBox,
+    {y:'100%'},
+    {y:0,duration:.45,ease:'expo.out'}
+  );
+  // auto-search
+  iosDoSearch();
+}
+function closeUpdateSheet(){
+  gsap.to(iosSheetBox,{y:'100%',duration:.35,ease:'expo.in',onComplete:()=>{
+    iosSheet.classList.remove('open');
+    _iosOpen=false;
+  }});
+}
+
+/* ── auto-check on load (silent — just shows dot if update found) ── */
+window.addEventListener('DOMContentLoaded',()=>{
+  // Short delay so manager.js can set up first
+  setTimeout(async()=>{
+    try{
+      let localVersion='';
+      let installDate=null;
+      if(window.UpdateChecker?.getLocalVersion){
+        const lv=await window.UpdateChecker.getLocalVersion();
+        if(lv)localVersion=lv.trim();
+      }
+      if(window.UpdateChecker?.getInstallDate){
+        installDate=await window.UpdateChecker.getInstallDate();
+      }
+      const localParsed=iosParseVer(localVersion);
+
+      const r=await fetch(
+        'https://api.github.com/repos/robert19066/HighScore/releases?per_page=3',
+        {headers:{'Accept':'application/vnd.github.v3+json'},cache:'no-store'}
+      );
+      if(!r.ok)return;
+      const raw=await r.json();
+      if(!raw||!raw.length)return;
+      const top=raw[0];
+      const topParsed=iosParseVer(top.name||top.tag_name||'');
+
+      let needDot=false;
+      if(installDate&&top.published_at){
+        needDot=new Date(top.published_at)>new Date(installDate)&&iosIsNewer(topParsed,localParsed);
+      }else{
+        needDot=iosIsNewer(topParsed,localParsed);
+      }
+
+      if(needDot){
+        iosNotifyDot.classList.add('show');
+        iosVerBadge.textContent=iosFmtVer(topParsed,top.name||top.tag_name);
+        iosVerBadge.style.display='';
+        gsap.from(iosNotifyDot,{scale:0,duration:.4,ease:'back.out(2)'});
+      }
+    }catch(e){/* silent */}
+  },2200);
+});
+
+/* Alpine.js app data (needed for x-data on <html>) */
+function managerApp(){
+  return{
+    init(){}
+  };
+}
+</script>
 </body>
 </html>

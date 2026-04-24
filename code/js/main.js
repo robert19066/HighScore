@@ -130,6 +130,28 @@ function createWindows(version) {
     }
   });
 
+  // Expose install date for update checker
+  ipcMain.handle('get-install-date', async () => {
+    // Try electron-store persisted install date first
+    if (store) {
+      let installDate = store.get('installDate');
+      if (!installDate) {
+        // First run — record it now
+        installDate = new Date().toISOString();
+        store.set('installDate', installDate);
+      }
+      return installDate;
+    }
+    // Fallback: use app exe stat mtime
+    try {
+      const exePath = app.getPath('exe');
+      const stat = await fs.promises.stat(exePath);
+      return stat.mtime.toISOString();
+    } catch(e) {
+      return null;
+    }
+  });
+
   managerWindow.on('closed', () => {
     if (billboardWindow && !billboardWindow.isDestroyed()) {
       billboardWindow.close();
