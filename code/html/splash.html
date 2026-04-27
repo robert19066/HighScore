@@ -10,6 +10,8 @@
 </head>
 <body>
 
+<div id="intro-flash">V3.0.0 — Powered by <strong>AI</strong></div>
+
 <div class="letterbox top"></div>
 <div class="letterbox bot"></div>
 <div class="spot"></div>
@@ -32,15 +34,6 @@
       <div id="loading-track"><div id="loading-fill"></div></div>
       <div id="loading-label">Initializing system</div>
     </div>
-    <div id="spec-prompt" class="hidden" aria-hidden="true">
-      <h2 id="spec-title">Performance warning</h2>
-      <p id="spec-message">Your device's specs might be too low to run this app.</p>
-      <div id="spec-details" class="details"></div>
-      <label><input type="checkbox" id="dont-warn"> Don't warn me again</label>
-      <div class="actions">
-        <button id="spec-exit">Exit</button>
-        <button id="spec-yes" class="primary">Yes, continue</button>
-      </div>
     </div>
   </div>
   <div id="quote">"<span>Take Control of the</span> GAME"</div>
@@ -48,12 +41,9 @@
 
 <div id="crowd">
   <svg viewBox="0 0 1440 80" preserveAspectRatio="none" fill="white" xmlns="http://www.w3.org/2000/svg">
-    <!-- Crowd silhouette row -->
     <path d="M0 80 L0 55 Q8 45 16 55 Q20 35 28 45 Q32 25 40 35 Q44 40 52 30 Q56 20 64 32 Q72 40 80 28 Q84 15 92 28 Q100 38 108 22 Q112 10 120 22 Q128 35 136 18 Q140 8 148 20 Q156 32 164 15 Q168 5 176 18 Q184 30 192 12 Q196 2 204 14 Q212 28 220 10 Q224 0 232 12 Q240 25 248 8 Q252 0 260 10 Q268 22 276 6 Q280 0 288 8 Q296 18 304 4 Q308 0 316 6 Q324 16 332 2 Q336 0 344 5 Q352 14 360 2 Q364 0 372 5 Q380 13 388 2 Q392 0 400 5 Q408 15 416 3 Q420 0 428 6 Q436 16 444 4 Q448 0 456 8 Q464 20 472 6 Q476 0 484 10 Q492 22 500 8 Q504 0 512 12 Q520 24 528 8 Q532 0 540 12 Q548 24 556 8 Q560 0 568 12 Q576 26 584 10 Q588 2 596 14 Q604 28 612 12 Q616 4 624 16 Q632 30 640 14 Q644 6 652 18 Q660 32 668 16 Q672 8 680 20 Q688 34 696 18 Q700 10 708 22 Q716 36 724 20 Q728 12 736 24 Q744 38 752 22 Q756 14 764 26 Q772 40 780 24 Q784 16 792 28 Q800 42 808 28 Q812 18 820 30 Q828 44 836 30 Q840 20 848 32 Q856 46 864 32 Q868 22 876 34 Q884 48 892 36 Q896 26 904 38 Q912 52 920 40 Q924 30 932 42 Q940 55 948 42 Q952 32 960 45 Q968 58 976 45 Q980 35 988 48 Q996 60 1004 48 Q1008 38 1016 50 Q1024 62 1032 50 Q1036 40 1044 52 Q1052 62 1060 52 Q1064 42 1072 54 Q1080 65 1088 55 Q1092 45 1100 55 Q1108 65 1116 56 Q1120 48 1128 56 Q1136 65 1144 57 Q1148 50 1156 57 Q1164 65 1172 58 Q1176 52 1184 58 Q1192 65 1200 60 Q1204 54 1212 60 Q1220 66 1228 61 Q1232 56 1240 62 Q1248 68 1256 63 Q1260 58 1268 63 Q1276 68 1284 64 Q1288 60 1296 65 Q1304 70 1312 66 Q1316 62 1324 66 Q1332 70 1340 67 Q1344 64 1352 68 Q1360 72 1368 68 Q1372 65 1380 69 Q1388 73 1396 70 Q1400 67 1408 71 Q1416 75 1424 72 Q1428 69 1436 73 L1440 75 L1440 80 Z"/>
   </svg>
 </div>
-
-
 
 <div id="version"></div>
 
@@ -68,84 +58,19 @@
   c.style.cssText='position:fixed;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.04;pointer-events:none;z-index:0;';
 })();
 
-/* loading label cycling */
-const labels=['Initializing system','Loading sport modules','Configuring timers','Syncing billboard','Ready'];
+/* loading label cycling - Syncs with the 4s bar fill */
+const labels=['Initializing AI Core','Loading sport modules','Configuring timers','Syncing billboard','System Ready'];
 let li=0;
 const lbl=document.getElementById('loading-label');
-const iv=setInterval(()=>{li++;if(li>=labels.length){clearInterval(iv);return;}lbl.textContent=labels[li];},800);
+const iv=setInterval(()=>{
+  li++;
+  if(li>=labels.length){clearInterval(iv);return;}
+  lbl.textContent=labels[li];
+}, 1000);
 
 /* version */
 (function(){
   try{const v=new URLSearchParams(location.search).get('v');if(v)document.getElementById('version').textContent='v'+v;}catch(e){}
-})();
-</script>
-
-<script>
-(async function(){
-  const DSCP = window.DSCP || null;
-  let cfg = 'WN';
-  try{
-    if (DSCP && typeof DSCP.readConfig === 'function') {
-      cfg = (await DSCP.readConfig()) || 'WN';
-    } else {
-      try{
-        const resp = await fetch('../assets/DSCPconfig.txt');
-        if (resp && resp.ok) cfg = (await resp.text()) || 'WN';
-      }catch(e){}
-    }
-  }catch(e){ cfg = 'WN'; }
-  cfg = String(cfg).trim().toUpperCase();
-
-  function hasWebGL(){
-    try{const c=document.createElement('canvas');return !!(c.getContext('webgl')||c.getContext('experimental-webgl'));}catch(e){return false}
-  }
-
-  const mem = (typeof navigator.deviceMemory !== 'undefined') ? navigator.deviceMemory : null;
-  const cores = (typeof navigator.hardwareConcurrency !== 'undefined') ? navigator.hardwareConcurrency : null;
-  const webgl = hasWebGL();
-  const low = ((mem !== null && mem < 2) || (cores !== null && cores < 2) || !webgl);
-
-  let showPrompt = false;
-  if (cfg === 'NEVER') showPrompt = false;
-  else if (cfg === 'ALLWAYS' || cfg === 'ALWAYS') showPrompt = true;
-  else showPrompt = low;
-
-  const promptEl = document.getElementById('spec-prompt');
-  const detailsEl = document.getElementById('spec-details');
-  const dontWarnCheckbox = document.getElementById('dont-warn');
-  const yesBtn = document.getElementById('spec-yes');
-  const exitBtn = document.getElementById('spec-exit');
-  const loadingArea = document.getElementById('loading-area');
-
-  if (showPrompt && promptEl){
-    if (DSCP && DSCP.blocking) DSCP.blocking(true);
-    detailsEl.innerHTML = `<ul style="margin:6px 0 8px 16px"><li>Approx RAM: ${mem===null?'unknown':mem+' GB'}</li><li>CPU cores: ${cores===null?'unknown':cores}</li><li>WebGL: ${webgl ? 'available' : 'unavailable'}</li></ul>`;
-    promptEl.classList.remove('hidden');
-    promptEl.setAttribute('aria-hidden','false');
-    if (loadingArea) loadingArea.style.display = 'none';
-
-    yesBtn.addEventListener('click', async function(){
-      if (dontWarnCheckbox.checked) {
-        try{ if (DSCP && DSCP.writeConfig) await DSCP.writeConfig('NEVER'); }catch(e){}
-      }
-      // If device was detected as low, request reduced/perf mode and apply immediate CSS fallback
-      try{
-        if (typeof low !== 'undefined' && low) {
-          if (DSCP && DSCP.setLowPower) await DSCP.setLowPower(true);
-          try{ document.documentElement.classList.add('low-power'); }catch(e){}
-        }
-      }catch(e){}
-      try{ if (DSCP && DSCP.blocking) DSCP.blocking(false); }catch(e){}
-      try{ if (DSCP && DSCP.allow) DSCP.allow(); }catch(e){ promptEl.classList.add('hidden'); if (loadingArea) loadingArea.style.display=''; }
-    });
-
-    exitBtn.addEventListener('click', function(){
-      try{ if (DSCP && DSCP.exit) DSCP.exit(); }catch(e){ window.close(); }
-    });
-  } else {
-    if (loadingArea) loadingArea.style.display = '';
-    try{ if (DSCP && DSCP.blocking) DSCP.blocking(false); }catch(e){}
-  }
 })();
 </script>
 </body>

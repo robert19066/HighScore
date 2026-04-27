@@ -1,8 +1,9 @@
-/* Extracted manager script from manager.html */
+/* Extracted manager script */
 
 /* SPORT SELECTOR CANVAS */
 (function(){
   const canvas=document.getElementById('sel-canvas');
+  if(!canvas) return;
   const ctx=canvas.getContext('2d');
   let W,H;
   function resize(){
@@ -23,7 +24,7 @@
     return{x,y:H+5,col:[Math.random()<0.5?240:48,Math.random()<0.5?192:144,Math.random()<0.5?64:248],sz:Math.random()*1.2+0.2,vy:-(Math.random()*0.35+0.1),vx:(Math.random()-0.5)*0.15,life:1,decay:Math.random()*0.003+0.001};
   }
   for(let i=0;i<60;i++){const p=mk();p.y=Math.random()*H;P.push(p);}  
-  // Performance: allow reduced-mode throttling and pause when hidden
+  
   window.HS_REDUCED = (function(){ try{ return localStorage.getItem('hs_low_power')==='1'; }catch(e){return false;} })();
   window.addEventListener('message', (e)=>{ try{ if(e && e.data && e.data.type==='hs_low_power'){ window.HS_REDUCED = !!e.data.flag; document.documentElement.classList.toggle('low-power', !!e.data.flag);
       if(window.gsap){ try{ if(window.HS_REDUCED||document.hidden){ try{ gsap.globalTimeline.pause(); }catch(e){}; try{ gsap.globalTimeline.clear(); }catch(e){} } else { try{ gsap.globalTimeline.resume(); }catch(e){} } }catch(_){} }
@@ -36,7 +37,6 @@
     try{
       if(document.hidden){ setTimeout(frame,1000); return; }
       ctx.clearRect(0,0,W,H);
-      // spawn & cap adapted for reduced-mode
       if(Math.random() < (window.HS_REDUCED ? 0.05 : 0.25)) P.push(mk());
       const maxP = window.HS_REDUCED ? 40 : 90;
       while(P.length > maxP) P.shift();
@@ -48,7 +48,6 @@
         ctx.fill();
       }
     }catch(e){}
-    // schedule next frame with optional throttling
     if(window.HS_REDUCED) setTimeout(frame, Math.round(1000/20)); else requestAnimationFrame(frame);
   }
   frame();
@@ -78,20 +77,15 @@ function normalizeState(){
     if(typeof t.teamFouls!=='number')t.teamFouls=0;
     if(!Array.isArray(t.players))t.players=[];
   });
-
   if(typeof S.shotclockSeconds!=='number') S.shotclockSeconds = 15;
   if(typeof S.shotclockRunning!=='boolean') S.shotclockRunning = false;
 }
 
-// Message listener for countdown completion from billboard
 window.addEventListener('message', e => {
   try{
     const d = e && e.data;
     if(!d) return;
-    if(d.type === 'hs_countdown_done'){
-      // Billboard reported countdown finished — now start the match
-      try{ startMatch(); }catch(err){}
-    }
+    if(d.type === 'hs_countdown_done'){ try{ startMatch(); }catch(err){} }
   }catch(err){}
 });
 
@@ -99,26 +93,22 @@ let _matchEndTimeout = null;
 
 function handleMatchEnd(){
   try{
-    // determine winner
-    const a = (S.teamA&&S.teamA.score)||0;
-    const b = (S.teamB&&S.teamB.score)||0;
+    const a = (S.teamA&&S.teamA.score)||0; const b = (S.teamB&&S.teamB.score)||0;
     const winner = a>b ? 'a' : (b>a ? 'b' : 'tie');
-    // notify billboard to show winner
-    const bb = window.open('','HighScore_Billboard');
-    try{ if(bb && !bb.closed) bb.postMessage({type:'hs_match_end', winner:winner, scoreA:a, scoreB:b, duration:10}, '*'); }catch(e){}
-    // clear previous timeout
+    try{
+      if (window.HighScoreBridge && typeof window.HighScoreBridge.sendMessage === 'function') {
+        try { window.HighScoreBridge.sendMessage({ type: 'hs_match_end', winner: winner, scoreA: a, scoreB: b, duration: 10 }); } catch(e) {}
+      } else {
+        const bb = window.open('','HighScore_Billboard');
+        try{ if(bb && !bb.closed) bb.postMessage({type:'hs_match_end', winner:winner, scoreA:a, scoreB:b, duration:10}, '*'); }catch(e){}
+      }
+    }catch(e){}
     if(_matchEndTimeout) clearTimeout(_matchEndTimeout);
     _matchEndTimeout = setTimeout(()=>{
-      // reset match automatically after 10s
       try{ stopTimer(); }catch(e){}
-      const sp = S.sport;
-      S = JSON.parse(JSON.stringify(DEF));
-      S.sport = sp;
-      S.totalRounds = sp==='football'?2:4;
-      S.roundMinutes = sp==='basketball'?15:sp==='football'?45:30;
-      S.timerSeconds = S.roundMinutes*60;
-      S.intermissionSeconds = S.intermissionMinutes*60;
-      S.shotclockSeconds = 15; S.shotclockRunning = false;
+      const sp = S.sport; S = JSON.parse(JSON.stringify(DEF)); S.sport = sp; S.totalRounds = sp==='football'?2:4;
+      S.roundMinutes = sp==='basketball'?15:sp==='football'?45:30; S.timerSeconds = S.roundMinutes*60;
+      S.intermissionSeconds = S.intermissionMinutes*60; S.shotclockSeconds = 15; S.shotclockRunning = false;
       if(scIntervalManager){ clearInterval(scIntervalManager); scIntervalManager=null; }
       save(true); renderAll();
     }, 10000);
@@ -127,25 +117,31 @@ function handleMatchEnd(){
 
 function requestStartMatch(){
   try{
-    // ensure fresh timer for new match start
-    S.timerSeconds = S.roundMinutes * 60;
-    S.intermissionRunning = false;
-    const bb = window.open('','HighScore_Billboard');
-    if(bb && !bb.closed){
-      try{
-        bb.postMessage({type:'hs_countdown', seconds:3}, '*');
-        const onMsg = function(e){ try{ const d=e&&e.data; if(!d) return; if(d.type==='hs_countdown_done'){ window.removeEventListener('message', onMsg); startMatch(); } }catch(err){} };
-        window.addEventListener('message', onMsg);
-        // fallback to start after 6s
-        setTimeout(()=>{ try{ window.removeEventListener('message', onMsg); startMatch(); }catch(e){} }, 6000);
-      }catch(e){ setTimeout(()=>startMatch(),3000); }
-    }else{
-      // Open billboard and try to send countdown
-      let nb=null;
-      try{ nb = window.open('billboard.html','HighScore_Billboard','width=1280,height=720,toolbar=no,menubar=no,scrollbars=no'); }catch(e){}
-      if(nb){ setTimeout(()=>{ try{ nb.postMessage({type:'hs_countdown', seconds:3}, '*'); }catch(e){} },500); }
-      setTimeout(()=>startMatch(),3000);
-    }
+    S.timerSeconds = S.roundMinutes * 60; S.intermissionRunning = false;
+    try{
+      if (window.HighScoreBridge && typeof window.HighScoreBridge.sendMessage === 'function') {
+        try{
+          window.HighScoreBridge.sendMessage({type:'hs_countdown', seconds:3});
+          const onMsg = function(e){ try{ const d=e&&e.data; if(!d) return; if(d.type==='hs_countdown_done'){ window.removeEventListener('message', onMsg); startMatch(); } }catch(err){} };
+          window.addEventListener('message', onMsg);
+          setTimeout(()=>{ try{ window.removeEventListener('message', onMsg); startMatch(); }catch(e){} }, 6000);
+        }catch(e){ setTimeout(()=>startMatch(),3000); }
+      } else {
+        const bb = window.open('','HighScore_Billboard');
+        if(bb && !bb.closed){
+          try{
+            bb.postMessage({type:'hs_countdown', seconds:3}, '*');
+            const onMsg = function(e){ try{ const d=e&&e.data; if(!d) return; if(d.type==='hs_countdown_done'){ window.removeEventListener('message', onMsg); startMatch(); } }catch(err){} };
+            window.addEventListener('message', onMsg);
+            setTimeout(()=>{ try{ window.removeEventListener('message', onMsg); startMatch(); }catch(e){} }, 6000);
+          }catch(e){ setTimeout(()=>startMatch(),3000); }
+        }else{
+          let nb=null; try{ nb = window.open('billboard.html','HighScore_Billboard','width=1280,height=720,toolbar=no,menubar=no,scrollbars=no'); }catch(e){}
+          if(nb){ setTimeout(()=>{ try{ nb.postMessage({type:'hs_countdown', seconds:3}, '*'); }catch(e){} },500); }
+          setTimeout(()=>startMatch(),3000);
+        }
+      }
+    }catch(e){}
   }catch(e){}
 }
 
@@ -154,8 +150,7 @@ function save(force){
   if(force){
     if(_saveTimeout){clearTimeout(_saveTimeout);_saveTimeout=null;}
     try{localStorage.setItem('hs_state',JSON.stringify(S));}catch(e){}
-    renderStatus();
-    return;
+    renderStatus(); return;
   }
   if(_saveTimeout) clearTimeout(_saveTimeout);
   _saveTimeout = setTimeout(()=>{try{localStorage.setItem('hs_state',JSON.stringify(S));}catch(e){};renderStatus();_saveTimeout=null;},220);
@@ -166,16 +161,11 @@ const SPORT_ICONS={basketball:'🏀',football:'⚽',handball:'🤾',volleyball:'
 const SPORT_NAMES={basketball:'BASKETBALL',football:'FOOTBALL',handball:'HANDBALL',volleyball:'VOLLEYBALL'};
 
 function selectSport(sport){
-  S.sport=sport;
-  S.teamA.score=0;S.teamB.score=0;
-  S.teamA.redCards=0;S.teamB.redCards=0;
-  S.teamA.teamFouls=0;S.teamB.teamFouls=0;
-  S.teamA.players=S.teamA.players||[];S.teamB.players=S.teamB.players||[];
+  S.sport=sport; S.teamA.score=0;S.teamB.score=0; S.teamA.redCards=0;S.teamB.redCards=0;
+  S.teamA.teamFouls=0;S.teamB.teamFouls=0; S.teamA.players=S.teamA.players||[];S.teamB.players=S.teamB.players||[];
   S.round=1;S.matchRunning=false;S.intermissionRunning=false;S.matchEnded=false;
-  S.totalRounds=sport==='football'?2:4;
-  S.roundMinutes=sport==='basketball'?15:sport==='football'?45:30;
-  S.intermissionMinutes=15;
-  S.timerSeconds=S.roundMinutes*60;S.intermissionSeconds=S.intermissionMinutes*60;
+  S.totalRounds=sport==='football'?2:4; S.roundMinutes=sport==='basketball'?15:sport==='football'?45:30;
+  S.intermissionMinutes=15; S.timerSeconds=S.roundMinutes*60;S.intermissionSeconds=S.intermissionMinutes*60;
   stopTimer();save();
 
   const sel=document.getElementById('sport-selector');
@@ -185,7 +175,6 @@ function selectSport(sport){
 
   document.getElementById('pill-icon').textContent=SPORT_ICONS[sport];
   document.getElementById('pill-name').textContent=SPORT_NAMES[sport];
-
   renderAll();
 }
 function openSportSelector(){const sel=document.getElementById('sport-selector');sel.style.display='flex';sel.style.opacity='0';sel.style.transform='scale(0.97)';requestAnimationFrame(()=>{sel.style.transition='opacity 0.35s ease,transform 0.35s ease';sel.style.opacity='1';sel.style.transform='scale(1)';});}
@@ -202,16 +191,11 @@ function startTimer(){
       if(S.timerSeconds<=0){
         S.matchRunning = false;
         if((S.sport==='basketball'&&S.round>=4) || (S.sport==='football'&&S.round>=2) || S.sport==='handball' || S.sport==='volleyball'){
-          S.matchEnded = true;
-          stopTimer();
-          try{ handleMatchEnd(); }catch(e){}
-        } else {
-          stopTimer();
-        }
+          S.matchEnded = true; stopTimer(); try{ handleMatchEnd(); }catch(e){}
+        } else { stopTimer(); }
       }
     }
-    save();
-    renderStatus();
+    save(); renderStatus();
   },1000);
 }
 
@@ -224,7 +208,7 @@ function renderShotclockManager(){
   const el = document.getElementById('shotclock-disp');
   if(!el) return;
   el.textContent = String(S.shotclockSeconds||15).padStart(2,'0');
-  if((S.shotclockSeconds||0) <= 5) el.style.color = '#e83050'; else el.style.color = '';
+  if((S.shotclockSeconds||0) <= 5) el.style.color = '#ef4444'; else el.style.color = '';
 }
 
 const CIRC=263.9;
@@ -237,21 +221,14 @@ function renderStatus(){
   const warn=S.matchRunning&&secs<=60;
   document.getElementById('bar-timer').className=warn?'warning':'';
   document.getElementById('ctrl-ring-wrap').classList.toggle('warning',warn);
-  const maxSecs=S.roundMinutes*60||900;
-  const ratio=maxSecs>0?secs/maxSecs:0;
+  const maxSecs=S.roundMinutes*60||900; const ratio=maxSecs>0?secs/maxSecs:0;
   const offset=CIRC*(1-ratio);
-  const crf=document.getElementById('crf');
-  crf.setAttribute('stroke-dashoffset',String(offset));
-  let sc='#f0c040',lc='rgba(240,192,64,0.06)';
-  if(warn){sc='#e83050';lc='rgba(232,48,80,0.15)';}
-  else if(ratio>0.5){sc='#38e888';lc='rgba(56,232,136,0.08)';}
-  else if(ratio>0.2){sc='#f0c040';lc='rgba(240,192,64,0.08)';}
-  else{sc='#e83050';lc='rgba(232,48,80,0.15)';}
-  crf.style.stroke=sc;crf.style.filter=`drop-shadow(0 0 4px ${sc})`;
-  const liq=document.getElementById('ctrl-liquid');
-  liq.style.height=(ratio*100)+'%';liq.style.background=lc;
-  const cap=document.getElementById('live-capsule');
-  const capLbl=document.getElementById('cap-label');
+  const crf=document.getElementById('crf'); crf.setAttribute('stroke-dashoffset',String(offset));
+  let sc='#3b82f6',lc='rgba(59, 130, 246, 0.1)';
+  if(warn){sc='#ef4444';lc='rgba(239, 68, 68, 0.15)';}
+  crf.style.stroke=sc; crf.style.filter=`drop-shadow(0 0 4px ${sc})`;
+  const liq=document.getElementById('ctrl-liquid'); liq.style.height=(ratio*100)+'%';liq.style.background=lc;
+  const cap=document.getElementById('live-capsule'); const capLbl=document.getElementById('cap-label');
   if(S.matchEnded){cap.className='ended';capLbl.textContent='FINAL';}
   else if(S.intermissionRunning){cap.className='intermission';capLbl.textContent='INTERMISSION';}
   else if(S.matchRunning){cap.className='live';capLbl.textContent='LIVE';}
@@ -263,8 +240,7 @@ function renderStatus(){
 }
 
 function renderTeam(side){
-  const team=side==='a'?S.teamA:S.teamB;
-  const body=document.getElementById('body-'+side);
+  const team=side==='a'?S.teamA:S.teamB; const body=document.getElementById('body-'+side);
   const prevInputs = Array.from(body.querySelectorAll('.pl-name-inp')).map(el=>({value:el.value,selStart:el.selectionStart,selEnd:el.selectionEnd,focused:document.activeElement===el}));
   body.innerHTML='';
   const ni=document.getElementById('name-'+side);
@@ -298,11 +274,10 @@ function renderBball(side,team,body,prevInputs){
       <button class="btn bo" onclick="addTeamFoul('${side}',1)">+ TEAM FOUL</button>
       <button class="btn bd" onclick="addTeamFoul('${side}',-1)" ${(team.teamFouls||0)<=0?'disabled':''}>− TEAM FOUL</button>
     </div>
-    <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--muted)">Current: <span style="color:var(--orange)">${team.teamFouls||0}</span> (unlimited)</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--muted)">Current: <span style="color:var(--accent-blue)">${team.teamFouls||0}</span></div>
   `));
   if(!team.players.length) return;
-  const sec=mkMod('PLAYERS — FOULS','');
-  const bod=sec.querySelector('.module-body');
+  const sec=mkMod('PLAYERS — FOULS',''); const bod=sec.querySelector('.module-body');
   const frag=document.createDocumentFragment();
   team.players.forEach((p,i)=>{
     const fouls=p.fouls||0,out=fouls>=5;
@@ -320,17 +295,14 @@ function renderBball(side,team,body,prevInputs){
     frag.appendChild(row);
     if(prev && prev.focused){ setTimeout(()=>{ try{ const el=document.getElementById(`pl-name-${side}-${i}`); if(el){ el.focus(); if(typeof prev.selStart==='number'&&typeof prev.selEnd==='number') el.setSelectionRange(prev.selStart,prev.selEnd); } }catch(e){} },0); }
   });
-  bod.appendChild(frag);
-  body.appendChild(sec);
+  bod.appendChild(frag); body.appendChild(sec);
 }
 
 function renderFtbl(side,team,body){
-  const reds=team.redCards||0;
-  let chips='<div class="card-chips">';
+  const reds=team.redCards||0; let chips='<div class="card-chips">';
   for(let r=0;r<reds;r++)chips+='<div class="chip r"></div>';
   if(!reds)chips+='<span style="color:var(--muted);font-size:0.8rem">No red cards</span>';
-  chips+='</div>';
-  chips+=`<div style="font-size:0.68rem;color:var(--muted);font-family:'JetBrains Mono',monospace">${reds} red cards</div>`;
+  chips+=`</div><div style="font-size:0.68rem;color:var(--muted);font-family:'JetBrains Mono',monospace">${reds} red cards</div>`;
   body.appendChild(mkMod('RED CARDS',chips+`
     <div class="row">
       <button class="btn br" onclick="addRed('${side}',1)">+ RED</button>
@@ -349,8 +321,7 @@ function renderRoster(side,team,body,prevInputs){
     </div>
   `));
   if(!team.players.length) return;
-  const sec=mkMod('TEAM ROSTER','');
-  const bod=sec.querySelector('.module-body');
+  const sec=mkMod('TEAM ROSTER',''); const bod=sec.querySelector('.module-body');
   const frag=document.createDocumentFragment();
   team.players.forEach((p,i)=>{
     const row=document.createElement('div');row.className='player-row';row.style.animationDelay=(i*0.03)+'s';
@@ -360,25 +331,19 @@ function renderRoster(side,team,body,prevInputs){
     inp.placeholder=`P${i+1}`;
     inp.oninput = e=>{ (side==='a'?S.teamA:S.teamB).players[i].name = e.target.value; save(); };
     inp.onblur = e=>{ const v = (e.target.value||'').trim()||`P${i+1}`; (side==='a'?S.teamA:S.teamB).players[i].name = v; save(true); };
-    row.appendChild(inp);
-    frag.appendChild(row);
+    row.appendChild(inp); frag.appendChild(row);
     if(prev && prev.focused){ setTimeout(()=>{ try{ const el=document.getElementById(`pl-name-${side}-${i}`); if(el){ el.focus(); if(typeof prev.selStart==='number'&&typeof prev.selEnd==='number') el.setSelectionRange(prev.selStart,prev.selEnd); } }catch(e){} },0); }
   });
-  bod.appendChild(frag);
-  body.appendChild(sec);
+  bod.appendChild(frag); body.appendChild(sec);
 }
 
 function renderCenter(){
-  const az=document.getElementById('action-zone');
-  az.innerHTML='';az.style.display='flex';az.style.flexDirection='column';az.style.gap='5px';
+  const az=document.getElementById('action-zone'); az.innerHTML='';az.style.display='flex';az.style.flexDirection='column';az.style.gap='5px';
   if(!S.matchEnded){
     if(!S.matchRunning&&!S.intermissionRunning){
       const hasPausedTime = S.timerSeconds>0 && S.timerSeconds<(S.roundMinutes*60);
-      if(hasPausedTime){
-        az.appendChild(mkBtn('▶ RESUME MATCH','btn bg big full',()=>{S.matchRunning=true;S.intermissionRunning=false;startTimer();save();renderAll();}));
-      }else{
-        az.appendChild(mkBtn('▶ START MATCH','btn bg big full',()=>{requestStartMatch();}));
-      }
+      if(hasPausedTime){ az.appendChild(mkBtn('▶ RESUME MATCH','btn bg big full',()=>{S.matchRunning=true;S.intermissionRunning=false;startTimer();save();renderAll();})); }
+      else{ az.appendChild(mkBtn('▶ START MATCH','btn bg big full',()=>{requestStartMatch();})); }
       az.appendChild(mkBtn('☕ START INTERMISSION','btn bo full',()=>{S.intermissionRunning=true;S.matchRunning=false;S.intermissionSeconds=S.intermissionMinutes*60;startTimer();save();renderAll();}));
     }else if(S.matchRunning){
       az.appendChild(mkBtn('⏸ PAUSE MATCH','btn bo big full',()=>{S.matchRunning=false;stopTimer();save();renderAll();}));
@@ -390,15 +355,14 @@ function renderCenter(){
   const rcb=document.getElementById('round-config-block');rcb.innerHTML='';
   if(S.sport==='basketball'||S.sport==='football'){
     const max=S.sport==='basketball'?4:2;
-    const rc=mkCtrlMod('ROUND',`
+    rcb.appendChild(mkCtrlMod('ROUND',`
       <div class="round-display">${S.round}</div>
       <div class="round-sublbl">${S.sport==='football'?'HALF':'QUARTER'} OF ${max}</div>
       <div class="row">
         <button class="btn bd" onclick="changeRound(-1)" ${S.round<=1?'disabled':''}>◀</button>
         <button class="btn bd" onclick="changeRound(1)"  ${S.round>=max?'disabled':''}>▶</button>
       </div>
-    `);
-    rcb.appendChild(rc);
+    `));
   }
   const tcb=document.getElementById('time-config-block');tcb.innerHTML='';
   if(S.sport==='basketball'||S.sport==='football'){
@@ -413,13 +377,13 @@ function renderCenter(){
   if(S.sport==='basketball'){
     tcb.appendChild(mkCtrlMod('SHOT CLOCK',`
       <div style="display:flex;align-items:center;gap:12px">
-        <div id="shotclock-disp" style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;padding:6px 10px;border-radius:8px;background:var(--raised);min-width:56px;text-align:center">${String(S.shotclockSeconds||15).padStart(2,'0')}</div>
+        <div id="shotclock-disp" style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;padding:6px 10px;border-radius:8px;background:var(--bg-panel);min-width:56px;text-align:center">${String(S.shotclockSeconds||15).padStart(2,'0')}</div>
         <div style="display:flex;flex-direction:column;gap:6px">
           <div style="display:flex;gap:6px">
             <button class="btn bg" onclick="startShotclockManager()">▶ START</button>
             <button class="btn bd" onclick="resetShotclockManager()">↺ RESET</button>
           </div>
-          <div style="font-size:0.78rem;color:var(--muted)">15 second shot clock</div>
+          <div style="font-size:0.78rem;color:var(--text-muted)">15 second shot clock</div>
         </div>
       </div>
     `));
@@ -433,40 +397,56 @@ function renderCenter(){
   `));
 }
 
-  /* SHOTCLOCK (manager-side control + messaging to billboard) */
-  function startShotclockManager(){
+/* SHOTCLOCK */
+function startShotclockManager(){
+  try{
+    if(scIntervalManager) clearInterval(scIntervalManager);
+    S.shotclockSeconds = 15; S.shotclockRunning = true;
+    scIntervalManager = setInterval(()=>{
+      S.shotclockSeconds = Math.max(0,(S.shotclockSeconds||15)-1); renderShotclockManager(); save();
+      if(S.shotclockSeconds<=0){ clearInterval(scIntervalManager); scIntervalManager=null; S.shotclockRunning=false; save(); }
+    },1000);
+    renderShotclockManager(); save();
     try{
-      if(scIntervalManager) clearInterval(scIntervalManager);
-      S.shotclockSeconds = 15;
-      S.shotclockRunning = true;
-      scIntervalManager = setInterval(()=>{
-        S.shotclockSeconds = Math.max(0,(S.shotclockSeconds||15)-1);
-        renderShotclockManager();
-        save();
-        if(S.shotclockSeconds<=0){ clearInterval(scIntervalManager); scIntervalManager=null; S.shotclockRunning=false; save(); }
-      },1000);
-      renderShotclockManager();
-      save();
-      const bb = window.open('billboard.html','HighScore_Billboard');
-      try{ if(bb && !bb.closed) bb.postMessage({type:'hs_shotclock', action:'start'}, '*'); }catch(e){}
+      if (window.HighScoreBridge && typeof window.HighScoreBridge.sendMessage === 'function') {
+        try { window.HighScoreBridge.sendMessage({ type: 'hs_shotclock', action: 'start' }); } catch(e) {}
+      } else { const bb = window.open('billboard.html','HighScore_Billboard'); if(bb && !bb.closed) bb.postMessage({type:'hs_shotclock', action:'start'}, '*'); }
     }catch(e){}
-  }
+  }catch(e){}
+}
 
-  function resetShotclockManager(){
+function resetShotclockManager(){
+  try{
+    if(scIntervalManager){ clearInterval(scIntervalManager); scIntervalManager=null; }
+    S.shotclockSeconds = 15; S.shotclockRunning = false;
+    renderShotclockManager(); save();
     try{
-      if(scIntervalManager){ clearInterval(scIntervalManager); scIntervalManager=null; }
-      S.shotclockSeconds = 15; S.shotclockRunning = false;
-      renderShotclockManager(); save();
-      const bb = window.open('billboard.html','HighScore_Billboard');
-      try{ if(bb && !bb.closed) bb.postMessage({type:'hs_shotclock', action:'reset'}, '*'); }catch(e){}
+      if (window.HighScoreBridge && typeof window.HighScoreBridge.sendMessage === 'function') {
+        try { window.HighScoreBridge.sendMessage({ type: 'hs_shotclock', action: 'reset' }); } catch(e) {}
+      } else { const bb = window.open('billboard.html','HighScore_Billboard'); try{ if(bb && !bb.closed) bb.postMessage({type:'hs_shotclock', action:'reset'}, '*'); }catch(e){} }
     }catch(e){}
-  }
+  }catch(e){}
+}
 
 /* HELPERS */
 function mkMod(title,bodyHtml,altTitle){const d=document.createElement('div');d.className='module';const hd=document.createElement('div');hd.className='module-hd';const dot=document.createElement('div');dot.className='dot';hd.appendChild(dot);const span=document.createElement('span');span.textContent=title||altTitle||'';hd.appendChild(span);const bd=document.createElement('div');bd.className='module-body';bd.innerHTML=bodyHtml;d.appendChild(hd);d.appendChild(bd);return d}
 function mkCtrlMod(title,bodyHtml){const d=document.createElement('div');d.className='ctrl-mod';d.innerHTML=`<div class="ctrl-hd">${title}</div><div class="ctrl-body">${bodyHtml}</div>`;return d}
 function mkBtn(text,cls,fn){const b=document.createElement('button');b.className=cls;b.innerHTML=text;b.onclick=fn;return b}
-function addScore(side,delta){const t=side==='a'?S.teamA:S.teamB;t.score=Math.max(0,t.score+delta);const d=document.getElementById('score-disp-'+side);if(d){d.classList.remove('pop');void d.offsetWidth;d.classList.add('pop');try{ if(window.gsap){ gsap.fromTo(d,{scale:0.9,opacity:0.7},{scale:1.14,opacity:1,duration:0.36,ease:'elastic.out(1,0.5)'}); } }catch(e){}}save();renderTeam('a');renderTeam('b')}
+
+function addScore(side,delta){
+  const t = side==='a' ? S.teamA : S.teamB;
+  t.score = Math.max(0, t.score + delta);
+  const d = document.getElementById('score-disp-'+side);
+  if(d){
+    d.classList.remove('pop'); void d.offsetWidth; d.classList.add('pop');
+    try{ if(window.gsap){ gsap.fromTo(d,{scale:0.9,opacity:0.7},{scale:1.14,opacity:1,duration:0.36,ease:'elastic.out(1,0.5)'}); } }catch(e){}
+  }
+  save(); renderTeam('a'); renderTeam('b');
+
+  // Fallback sound locally in manager
+  try{ const url = new URL('../../assets/sounds/score.mp3', location.href).href; const a = new Audio(url); a.volume = 0.85; a.play().catch(()=>{}); }catch(e){}
+}
+
 function resetScore(side){(side==='a'?S.teamA:S.teamB).score=0;save();renderTeam('a');renderTeam('b')}
 function addRed(side,delta){const t=side==='a'?S.teamA:S.teamB;t.redCards=Math.max(0,(t.redCards||0)+delta);save();renderTeam('a');renderTeam('b')}
 function resetCards(side){(side==='a'?S.teamA:S.teamB).redCards=0;save();renderTeam('a');renderTeam('b')}
@@ -477,33 +457,225 @@ function changeRound(delta){const max=S.sport==='basketball'?4:2;S.round=Math.ma
 function setRoundMins(){const mins=parseInt(document.getElementById('round-mins').value)||S.roundMinutes;S.roundMinutes=Math.max(1,Math.min(60,mins));S.timerSeconds=S.roundMinutes*60;save();renderAll()}
 function setIntMins(){const mins=parseInt(document.getElementById('int-mins').value)||S.intermissionMinutes;S.intermissionMinutes=Math.max(1,Math.min(60,mins));S.intermissionSeconds=S.intermissionMinutes*60;save();renderAll()}
 function confirmReset(){showModal('START NEW MATCH?','This will reset all scores, cards, fouls, and timers.',()=>{stopTimer();const sp=S.sport;S=JSON.parse(JSON.stringify(DEF));S.sport=sp;S.totalRounds=sp==='football'?2:4;S.roundMinutes=sp==='basketball'?15:sp==='football'?45:30;S.timerSeconds=S.roundMinutes*60;save();renderAll();})}
-function openBillboard(){window.open('billboard.html','HighScore_Billboard','width=1280,height=720,toolbar=no,menubar=no,scrollbars=no')}
+function openBillboard(){
+  if (window.HighScoreBridge && typeof window.HighScoreBridge.openBillboard === 'function') {
+    try { window.HighScoreBridge.openBillboard(); return; } catch(e) {}
+  }
+  window.open('billboard.html','HighScore_Billboard','width=1280,height=720,toolbar=no,menubar=no,scrollbars=no')
+}
 
-/* MODAL */
 function showModal(title,body,ok){document.getElementById('modal-title').textContent=title;document.getElementById('modal-body').textContent=body;document.getElementById('modal-ok').onclick=()=>{closeModal();ok();};document.getElementById('modal').classList.add('show')}
 function closeModal(){document.getElementById('modal').classList.remove('show')}
 
-/* GITHUB UPDATE CHECK */
-let latestRelease=null;const UPD={modal:document.getElementById('update-modal'),progressWrap:document.getElementById('upd-progress-wrap'),progressFill:document.getElementById('upd-progress-fill'),progressLabel:document.getElementById('upd-progress-label'),doneMsg:document.getElementById('upd-done-msg'),downloadBtn:document.getElementById('upd-download-btn'),searchBtn:document.getElementById('upd-search-btn'),result:document.getElementById('upd-result'),newVer:document.getElementById('upd-new-ver')};
+/* ── SETTINGS & MISTRAL AI LOGIC ── */
+function openSettingsModal() {
+  document.getElementById('set-ai-enable').checked = localStorage.getItem('hs_ai_enabled') === 'true';
+  document.getElementById('set-ai-key').value = localStorage.getItem('hs_mistral_key') || '';
+  document.getElementById('set-upd-interval').value = localStorage.getItem('hs_upd_interval') || 'none';
+  document.getElementById('settings-modal').classList.add('show');
+}
+function closeSettingsModal() { document.getElementById('settings-modal').classList.remove('show'); }
 
-function parseVersion(vstr){const s=(vstr||'').replace(/^v/i,'').trim();let m=s.match(/^(\d+)\.(\d+)\.(\d+)[\- _]?[Bb](\d+)$/i);if(m)return{major:+m[1],minor:+m[2],patch:+m[3],type:'beta',betaNum:+m[4]};m=s.match(/^(\d+)\.(\d+)\.(\d+)[\- _]?(?:RC|rc)(\d*)$/);if(m)return{major:+m[1],minor:+m[2],patch:+m[3],type:'rc',rcNum:(m[4]?+m[4]:0)};m=s.match(/^(\d+)\.(\d+)\.(\d+)$/);if(m)return{major:+m[1],minor:+m[2],patch:+m[3],type:'stable'};return null}
-function versionIsNewer(latest,current){if(!latest||!current)return false;if(latest.major!==current.major)return latest.major>current.major;if(latest.minor!==current.minor)return latest.minor>current.minor;if(latest.patch!==current.patch)return latest.patch>current.patch;const order={stable:3,rc:2,beta:1};const la=order[latest.type]||0, cu=order[current.type]||0;if(la!==cu)return la>cu;if(latest.type==='beta'&&current.type==='beta')return (latest.betaNum||0)>(current.betaNum||0);if(latest.type==='rc'&&current.type==='rc')return (latest.rcNum||0)>(current.rcNum||0);return false}
-function formatVersion(parsed,raw){if(!parsed)return raw||'?';if(parsed.type==='beta')return `V${parsed.major}.${parsed.minor}.${parsed.patch} Beta ${parsed.betaNum}`;return `V${parsed.major}.${parsed.minor}.${parsed.patch}`} 
+function saveSettings() {
+  const aiEnabled = document.getElementById('set-ai-enable').checked;
+  const aiKey = document.getElementById('set-ai-key').value.trim();
+  const updInterval = document.getElementById('set-upd-interval').value;
+  
+  localStorage.setItem('hs_ai_enabled', aiEnabled);
+  localStorage.setItem('hs_mistral_key', aiKey);
+  localStorage.setItem('hs_upd_interval', updInterval);
+  
+  document.getElementById('ai-widget').classList.toggle('enabled', aiEnabled);
+  if(updInterval !== 'none' && Notification.permission !== 'granted') { Notification.requestPermission(); }
+  closeSettingsModal(); setupUpdateTimer();
+}
 
-async function checkUpdate(){let localVersion=VERSION||'';try{if(window.UpdateChecker&&window.UpdateChecker.getLocalVersion){const lv=await window.UpdateChecker.getLocalVersion();if(lv) localVersion=lv;}}catch(e){}const curParsed=parseVersion(localVersion);if(!curParsed) return;try{const r=await fetch('https://api.github.com/repos/robert19066/HighScore/releases?per_page=10',{headers:{'Accept':'application/vnd.github.v3+json'},cache:'no-store'});let bestRelease=null,bestParsed=null;if(r.ok){const list=await r.json();for(const rel of list){const verStr=(rel.name&&rel.name.trim())?rel.name.trim():rel.tag_name||'';const p=parseVersion(verStr);if(!p)continue;if(versionIsNewer(p,curParsed)){if(!bestParsed||versionIsNewer(p,bestParsed)){bestParsed=p;bestRelease=rel;}}}}if(bestRelease&&bestParsed){latestRelease=bestRelease;document.getElementById('upd-new-ver').textContent=formatVersion(bestParsed,bestRelease.name||bestRelease.tag_name);} }catch(e){} }
+async function sendAiMessage() {
+  const inputEl = document.getElementById('ai-input');
+  const chatBox = document.getElementById('ai-chat-box');
+  const userMsg = inputEl.value.trim();
+  if(!userMsg) return;
 
-function openUpdateModal(){UPD.modal.classList.add('show');document.body.classList.add('modal-open');UPD.progressWrap.style.display='none';UPD.doneMsg.style.display='none';UPD.downloadBtn.style.display='';UPD.downloadBtn.disabled=false;UPD.downloadBtn.textContent='⬇ DOWNLOAD UPDATE'}
-function closeUpdateModal(){UPD.modal.classList.remove('show');document.body.classList.remove('modal-open')}
-function setUpdateBusy(isBusy,label){const searchBtn=UPD.searchBtn;const downloadBtn=UPD.downloadBtn;const progWrap=UPD.progressWrap;const progFill=UPD.progressFill;const progLabel=UPD.progressLabel;if(progLabel&&label)progLabel.textContent=label;if(isBusy){if(searchBtn)searchBtn.disabled=true;if(downloadBtn)downloadBtn.disabled=true;if(progWrap){progWrap.style.display='flex';progWrap.classList.add('busy');}if(progFill)progFill.style.width='55%';}else{if(searchBtn)searchBtn.disabled=false;if(downloadBtn)downloadBtn.disabled=false;if(progWrap)progWrap.classList.remove('busy');}}
-function getExeAsset(release){if(!release||!release.assets)return null;return release.assets.find(a=>a.name.toLowerCase().endsWith('.exe'))||null}
+  inputEl.value = '';
+  chatBox.innerHTML += `<div class="ai-msg user">${userMsg}</div>`;
+  chatBox.scrollTop = chatBox.scrollHeight;
 
-async function startDownload(){const btn=UPD.downloadBtn;const pw=UPD.progressWrap;const pf=UPD.progressFill;const pl=UPD.progressLabel;const done=UPD.doneMsg;btn.disabled=true;btn.textContent='DOWNLOADING…';pw.style.display='flex';pw.classList.remove('busy');pf.style.width='20%';pl.textContent='Starting download…';try{const ok=await window.UpdateChecker.downloadRelease(latestRelease);if(ok){pf.style.width='100%';pl.textContent='Complete! Opening file…';btn.style.display='none';done.style.display='';}else{pl.textContent='Opened release page';setTimeout(()=>{closeUpdateModal();},800);} }catch(e){pl.textContent='Error during download';console.warn(e);} finally{if(pw)pw.classList.remove('busy');try{btn.disabled=false;btn.textContent='⬇ DOWNLOAD UPDATE';}catch(e){}}}
+  const apiKey = localStorage.getItem('hs_mistral_key');
+  if(!apiKey) {
+    chatBox.innerHTML += `<div class="ai-msg bot">Error: Missing Mistral API Key in Settings.</div>`;
+    return;
+  }
 
-function checkForUpdatesClicked(e){setUpdateChannel(window.updateChannel||'stable');window.UpdateChecker && window.UpdateChecker.getLocalVersion && window.UpdateChecker.getLocalVersion().then(v=>{const lv=document.getElementById('upd-local-ver'); if(lv)lv.textContent=v||'-';}).catch(()=>{});UPD.result.textContent='';UPD.newVer.textContent='';UPD.downloadBtn.style.display='none';UPD.searchBtn.style.display='';UPD.progressWrap.style.display='none';UPD.progressWrap.classList.remove('busy');UPD.progressFill.style.width='0%';UPD.progressLabel.textContent='Preparing download…';UPD.modal.classList.add('show');document.body.classList.add('modal-open')}
+  const ta = S.teamA.name || 'Team A'; const tb = S.teamB.name || 'Team B';
+  const taKey = ta.replace(/\s+/g,'_'); const tbKey = tb.replace(/\s+/g,'_');
+  let ctx = `SCORE_${taKey}:${S.teamA.score}; SCORE_${tbKey}:${S.teamB.score}; `;
+  if(S.sport === 'football') { ctx += `RED_CARDS_${taKey}:${S.teamA.redCards||0}; RED_CARDS_${tbKey}:${S.teamB.redCards||0}; `; } 
+  else if(S.sport === 'basketball') { ctx += `TEAM_FOULS_${taKey}:${S.teamA.teamFouls||0}; TEAM_FOULS_${tbKey}:${S.teamB.teamFouls||0}; `; }
+  const promptStr = `{PROMPT:"${userMsg}"; ${ctx}}`;
 
-function setUpdateChannel(ch){window.updateChannel=ch||'stable';const sbtn=document.getElementById('upd-ch-stable');const bbtn=document.getElementById('upd-ch-beta');if(sbtn) sbtn.className = (window.updateChannel==='stable' ? 'btn bg' : 'btn bd');if(bbtn) bbtn.className = (window.updateChannel==='beta' ? 'btn bg' : 'btn bd');const topBtn=document.getElementById('check-update-btn'); if(topBtn) topBtn.textContent=`Check For Updates (${window.updateChannel})`}
+  chatBox.innerHTML += `<div class="ai-msg bot loading">...</div>`;
+  chatBox.scrollTop = chatBox.scrollHeight;
 
-function performUpdateSearch(){const ch=window.updateChannel||'stable';const searchBtn=document.getElementById('upd-search-btn');const resEl=document.getElementById('upd-result');const newver=document.getElementById('upd-new-ver');searchBtn.disabled=true; searchBtn.textContent='Searching…';setUpdateBusy(true,'Checking releases…');const listEl = document.getElementById('upd-list'); if(listEl) listEl.innerHTML='';newver.textContent=''; resEl.textContent='';window.UpdateChecker && window.UpdateChecker.getRecentReleases && window.UpdateChecker.getRecentReleases({channel:ch,count:3}).then(list=>{if(!list||!list.length){ resEl.textContent='No releases found for channel '+ch+'.'; const ub=document.getElementById('update-badge'); if(ub) ub.style.display='none'; return;}list.forEach(item=>{const rel=item.release;const parsed=item.parsed;const vtxt = formatVersion(parsed, rel.name||rel.tag_name);const date = rel.published_at? (new Date(rel.published_at)).toLocaleString() : '';const div=document.createElement('div');div.className='upd-item';const left=document.createElement('div');const h=document.createElement('div');h.className='ver';h.textContent=vtxt;left.appendChild(h);const meta=document.createElement('div');meta.className='meta';meta.textContent=date;left.appendChild(meta);const right=document.createElement('div');if(item.exe && item.exe.browser_download_url){const b=document.createElement('button');b.className='btn ba act-btn';b.textContent='⬇ Download';b.onclick=()=>{window.UpdateChecker.downloadRelease(rel);};right.appendChild(b);}else{const b=document.createElement('button');b.className='btn bd act-btn';b.textContent='Open Release';b.onclick=()=>{ if(rel.html_url) window.open(rel.html_url,'_blank');};right.appendChild(b);}div.appendChild(left);div.appendChild(right);if(listEl) listEl.appendChild(div);});const ub=document.getElementById('update-badge'); if(ub) ub.style.display='';}).catch(err=>{resEl.textContent='Check failed';console.warn(err);}).finally(()=>{setUpdateBusy(false,'Search complete');searchBtn.disabled=false;searchBtn.textContent='🔎 SEARCH';});}
+  try {
+    const res = await fetch('https://api.mistral.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({ model: 'mistral-tiny', messages: [{role: 'user', content: promptStr}] })
+    });
+    const data = await res.json();
+    const botReply = data.choices && data.choices[0] ? data.choices[0].message.content : 'Error processing request.';
+    document.querySelector('.ai-msg.bot.loading').remove();
+    chatBox.innerHTML += `<div class="ai-msg bot">${botReply}</div>`;
+  } catch(e) {
+    document.querySelector('.ai-msg.bot.loading').remove();
+    chatBox.innerHTML += `<div class="ai-msg bot" style="color:#ef4444;">Connection failed. Check API key.</div>`;
+  }
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+/* ── BACKGROUND UPDATE CHECK ── */
+let updTimer = null;
+function setupUpdateTimer() {
+  if(updTimer) clearInterval(updTimer);
+  const val = localStorage.getItem('hs_upd_interval');
+  if(!val || val === 'none') return;
+  const ms = parseInt(val) * 60 * 60 * 1000;
+  updTimer = setInterval(async () => {
+    try {
+      const r = await fetch(`https://api.github.com/repos/robert19066/HighScore/releases/latest`, {cache:'no-store'});
+      const rel = await r.json();
+      const latestParsed = typeof iosParseVer === 'function' ? iosParseVer(rel.name||rel.tag_name) : null;
+      
+      let localV = '';
+      if(window.UpdateChecker&&window.UpdateChecker.getLocalVersion) localV = await window.UpdateChecker.getLocalVersion();
+      const localParsed = typeof iosParseVer === 'function' ? iosParseVer(localV) : null;
+
+      if(typeof iosIsNewer === 'function' && iosIsNewer(latestParsed, localParsed)) {
+        const dot = document.getElementById('upd-notify-dot'); if(dot) dot.classList.add('show');
+        if(Notification.permission === 'granted') new Notification("HighScore Update", { body: `Version ${rel.name} is available!` });
+      }
+    } catch(e){}
+  }, ms);
+}
+
+/* ── IOS-STYLE UPDATER LOGIC ── */
+let _iosOpen = false;
+let _iosChecked = false;
+
+function iosParseVer(vstr){
+  const s=(vstr||'').replace(/^v/i,'').trim();
+  let m=s.match(/^(\d+)\.(\d+)\.(\d+)[\-_ ]?[Bb](\d+)$/i);
+  if(m)return{major:+m[1],minor:+m[2],patch:+m[3],type:'beta',betaNum:+m[4]};
+  m=s.match(/^(\d+)\.(\d+)\.(\d+)$/);
+  if(m)return{major:+m[1],minor:+m[2],patch:+m[3],type:'stable'};
+  return null;
+}
+
+function iosIsNewer(latest,current){
+  if(!latest||!current)return false;
+  if(latest.major!==current.major)return latest.major>current.major;
+  if(latest.minor!==current.minor)return latest.minor>current.minor;
+  if(latest.patch!==current.patch)return latest.patch>current.patch;
+  const ord={stable:3,beta:1}; return(ord[latest.type]||0)>(ord[current.type]||0);
+}
+
+function iosFmtVer(p,raw){ return raw||'?'; }
+
+function iosRenderReleases(list, localParsed, installDate){
+  const iosReleases = document.getElementById('ios-releases');
+  if(!iosReleases) return;
+  iosReleases.innerHTML='';
+  if(!list||!list.length){ iosReleases.innerHTML='<div style="text-align:center; color:#888;">No releases found</div>'; return; }
+
+  list.forEach((item,idx)=>{
+    const rel = item.release||item;
+    const parsed = item.parsed||iosParseVer(rel.name||rel.tag_name||'');
+    const vtxt = iosFmtVer(parsed,rel.name||rel.tag_name);
+    let desc = (rel.body||'').trim();
+    const exe = (rel.assets||[]).find(a=>a.name.toLowerCase().endsWith('.exe'));
+
+    let imgSrc = '';
+    desc = desc.replace(/!\[.*?\]\((.*?)\)/, (match, url) => {
+      if(!imgSrc) imgSrc = url;
+      return ''; 
+    });
+    const shortDesc = desc.length>300 ? desc.slice(0,300)+'…' : desc;
+
+    const card = document.createElement('div');
+    card.className='ios-release-card';
+    card.innerHTML=`
+      <div class="irc-top"><span class="irc-ver">${vtxt}</span></div>
+      ${imgSrc ? `<img src="${imgSrc}" class="irc-img">` : ''}
+      ${shortDesc ? `<div class="irc-desc">${shortDesc}</div>` : ''}
+      <div class="irc-actions">
+        ${exe ? `<button class="irc-btn-dl" onclick="iosDownload(${idx})">⬇ Download</button>` : ''}
+        ${rel.html_url ? `<button class="irc-btn-web" onclick="window.open('${rel.html_url}','_blank')">GitHub Release</button>` : ''}
+      </div>
+    `;
+    iosReleases.appendChild(card);
+    if(window.gsap) gsap.from(card,{opacity:0,y:10,duration:0.3,delay:idx*0.05});
+  });
+  window._iosReleaseList = list;
+}
+
+async function iosDownload(idx){
+  const item = window._iosReleaseList[idx];
+  const btns = document.querySelectorAll('.irc-btn-dl');
+  btns.forEach(b=>{b.disabled=true; b.textContent='Downloading…';});
+  try{
+    await window.UpdateChecker.downloadRelease(item.release||item);
+    btns.forEach(b=>{b.textContent='Downloaded! Check Downloads folder.';});
+  }catch(e){
+    btns.forEach(b=>{b.disabled=false; b.textContent='Error. Try Web Link';});
+  }
+}
+
+async function iosDoSearch(){
+  if(_iosChecked)return; _iosChecked=true;
+  const iosReleases = document.getElementById('ios-releases');
+  const iosLocalVerLbl = document.getElementById('ios-local-ver-lbl');
+  const iosNotifyDot = document.getElementById('upd-notify-dot');
+  
+  if(iosReleases) iosReleases.innerHTML='<div style="text-align:center;color:#888;">Checking...</div>';
+  
+  let localVersion=''; let localParsed=null;
+  try{
+    if(window.UpdateChecker&&window.UpdateChecker.getLocalVersion) localVersion = await window.UpdateChecker.getLocalVersion();
+  }catch(e){}
+  localParsed=iosParseVer(localVersion);
+  if(iosLocalVerLbl) iosLocalVerLbl.textContent=localVersion?`Installed: ${localVersion}`:'Installed: Unknown';
+
+  try{
+    const r=await fetch(`https://api.github.com/repos/robert19066/HighScore/releases?per_page=5`,{cache:'no-store'});
+    const raw=await r.json();
+    const list=raw.map(rel=>({ release:rel, parsed:iosParseVer(rel.name||rel.tag_name||'') }));
+    if(list.length && iosIsNewer(list[0].parsed, localParsed)){ if(iosNotifyDot) iosNotifyDot.classList.add('show'); }
+    iosRenderReleases(list, localParsed, null);
+  }catch(err){ if(iosReleases) iosReleases.innerHTML=`<div style="color:#ef4444;">Error checking updates</div>`; }
+}
+
+function openUpdateSheet(){
+  _iosOpen=true; 
+  const iosSheet = document.getElementById('ios-update-sheet');
+  const iosSheetBox = document.getElementById('ios-sheet-box');
+  if(iosSheet) iosSheet.classList.add('open');
+  if(window.gsap && iosSheetBox) gsap.fromTo(iosSheetBox, {y:'100%'}, {y:0,duration:0.4,ease:'power3.out'});
+  iosDoSearch();
+}
+
+function closeUpdateSheet(){
+  const iosSheet = document.getElementById('ios-update-sheet');
+  const iosSheetBox = document.getElementById('ios-sheet-box');
+  if(window.gsap && iosSheetBox) {
+    gsap.to(iosSheetBox,{y:'100%',duration:0.3,ease:'power3.in',onComplete:()=>{ if(iosSheet) iosSheet.classList.remove('open'); _iosOpen=false; }});
+  } else {
+    if(iosSheet) iosSheet.classList.remove('open');
+    _iosOpen = false;
+  }
+}
+
+/* ALPINE APP ROOT */
+function managerApp(){ return{ init(){} }; }
 
 /* INIT */
 let VERSION='';
@@ -516,18 +688,19 @@ if(window.UpdateChecker&&window.UpdateChecker.getLocalVersion){window.UpdateChec
 function initSportFromState(){const s=S.sport||'basketball';S.sport=s;const pi=document.getElementById('pill-icon'); if(pi) pi.textContent=SPORT_ICONS[s]||'🏀';const pn=document.getElementById('pill-name'); if(pn) pn.textContent=SPORT_NAMES[s]||'BASKETBALL';S.totalRounds = s==='football'?2:4;S.roundMinutes = S.roundMinutes|| (s==='basketball'?15:s==='football'?45:30);S.intermissionMinutes = S.intermissionMinutes||15;S.timerSeconds = S.timerSeconds||S.roundMinutes*60;S.intermissionSeconds = S.intermissionSeconds||S.intermissionMinutes*60;const sel=document.getElementById('sport-selector'); if(sel) sel.style.display='none';renderAll();}
 
 if(S.sport) initSportFromState();
-
-// Resume shotclock if state indicates it was running
 if(S.shotclockRunning){
   try{
     if(scIntervalManager) clearInterval(scIntervalManager);
     scIntervalManager = setInterval(()=>{
-      S.shotclockSeconds = Math.max(0,(S.shotclockSeconds||15)-1);
-      renderShotclockManager();
-      save();
+      S.shotclockSeconds = Math.max(0,(S.shotclockSeconds||15)-1); renderShotclockManager(); save();
       if(S.shotclockSeconds<=0){ clearInterval(scIntervalManager); scIntervalManager=null; S.shotclockRunning=false; save(); }
     },1000);
   }catch(e){}
 }
 
-// Automatic update checks disabled — use the "Check For Updates" button
+// Restore widget UI visibility on load
+if(localStorage.getItem('hs_ai_enabled') === 'true') {
+  const w = document.getElementById('ai-widget');
+  if(w) w.classList.add('enabled');
+}
+setupUpdateTimer();

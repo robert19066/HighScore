@@ -12,7 +12,7 @@ function assetPath(name){
 		return new URL(`../../assets/${name}`, location.href).href;
 	}catch(e){return 'assets/'+name;}
 }
-const SFX={countdown:assetPath('countdown.mp3'),matchstart:assetPath('matchstart.mp3'),foulOrRed:assetPath('foulOrRedCard.mp3'),matchend:assetPath('matchend.mp3')};
+const SFX={countdown:assetPath('countdown.mp3'),matchstart:assetPath('matchstart.mp3'),foulOrRed:assetPath('foulOrRedCard.mp3'),matchend:assetPath('matchend.mp3'),score:assetPath('sounds/score.mp3')};
 
 // Aggressive audio memory optimization: tiny lazy pool of <audio> elements
 const AudioPool = {
@@ -312,6 +312,7 @@ function renderBillboard(s){
 			gsap.fromTo(elScoreA,{scale:0.88,filter:'brightness(3)'},{scale:1,filter:'brightness(1)',duration:.55,ease:'elastic.out(1.2,0.5)'});
 		}
 		triggerFlash(s.teamA,'a');
+		try{ playSound('score'); }catch(e){}
 	}
 	if(elScoreB&&prevB!==-1&&s.teamB.score>prevB){
 		elScoreB.classList.remove('bump');void elScoreB.offsetWidth;elScoreB.classList.add('bump');
@@ -319,6 +320,7 @@ function renderBillboard(s){
 			gsap.fromTo(elScoreB,{scale:0.88,filter:'brightness(3)'},{scale:1,filter:'brightness(1)',duration:.55,ease:'elastic.out(1.2,0.5)'});
 		}
 		triggerFlash(s.teamB,'b');
+		try{ playSound('score'); }catch(e){}
 	}
 	if(elScoreA)elScoreA.textContent=s.teamA.score??0;
 	if(elScoreB)elScoreB.textContent=s.teamB.score??0;
@@ -443,6 +445,11 @@ window.addEventListener('message', e => {
 		// Match end / show winner
 		if(d.type === 'hs_match_end'){
 			try{ showWinner(d.winner, d.scoreA, d.scoreB, d.duration||10); }catch(err){}
+			return;
+		}
+		// Play a specific SFX on demand
+		if(d.type === 'hs_play_sfx'){
+			try{ if(d.key) playSound(d.key); }catch(e){}
 			return;
 		}
 	}catch(err){}

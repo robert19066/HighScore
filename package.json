@@ -1,6 +1,6 @@
 {
   "name": "highscore",
-  "version": "2.5.5",
+  "version": "3.0.0B1",
   "description": "Bilboard App for Sports",
   "homepage": "https://github.com/robert19066/HighScore#readme",
   "bugs": {
@@ -29,8 +29,7 @@
     "electron-builder": "^26.8.1",
     "tailwindcss": "^3.4.8",
     "postcss": "^8.4.21",
-    "autoprefixer": "^10.4.14",
-    "esbuild": "^0.17.19"
+    "autoprefixer": "^10.4.14"
   },
   "build": {
     "appId": "com.highscore.app",
